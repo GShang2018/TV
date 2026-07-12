@@ -91,6 +91,7 @@
     <string name="setting_site_search">站源搜索</string>
     <string name="setting_remove_ad">AI去广告</string>
     <string name="setting_debug">调试模式</string>
+    <string name="dialog_type_title">选择分类</string>
     <string name="setting_small_window_back_key">小窗返回键</string>
     <string name="setting_home_display_name">首页显示站源</string>
     <string name="setting_home_ui">首页UI</string>

@@ -12,6 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
         jcenter()
         google()
+        maven { url "https://chaquo.com/maven" }
         flatDir {
             dirs "$rootDir/app/libs", "$rootDir/quickjs/libs"
         }
@@ -35,4 +36,5 @@ include ':youtube'
 include ':jianpian'
 include ':forcetech'
 include ':ijkplayer'
+include ':pyramid'
 rootProject.name = "TV"

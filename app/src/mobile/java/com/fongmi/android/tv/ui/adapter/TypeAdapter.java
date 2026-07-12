@@ -10,6 +10,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.databinding.AdapterTypeBinding;
+import com.fongmi.android.tv.databinding.AdapterTypeDialogBinding;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
@@ -19,10 +20,16 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
     private final List<Class> mItems;
+    private final boolean dialog;
 
     public TypeAdapter(OnClickListener listener) {
+        this(listener, false);
+    }
+
+    public TypeAdapter(OnClickListener listener, boolean dialog) {
         this.mListener = listener;
         this.mItems = new ArrayList<>();
+        this.dialog = dialog;
     }
 
     public interface OnClickListener {
@@ -49,6 +56,17 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    public void addAll(List<Class> items) {
+        mItems.clear();
+        mItems.addAll(items);
+        if (mItems.size() > 0) mItems.get(0).setActivated(true);
+        notifyDataSetChanged();
+    }
+
+    public List<Class> getItems() {
+        return mItems;
+    }
+
     public void setActivated(int position) {
         for (Class item : mItems) item.setActivated(false);
         mItems.get(position).setActivated(true);
@@ -67,24 +85,29 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterTypeBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        if (dialog) {
+            AdapterTypeDialogBinding b = AdapterTypeDialogBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            return new ViewHolder(b.getRoot(), b.text);
+        }
+        AdapterTypeBinding b = AdapterTypeBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new ViewHolder(b.getRoot(), b.text);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Class item = mItems.get(position);
-        holder.binding.text.setText(item.getTypeName());
-        holder.binding.text.setActivated(item.isActivated());
-        holder.binding.text.setOnClickListener(v -> mListener.onItemClick(position, item));
+        holder.text.setText(item.getTypeName());
+        holder.text.setActivated(item.isActivated());
+        holder.text.setOnClickListener(v -> mListener.onItemClick(position, item));
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final AdapterTypeBinding binding;
+        final android.widget.TextView text;
 
-        ViewHolder(@NonNull AdapterTypeBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
+        ViewHolder(@NonNull android.view.View root, android.widget.TextView text) {
+            super(root);
+            this.text = text;
         }
     }
 }

@@ -92,6 +92,7 @@
     <string name="setting_site_search">Site search</string>
     <string name="setting_remove_ad">Remove ads</string>
     <string name="setting_debug">Debug mode</string>
+    <string name="dialog_type_title">Select category</string>
     <string name="setting_small_window_back_key">Small window back key</string>
     <string name="setting_home_display_name">Home display name</string>
     <string name="setting_home_ui">Home ui style</string>

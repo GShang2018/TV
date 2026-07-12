@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.ViewPager;
 
@@ -53,6 +54,7 @@ import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.ui.dialog.TypeDialog;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -126,6 +128,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.search.setOnClickListener(this::onSearch);
         mBinding.searchIcon.setOnClickListener(this::onSearchIcon);
         mBinding.history.setOnClickListener(this::onHistory);
+        mBinding.typeMore.setOnClickListener(this::onTypeMore);
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
@@ -193,6 +196,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         setFabVisible(0);
         hideProgress();
         checkRetry();
+        mBinding.typeLayout.post(this::checkTypeOverflow);
     }
 
     private void setFabVisible(int position) {
@@ -272,6 +276,18 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
     private void onHistory(View view) {
         HistoryActivity.start(getActivity());
+    }
+
+    private void checkTypeOverflow() {
+        if (mAdapter == null || mBinding.type.getLayoutManager() == null) return;
+        LinearLayoutManager llm = (LinearLayoutManager) mBinding.type.getLayoutManager();
+        int last = llm.findLastCompletelyVisibleItemPosition();
+        int total = mAdapter.getItemCount() - 1;
+        mBinding.typeMore.setVisibility(last < total ? View.VISIBLE : View.GONE);
+    }
+
+    private void onTypeMore(View view) {
+        TypeDialog.create(mAdapter.getItems(), mBinding.pager.getCurrentItem(), this).show(getChildFragmentManager(), null);
     }
 
     private void showProgress() {

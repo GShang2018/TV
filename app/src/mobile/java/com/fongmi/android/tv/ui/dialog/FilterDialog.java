@@ -1,17 +1,21 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.graphics.Rect;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.databinding.DialogFilterBinding;
 import com.fongmi.android.tv.impl.FilterCallback;
 import com.fongmi.android.tv.ui.adapter.FilterAdapter;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.List;
@@ -46,5 +50,13 @@ public class FilterDialog extends BaseDialog {
     protected void initView() {
         binding.recycler.setAdapter(new FilterAdapter(callback, filter));
         binding.recycler.setHasFixedSize(true);
+        int spacing = ResUtil.dp2px(8);
+        binding.recycler.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect outRect, @NonNull View view, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                outRect.top = spacing / 2;
+                outRect.bottom = spacing / 2;
+            }
+        });
     }
 }
