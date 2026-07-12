@@ -142,7 +142,13 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     private void setViewType(int viewType) {
         int count = Product.getColumn(this) - 1;
         mSearchAdapter.setViewType(viewType, count);
-        mSearchAdapter.setSize(Product.getSpec(this, ResUtil.dp2px(128 + (count) * 16), count));
+        // 固定 4:3 比例，考虑 item margin (8dp 左右各)
+        int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (count - 1));
+        // 每个 item 有左右各 8dp margin，所以图片宽度 = 分配空间 - 16dp
+        int itemWidth = (ResUtil.getScreenWidth(this) - space) / count;
+        int imageWidth = itemWidth - ResUtil.dp2px(16);
+        int imageHeight = imageWidth * 3 / 4;
+        mSearchAdapter.setSize(new int[]{imageWidth, imageHeight});
         ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(mSearchAdapter.isGrid() ? count : 1);
         mBinding.view.setImageResource(mSearchAdapter.isGrid() ? R.drawable.ic_action_list : R.drawable.ic_action_grid);
     }

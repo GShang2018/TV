@@ -3,17 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
+    android:layout_height="wrap_content"
     android:layout_margin="8dp"
     android:background="@drawable/shape_vod_list"
     android:foreground="@drawable/shape_vod">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image"
-        android:layout_width="90dp"
-        android:layout_height="match_parent"
+        android:layout_width="120dp"
+        android:layout_height="90dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
         android:background="@color/black_10"
-        android:scaleType="center"
+        android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/Vod.Grid"
         tools:src="@drawable/ic_img_loading" />
 
@@ -21,43 +23,53 @@
         android:id="@+id/site"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_vod_site"
+        android:layout_alignStart="@id/image"
+        android:layout_alignTop="@id/image"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/shape_vod_tag"
         android:ellipsize="end"
-        android:maxWidth="90dp"
+        android:maxWidth="100dp"
         android:singleLine="true"
         android:textColor="@color/white"
-        android:textSize="12sp"
+        android:textSize="11sp"
         android:visibility="gone"
         tools:text="泥巴"
         tools:visibility="visible" />
 
+    <TextView
+        android:id="@+id/remark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@id/image"
+        android:layout_alignBottom="@id/image"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/shape_vod_tag"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        tools:text="更新至第10集" />
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/image"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:layout_centerVertical="true"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/name"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="3"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            tools:text="蜘蛛人" />
-
-        <TextView
-            android:id="@+id/remark"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            tools:text="1080p" />
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            tools:text="蜘蛛人：英雄归来" />
 
     </LinearLayout>
+
 </RelativeLayout>

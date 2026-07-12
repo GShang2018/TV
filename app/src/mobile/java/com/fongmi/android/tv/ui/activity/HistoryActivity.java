@@ -13,6 +13,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.databinding.ActivityHistoryBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.ui.adapter.HistoryAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.SyncDialog;
@@ -52,7 +53,14 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
         mBinding.recycler.getItemAnimator().setChangeDuration(0);
         mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn(this)));
         mBinding.recycler.setAdapter(mAdapter = new HistoryAdapter(this));
-        mAdapter.setSize(Product.getSpec(getActivity()));
+        // 固定 4:3 比例，考虑 item margin (8dp 左右各)
+        int column = Product.getColumn(this);
+        int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1));
+        // 每个 item 有左右各 8dp margin，所以图片宽度 = 分配空间 - 16dp
+        int itemWidth = (ResUtil.getScreenWidth(this) - space) / column;
+        int imageWidth = itemWidth - ResUtil.dp2px(16);
+        int imageHeight = imageWidth * 3 / 4;
+        mAdapter.setSize(new int[]{imageWidth, imageHeight});
     }
 
     private void getHistory() {
