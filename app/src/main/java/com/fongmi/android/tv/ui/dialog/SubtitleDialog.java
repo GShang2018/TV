@@ -15,6 +15,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.DialogSubtitleBinding;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.SubtitleUtils;
 import com.github.bassaer.library.MDColor;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -69,23 +70,23 @@ public final class SubtitleDialog extends BaseDialog {
     }
 
     private void onUp(View view) {
-        subtitleView.addBottomPadding(0.005f);
-        Setting.putSubtitleBottomPadding(subtitleView.getBottomPadding());
+        SubtitleUtils.addBottomPadding(subtitleView, 0.005f);
+        Setting.putSubtitleBottomPadding(SubtitleUtils.getBottomPadding(subtitleView));
     }
 
     private void onDown(View view) {
-        subtitleView.subBottomPadding(0.005f);
-        Setting.putSubtitleBottomPadding(subtitleView.getBottomPadding());
+        SubtitleUtils.subBottomPadding(subtitleView, 0.005f);
+        Setting.putSubtitleBottomPadding(SubtitleUtils.getBottomPadding(subtitleView));
     }
 
     private void onLarge(View view) {
-        subtitleView.addTextSize(0.002f);
-        Setting.putSubtitleTextSize(subtitleView.getTextSize());
+        SubtitleUtils.addTextSize(subtitleView, 0.002f);
+        Setting.putSubtitleTextSize(SubtitleUtils.getTextSize(subtitleView));
     }
 
     private void onSmall(View view) {
-        subtitleView.subTextSize(0.002f);
-        Setting.putSubtitleTextSize(subtitleView.getTextSize());
+        SubtitleUtils.subTextSize(subtitleView, 0.002f);
+        Setting.putSubtitleTextSize(SubtitleUtils.getTextSize(subtitleView));
     }
 
     private void onReset(View view) {
