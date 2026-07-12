@@ -8,11 +8,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
+import android.content.Intent;
+import android.net.Uri;
+
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.FragmentSettingCustomBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -51,6 +55,7 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.homeDisplayNameText.setText(getSwitch(Setting.isHomeDisplayName()));
         mBinding.siteSearchText.setText(getSwitch(Setting.isSiteSearch()));
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+        mBinding.debugText.setText(getSwitch(Setting.isDebug()));
         mBinding.languageText.setText((lang = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
     }
@@ -65,6 +70,7 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.homeDisplayName.setOnClickListener(this::setHomeDisplayName);
         mBinding.siteSearch.setOnClickListener(this::setSiteSearch);
         mBinding.removeAd.setOnClickListener(this::setRemoveAd);
+        mBinding.debug.setOnClickListener(this::setDebug);
         mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
         mBinding.reset.setOnClickListener(this::onReset);
@@ -121,6 +127,17 @@ public class SettingCustomFragment extends BaseFragment {
     private void setRemoveAd(View view) {
         Setting.putRemoveAd(!Setting.isRemoveAd());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+    }
+
+    private void setDebug(View view) {
+        boolean debug = !Setting.isDebug();
+        Setting.putDebug(debug);
+        mBinding.debugText.setText(getSwitch(debug));
+        if (debug) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(Server.get().getAddress("/log.html")));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
     }
 
     private void setLanguage(View view) {

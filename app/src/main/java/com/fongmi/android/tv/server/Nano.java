@@ -71,6 +71,7 @@ public class Nano extends NanoHTTPD {
         Map<String, String> files = new HashMap<>();
         if (session.getMethod() == Method.POST) parse(session, files);
         if (url.contains("?")) url = url.substring(0, url.indexOf('?'));
+        if (url.startsWith("/log-data")) return success(LogBuffer.poll());
         if (url.startsWith("/go")) return go();
         if (url.startsWith("/tvbus")) return success(LiveConfig.getResp());
         if (url.startsWith("/device")) return success(Device.get().toString());

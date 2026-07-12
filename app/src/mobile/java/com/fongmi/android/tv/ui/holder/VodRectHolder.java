@@ -37,6 +37,12 @@ public class VodRectHolder extends BaseVodHolder {
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
+        // 文件夹类型使用专门的文件夹图标
+        if (item.isFolder()) {
+            binding.image.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+            binding.image.setImageResource(com.fongmi.android.tv.R.drawable.ic_folder);
+        } else {
+            ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
+        }
     }
 }

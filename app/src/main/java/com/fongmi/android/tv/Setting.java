@@ -550,6 +550,14 @@ public class Setting {
         Prefers.put("remove_ad", remove);
     }
 
+    public static boolean isDebug() {
+        return Prefers.getBoolean("debug", false);
+    }
+
+    public static void putDebug(boolean debug) {
+        Prefers.put("debug", debug);
+    }
+
     public static String getThunderCacheDir() {
         return Prefers.getString("thunder_cache_dir", "");
     }

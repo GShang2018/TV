@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.server.LogBuffer;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -91,7 +92,13 @@ public class App extends Application {
         return new AndroidLogAdapter(PrettyFormatStrategy.newBuilder().methodCount(0).showThreadInfo(false).tag("").build()) {
             @Override
             public boolean isLoggable(int priority, String tag) {
-                return true;
+                return Setting.isDebug();
+            }
+
+            @Override
+            public void log(int priority, String tag, String message) {
+                super.log(priority, tag, message);
+                LogBuffer.append(message);
             }
         };
     }
