@@ -103,6 +103,21 @@ public class App extends Application {
         };
     }
 
+    private void preInitPython() {
+        try {
+            Class.forName("com.chaquo.python.Python");
+            App.execute(() -> {
+                try {
+                    Class<?> clz = Class.forName("com.chaquo.python.Python");
+                    Class<?> platformClz = Class.forName("com.chaquo.python.android.AndroidPlatform");
+                    clz.getMethod("start", platformClz).invoke(null, platformClz.getConstructor(android.content.Context.class).newInstance(this));
+                } catch (Exception ignored) {
+                }
+            });
+        } catch (Exception ignored) {
+        }
+    }
+
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -117,6 +132,7 @@ public class App extends Application {
         Logger.addLogAdapter(getLogAdapter());
         OkHttp.get().setProxy(Setting.getProxy());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
+        preInitPython();
         CaocConfig.Builder.create().backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
