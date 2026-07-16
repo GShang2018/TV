@@ -10,11 +10,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * HLS 广告滤除解析器。
  * 分析 M3U8 播放清单内容，通过多种策略检测并移除广告片段。
  * 移植自 TV-fongmi 项目的 HlsAdsParser。
+ * <p>
+ * 支持外部 JSON 规则配置，通过 host 匹配 + 正则表达式过滤广告片段。
+ * 外部规则格式：
+ * <pre>
+ * {
+ *   "rules": [
+ *     {"name": "proxy", "hosts": []},
+ *     {"name": "磁力廣告", "hosts": ["magnet"], "regex": ["更多", "社區"]},
+ *     {"name": "量子廣告", "hosts": ["vip.lz", "hd.lz", "v.cdnlz"], "regex": ["#EXT-X-DISCONTINUITY\\\\r*\\\\n*#EXTINF:6.433333,[\\\\s\\\\S]*?#EXT-X-DISCONTINUITY"]}
+ *   ]
+ * }
+ * </pre>
  */
 public final class HlsAdsParser {
 
@@ -43,16 +57,41 @@ public final class HlsAdsParser {
     private static final int INDEX_UNSET = -1;
 
     /**
-     * 处理 M3U8 播放清单内容，滤除广告片段。
+     * 处理 M3U8 播放清单内容，滤除广告片段（使用内置启发式分析）。
      *
      * @param m3u8 原始 M3U8 播放清单内容
      * @return 滤除广告后的播放清单内容
      */
     public static String process(String m3u8) {
+        return process(m3u8, null, null);
+    }
+
+    /**
+     * 处理 M3U8 播放清单内容，滤除广告片段。
+     * 优先使用外部规则（如果匹配），否则回退到内置启发式分析。
+     *
+     * @param m3u8   原始 M3U8 播放清单内容
+     * @param url    M3U8 播放清单的 URL（用于 host 匹配），可为 null
+     * @param adRule 外部广告规则配置，可为 null
+     * @return 滤除广告后的播放清单内容
+     */
+    public static String process(String m3u8, String url, AdRule adRule) {
         if (TextUtils.isEmpty(m3u8) || !m3u8.contains(TAG_ENDLIST)) {
             return m3u8;
         }
         Log.d(TAG, "開始執行 HlsAdsParser。");
+
+        // 优先使用外部规则进行正则匹配
+        if (adRule != null && !TextUtils.isEmpty(url) && adRule.matchesHost(url)) {
+            Log.d(TAG, "外部規則匹配 URL: " + url + "，使用正則表達式過濾。");
+            String filtered = filterByRegex(m3u8, adRule, url);
+            if (filtered != null) {
+                return filtered;
+            }
+            Log.d(TAG, "外部規則正則過濾未產生結果，回退到啟發式分析。");
+        }
+
+        // 回退到内置启发式分析
         String[] lines = m3u8.split("\\r?\\n");
         Set<Integer> adSegmentIndexes = findAds(lines);
         if (adSegmentIndexes.isEmpty()) {
@@ -61,6 +100,79 @@ public final class HlsAdsParser {
         }
         Log.d(TAG, "偵測到 " + adSegmentIndexes.size() + " 個廣告片段，開始重建播放清單。");
         return rebuildM3u8(lines, adSegmentIndexes, m3u8.length());
+    }
+
+    /**
+     * 使用外部规则中的正则表达式过滤 M3U8 内容。
+     * 将匹配正则的片段（#EXTINF + 对应的 ts URL 行）移除。
+     *
+     * @param m3u8   原始 M3U8 内容
+     * @param adRule 广告规则
+     * @param url    M3U8 URL
+     * @return 过滤后的 M3U8 内容，如果无匹配则返回 null
+     */
+    private static String filterByRegex(String m3u8, AdRule adRule, String url) {
+        List<Pattern> patterns = adRule.getCompiledPatterns(url);
+        if (patterns.isEmpty()) {
+            Log.d(TAG, "外部規則沒有正則表達式，跳過。");
+            return null;
+        }
+
+        String result = m3u8;
+        boolean anyMatch = false;
+        for (Pattern pattern : patterns) {
+            Matcher matcher = pattern.matcher(result);
+            if (matcher.find()) {
+                anyMatch = true;
+                Log.d(TAG, "正則匹配成功: " + pattern.pattern());
+                // 移除所有匹配的内容
+                result = matcher.replaceAll("");
+            }
+        }
+
+        if (!anyMatch) {
+            Log.d(TAG, "外部規則正則未匹配任何內容。");
+            return null;
+        }
+
+        // 清理多余的空行和孤立的 DISCONTINUITY 标签
+        result = cleanupM3u8(result);
+
+        Log.d(TAG, "外部規則過濾完成，大小: " + m3u8.length() + " -> " + result.length() + " 字節");
+        return result;
+    }
+
+    /**
+     * 清理过滤后的 M3U8 内容：移除多余空行、孤立的 DISCONTINUITY 标签。
+     */
+    private static String cleanupM3u8(String m3u8) {
+        if (TextUtils.isEmpty(m3u8)) return m3u8;
+
+        String[] lines = m3u8.split("\\r?\\n");
+        List<String> cleaned = new ArrayList<>(lines.length);
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+
+            // 移除孤立的 DISCONTINUITY 标签（前后没有实际片段）
+            if (line.equals(TAG_DISCONTINUITY)) {
+                boolean prevIsDiscontinuityOrBoundary = i == 0 || (i > 0 && lines[i - 1].trim().equals(TAG_DISCONTINUITY));
+                String nextLine = i + 1 < lines.length ? lines[i + 1].trim() : null;
+                boolean nextIsDiscontinuityOrBoundary = nextLine == null || nextLine.equals(TAG_DISCONTINUITY) || nextLine.equals(TAG_ENDLIST);
+                if (prevIsDiscontinuityOrBoundary || nextIsDiscontinuityOrBoundary) {
+                    continue;
+                }
+            }
+
+            cleaned.add(line);
+        }
+
+        StringBuilder builder = new StringBuilder(m3u8.length());
+        for (String line : cleaned) {
+            builder.append(line).append("\n");
+        }
+        return builder.toString();
     }
 
     private static Set<Integer> findAds(String[] lines) {

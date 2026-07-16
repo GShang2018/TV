@@ -550,6 +550,14 @@ public class Setting {
         Prefers.put("remove_ad", remove);
     }
 
+    public static String getAdRulesUrl() {
+        return Prefers.getString("ad_rules_url", "");
+    }
+
+    public static void putAdRulesUrl(String url) {
+        Prefers.put("ad_rules_url", url);
+    }
+
     public static boolean isDebug() {
         return Prefers.getBoolean("debug", false);
     }
