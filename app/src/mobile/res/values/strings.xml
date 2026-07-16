@@ -11,6 +11,7 @@
 
     <!-- Vod -->
     <string name="vod_home">Home</string>
+    <string name="vod_type">分类</string>
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>
