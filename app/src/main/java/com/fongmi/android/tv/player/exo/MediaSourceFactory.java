@@ -87,7 +87,11 @@ public class MediaSourceFactory implements MediaSource.Factory {
     }
 
     private DataSource.Factory getDataSourceFactory() {
-        if (dataSourceFactory == null) dataSourceFactory = buildReadOnlyCacheDataSource(new DefaultDataSource.Factory(App.get(), getHttpDataSourceFactory()));
+        if (dataSourceFactory == null) {
+            DataSource.Factory baseFactory = buildReadOnlyCacheDataSource(new DefaultDataSource.Factory(App.get(), getHttpDataSourceFactory()));
+            // 包装广告滤除数据源
+            dataSourceFactory = new AdFilteringDataSourceFactory(baseFactory);
+        }
         return dataSourceFactory;
     }
 
