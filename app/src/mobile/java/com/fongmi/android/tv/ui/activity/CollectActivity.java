@@ -140,17 +140,26 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void setViewType(int viewType) {
+        Setting.putViewType(viewType);
         int count = Product.getColumn(this) - 1;
         mSearchAdapter.setViewType(viewType, count);
-        // 固定 4:3 比例，考虑 item margin (8dp 左右各)
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (count - 1));
-        // 每个 item 有左右各 8dp margin，所以图片宽度 = 分配空间 - 16dp
         int itemWidth = (ResUtil.getScreenWidth(this) - space) / count;
         int imageWidth = itemWidth - ResUtil.dp2px(16);
-        int imageHeight = imageWidth * 3 / 4;
+        int imageHeight;
+        if (viewType == ViewType.PORTRAIT) {
+            // 3:4 纵向封面（竖屏海报）
+            imageHeight = imageWidth * 4 / 3;
+            mBinding.view.setImageResource(R.drawable.ic_action_portrait);
+        } else {
+            // 4:3 横向封面（横屏海报）
+            imageHeight = imageWidth * 3 / 4;
+            mBinding.view.setImageResource(R.drawable.ic_action_grid);
+        }
         mSearchAdapter.setSize(new int[]{imageWidth, imageHeight});
-        ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(mSearchAdapter.isGrid() ? count : 1);
-        mBinding.view.setImageResource(mSearchAdapter.isGrid() ? R.drawable.ic_action_list : R.drawable.ic_action_grid);
+        ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(count);
+        // 强制刷新列表
+        mSearchAdapter.notifyDataSetChanged();
     }
 
     private void setViewModel() {
@@ -241,7 +250,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void toggleView(View view) {
-        setViewType(mSearchAdapter.isGrid() ? ViewType.LIST : ViewType.GRID);
+        setViewType(mSearchAdapter.isGrid() ? ViewType.PORTRAIT : ViewType.GRID);
     }
 
     private void showAgent() {

@@ -9,10 +9,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterVodOneBinding;
+import com.fongmi.android.tv.databinding.AdapterVodPortraitBinding;
 import com.fongmi.android.tv.databinding.AdapterVodRectBinding;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.holder.VodOneHolder;
+import com.fongmi.android.tv.ui.holder.VodPortraitHolder;
 import com.fongmi.android.tv.ui.holder.VodRectHolder;
 
 import java.util.ArrayList;
@@ -44,12 +46,12 @@ public class SearchAdapter extends RecyclerView.Adapter<BaseVodHolder> {
         return size[0];
     }
 
-    public boolean isList() {
-        return viewType == ViewType.LIST;
-    }
-
     public boolean isGrid() {
         return viewType == ViewType.GRID;
+    }
+
+    public boolean isPortrait() {
+        return viewType == ViewType.PORTRAIT;
     }
 
     public void setAll(List<Vod> items) {
@@ -86,7 +88,12 @@ public class SearchAdapter extends RecyclerView.Adapter<BaseVodHolder> {
     @NonNull
     @Override
     public BaseVodHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == ViewType.LIST) return new VodOneHolder(AdapterVodOneBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener);
-        else return new VodRectHolder(AdapterVodRectBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener).size(size);
+        if (viewType == ViewType.PORTRAIT) {
+            return new VodPortraitHolder(AdapterVodPortraitBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener).size(size);
+        } else if (viewType == ViewType.LIST) {
+            return new VodOneHolder(AdapterVodOneBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener);
+        } else {
+            return new VodRectHolder(AdapterVodRectBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false), mListener).size(size);
+        }
     }
 }
