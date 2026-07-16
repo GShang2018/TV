@@ -2,6 +2,8 @@
 
     <color name="primary">@color/black</color>
     <color name="primaryDark">@color/black</color>
-    <color name="accent">@color/blue_500</color>
+    <color name="green_theme">#52b54b</color>
+
+    <color name="accent">@color/green_theme</color>
 
 </resources>

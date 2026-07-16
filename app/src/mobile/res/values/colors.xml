@@ -1,8 +1,10 @@
 <resources>
 
-    <color name="primary">@color/blue_500</color>
-    <color name="primaryDark">@color/blue_700</color>
-    <color name="accent">@color/blue_500</color>
+    <color name="green_theme">#1abc54</color>
+
+    <color name="primary">@color/green_theme</color>
+    <color name="primaryDark">@color/green_theme</color>
+    <color name="accent">@color/green_theme</color>
     <color name="indicator">@color/white_80</color>
 
 </resources>

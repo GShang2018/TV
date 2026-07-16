@@ -59,7 +59,7 @@ public class Setting {
     }
 
     public static int getWall() {
-        return Prefers.getInt("wall", 1);
+        return Prefers.getInt("wall", 4);
     }
 
     public static void putWall(int wall) {
