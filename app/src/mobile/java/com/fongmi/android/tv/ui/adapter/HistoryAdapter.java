@@ -97,6 +97,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         holder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
         holder.binding.progress.setMax((int) item.getDuration());
         holder.binding.progress.setProgress((int) item.getPosition());
+        holder.binding.progress.setVisibility(View.VISIBLE);
         ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
         setClickListener(holder.binding.getRoot(), item);
     }

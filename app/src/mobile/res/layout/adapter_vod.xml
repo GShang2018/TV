@@ -74,7 +74,8 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="6dp"
-        android:progressDrawable="@drawable/progress_history" />
+        android:progressDrawable="@drawable/progress_history"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/name"
