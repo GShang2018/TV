@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+
+<head>
+    <title>日誌</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0,viewport-fit=cover">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/ui.css">
+    <script src="js/jquery.min.js"></script>
+    <style>
+        html, body { height: 100%; margin: 0; background: #121212; }
+        .log-container { height: 100%; padding: 8px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #e0e0e0; }
+        .log-line { padding: 2px 4px; border-bottom: 1px solid #222; word-break: break-all; }
+        .log-control { position: fixed; top: 8px; right: 8px; z-index: 10; }
+        .log-control button { background: #333; color: #fff; border: 1px solid #555; padding: 4px 8px; margin-left: 4px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+
+<body>
+    <div class="log-control">
+        <button id="btnPause" onclick="togglePause()">暫停</button>
+        <button id="btnClear" onclick="clearLog()">清除</button>
+    </div>
+    <div class="log-container" id="logContainer"></div>
+
+    <script>
+        var paused = false;
+        var timer = null;
+
+        function togglePause() {
+            paused = !paused;
+            $('#btnPause').text(paused ? '繼續' : '暫停');
+        }
+
+        function clearLog() {
+            $('#logContainer').empty();
+        }
+
+        function fetchLog() {
+            if (paused) return;
+            $.ajax({
+                url: 'log-data',
+                method: 'GET',
+                success: function(data) {
+                    if (!data || data.trim() === '') return;
+                    var container = $('#logContainer');
+                    var wasAtBottom = container.scrollTop() + container.innerHeight() >= container[0].scrollHeight - 10;
+                    var lines = data.split('\n');
+                    for (var i = 0; i < lines.length; i++) {
+                        if (lines[i].trim() === '') continue;
+                        container.append('<div class="log-line">' + escapeHtml(lines[i]) + '</div>');
+                    }
+                    var maxLines = 500;
+                    var children = container.children();
+                    while (children.length > maxLines) {
+                        children.first().remove();
+                    }
+                    if (wasAtBottom) {
+                        container.scrollTop(container[0].scrollHeight);
+                    }
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        $(function() {
+            fetchLog();
+            timer = setInterval(fetchLog, 500);
+        });
+    </script>
+</body>
+
+</html>

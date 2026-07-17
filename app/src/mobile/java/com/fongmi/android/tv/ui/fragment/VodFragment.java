@@ -183,9 +183,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private Result handle(Result result) {
-        List<Class> types = new ArrayList<>();
         for (Class type : result.getTypes()) if (result.getFilters().containsKey(type.getTypeId())) type.setFilters(result.getFilters().get(type.getTypeId()));
-        for (String cate : getSite().getCategories()) for (Class type : result.getTypes()) if (cate.equals(type.getTypeName())) types.add(type);
+        List<String> categories = getSite().getCategories();
+        if (categories.isEmpty()) return result;
+        List<Class> types = new ArrayList<>();
+        for (String cate : categories) for (Class type : result.getTypes()) if (cate.equals(type.getTypeName())) types.add(type);
         result.setTypes(types);
         return result;
     }

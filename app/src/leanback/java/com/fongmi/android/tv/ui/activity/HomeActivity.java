@@ -181,8 +181,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private List<Class> getTypes(Result result) {
+        List<String> categories = getHome().getCategories();
+        if (categories.isEmpty()) return result.getTypes();
         List<Class> items = new ArrayList<>();
-        for (String cate : getHome().getCategories()) for (Class item : result.getTypes()) if (Trans.s2t(cate).equals(item.getTypeName())) items.add(item);
+        for (String cate : categories) for (Class item : result.getTypes()) if (Trans.s2t(cate).equals(item.getTypeName())) items.add(item);
         return items;
     }
 

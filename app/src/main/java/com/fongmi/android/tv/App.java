@@ -92,7 +92,7 @@ public class App extends Application {
         return new AndroidLogAdapter(PrettyFormatStrategy.newBuilder().methodCount(0).showThreadInfo(false).tag("").build()) {
             @Override
             public boolean isLoggable(int priority, String tag) {
-                return Setting.isDebug();
+                return true;
             }
 
             @Override
