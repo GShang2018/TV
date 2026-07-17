@@ -36,7 +36,7 @@ public class TypeDialog implements TypeAdapter.OnClickListener {
         this.dialog = new MaterialAlertDialogBuilder(fragment.getContext()).setView(binding.getRoot()).create();
         this.adapter = new TypeAdapter(this, true);
         this.adapter.addAll(items);
-        this.adapter.setActivated(position);
+        this.adapter.setSelected(position);
     }
 
     public void show(FragmentManager manager, String tag) {
@@ -52,7 +52,7 @@ public class TypeDialog implements TypeAdapter.OnClickListener {
             android.widget.TextView textView = (android.widget.TextView) LayoutInflater.from(flexbox.getContext()).inflate(
                     com.fongmi.android.tv.R.layout.adapter_type_dialog, flexbox, false);
             textView.setText(item.getTypeName());
-            textView.setActivated(item.isActivated());
+            textView.setSelected(item.isSelected());
             int position = i;
             textView.setOnClickListener(v -> {
                 listener.onItemClick(position, item);

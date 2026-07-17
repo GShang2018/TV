@@ -133,7 +133,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
             @Override
             public void onPageSelected(int position) {
                 mBinding.type.smoothScrollToPosition(position);
-                mAdapter.setActivated(position);
+                mAdapter.setSelected(position);
                 setFabVisible(position);
             }
         });
@@ -424,7 +424,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     @Override
     public void onItemClick(int position, Class item) {
         mBinding.pager.setCurrentItem(position);
-        mAdapter.setActivated(position);
+        mAdapter.setSelected(position);
     }
 
     @Override

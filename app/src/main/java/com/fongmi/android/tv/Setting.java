@@ -467,7 +467,7 @@ public class Setting {
     }
 
     public static boolean isHomeDisplayName() {
-        return Prefers.getBoolean("home_display_name", false);
+        return Prefers.getBoolean("home_display_name", true);
     }
 
     public static boolean isAggregatedSearch() {

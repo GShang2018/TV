@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,10 +61,17 @@ public abstract class BaseDialog extends BottomSheetDialogFragment {
     }
 
     private void setBehavior(BottomSheetDialog dialog) {
-        FrameLayout bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-        if (transparent()) bottomSheet.setBackgroundColor(ResUtil.getColor(R.color.transparent));
-        BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
-        behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        behavior.setSkipCollapsed(true);
-    }
+		FrameLayout bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+		if (transparent()) bottomSheet.setBackgroundColor(ResUtil.getColor(R.color.transparent));
+		else {
+			float radius = ResUtil.dp2px(8);
+			GradientDrawable drawable = new GradientDrawable();
+			drawable.setColor(0xFF242424);
+			drawable.setCornerRadii(new float[]{radius, radius, radius, radius, 0, 0, 0, 0});
+			bottomSheet.setBackground(drawable);
+		}
+		BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
+		behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+		behavior.setSkipCollapsed(true);
+	}
 }

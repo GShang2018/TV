@@ -44,7 +44,7 @@ public class Class implements Parcelable {
     private float ratio;
 
     private Boolean filter;
-    private boolean activated;
+    private boolean selected;
 
     public Class() {
     }
@@ -107,12 +107,12 @@ public class Class implements Parcelable {
         return filter;
     }
 
-    public boolean isActivated() {
-        return activated;
+    public boolean isSelected() {
+        return selected;
     }
 
-    public void setActivated(boolean activated) {
-        this.activated = activated;
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     public boolean toggleFilter() {
@@ -162,7 +162,7 @@ public class Class implements Parcelable {
         dest.writeInt(this.land);
         dest.writeInt(this.circle);
         dest.writeFloat(this.ratio);
-        dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.selected ? (byte) 1 : (byte) 0);
     }
 
     protected Class(Parcel in) {
@@ -175,7 +175,7 @@ public class Class implements Parcelable {
         this.land = in.readInt();
         this.circle = in.readInt();
         this.ratio = in.readFloat();
-        this.activated = in.readByte() != 0;
+        this.selected = in.readByte() != 0;
     }
 
     public static final Creator<Class> CREATOR = new Creator<>() {

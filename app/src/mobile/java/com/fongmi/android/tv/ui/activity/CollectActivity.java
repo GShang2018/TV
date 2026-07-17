@@ -150,11 +150,11 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         if (viewType == ViewType.PORTRAIT) {
             // 3:4 纵向封面（竖屏海报）
             imageHeight = imageWidth * 4 / 3;
-            mBinding.view.setImageResource(R.drawable.ic_action_portrait);
+            mBinding.view.setImageResource(R.drawable.ic_action_grid);
         } else {
             // 4:3 横向封面（横屏海报）
             imageHeight = imageWidth * 3 / 4;
-            mBinding.view.setImageResource(R.drawable.ic_action_grid);
+            mBinding.view.setImageResource(R.drawable.ic_action_portrait);
         }
         mSearchAdapter.setSize(new int[]{imageWidth, imageHeight});
         ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(count);

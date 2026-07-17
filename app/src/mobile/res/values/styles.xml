@@ -13,15 +13,30 @@
         <item name="android:windowTranslucentStatus">false</item>
     </style>
 
-    <style name="BaseTheme" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="BaseTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
         <item name="colorAccent">@color/accent</item>
+        <item name="android:colorBackground">#242424</item>
+        <item name="colorSurface">#242424</item>
         <item name="android:windowBackground">@null</item>
         <item name="android:windowDisablePreview">true</item>
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:navigationBarColor">@color/transparent</item>
         <item name="bottomSheetDialogTheme">@style/BottomSheetDialog</item>
+        <item name="materialAlertDialogTheme">@style/AlertDialog</item>
+    </style>
+
+    <style name="AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@drawable/shape_dialog_bg</item>
+        <item name="android:colorBackground">#242424</item>
+        <item name="colorSurface">#242424</item>
+        <item name="colorSurfaceContainerHigh">#242424</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.AlertDialog</item>
+    </style>
+
+    <style name="ShapeAppearance.App.AlertDialog" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">8dp</item>
     </style>
 
     <style name="Control" />
@@ -39,10 +54,11 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <style name="BottomSheetDialog" parent="Theme.Material3.DayNight.BottomSheetDialog">
+    <style name="BottomSheetDialog" parent="Theme.Material3.Dark.BottomSheetDialog">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
         <item name="colorAccent">@color/accent</item>
+        <item name="colorSurface">#242424</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowIsFloating">false</item>
         <item name="bottomSheetStyle">@style/ModalBottomSheetDialog</item>
@@ -54,7 +70,7 @@
     </style>
 
     <style name="ShapeAppearance.App.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
-        <item name="cornerSize">16dp</item>
+        <item name="cornerSize">8dp</item>
     </style>
 
     <style name="Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
