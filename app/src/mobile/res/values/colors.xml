@@ -1,6 +1,6 @@
 <resources>
 
-    <color name="green_theme">#30a14e</color>
+    <color name="green_theme">#52b54b</color>
 
     <color name="primary">@color/green_theme</color>
     <color name="primaryDark">@color/green_theme</color>

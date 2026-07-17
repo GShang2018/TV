@@ -181,7 +181,7 @@ public class LiveConfig {
         String spider = Json.safeString(object, "spider");
         for (JsonElement element : Json.safeListElement(object, "lives")) {
             Live live = Live.objectFrom(element);
-            if (lives.contains(live)) continue;
+            if (live.isEmpty() || lives.contains(live)) continue;
             live.setApi(parseApi(live.getApi()));
             live.setExt(parseExt(live.getExt()));
             live.setJar(parseJar(live, spider));

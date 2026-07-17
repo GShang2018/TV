@@ -197,9 +197,13 @@ public class VodConfig {
     }
 
     private void initLive(JsonObject object) {
-        Config temp = Config.find(config, 1).save();
-        boolean sync = LiveConfig.get().needSync(config.getUrl());
-        if (sync) LiveConfig.get().clear().config(temp).parse(object);
+        try {
+            Config temp = Config.find(config, 1).save();
+            boolean sync = LiveConfig.get().needSync(config.getUrl());
+            if (sync) LiveConfig.get().clear().config(temp).parse(object);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     private void initParse(JsonObject object) {

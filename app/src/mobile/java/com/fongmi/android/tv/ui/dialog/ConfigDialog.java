@@ -19,6 +19,7 @@ import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class ConfigDialog {
@@ -127,6 +128,7 @@ public class ConfigDialog {
         if (edit) Config.find(ori, type).url(url).name(name).update();
         if (url.isEmpty()) Config.delete(ori, type);
         callback.setConfig(Config.find(url, type));
+        Util.hideKeyboard(binding.url);
         dialog.dismiss();
     }
 

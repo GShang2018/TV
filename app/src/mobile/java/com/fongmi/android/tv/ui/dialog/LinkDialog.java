@@ -67,6 +67,7 @@ public class LinkDialog {
     private void onPositive(DialogInterface dialog, int which) {
         String text = binding.text.getText().toString().trim();
         if (!text.isEmpty()) VideoActivity.start(fragment.getActivity(), text);
+        Util.hideKeyboard(binding.text);
         dialog.dismiss();
     }
 
