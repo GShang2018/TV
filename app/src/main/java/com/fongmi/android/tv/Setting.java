@@ -131,12 +131,28 @@ public class Setting {
     }
 
     public static int getHomeViewType() {
-        return Prefers.getInt("homeViewType", 3);
-    }
+		return Prefers.getInt("homeViewType", 3);
+	}
 
-    public static void putHomeViewType(int viewType) {
-        Prefers.put("homeViewType", viewType);
-    }
+	public static void putHomeViewType(int viewType) {
+		Prefers.put("homeViewType", viewType);
+	}
+
+	public static int getHistoryViewType() {
+		return Prefers.getInt("historyViewType", 3);
+	}
+
+	public static void putHistoryViewType(int viewType) {
+		Prefers.put("historyViewType", viewType);
+	}
+
+	public static int getKeepViewType() {
+		return Prefers.getInt("keepViewType", 3);
+	}
+
+	public static void putKeepViewType(int viewType) {
+		Prefers.put("keepViewType", viewType);
+	}
 
     public static int getScale() {
         return Prefers.getInt("scale");

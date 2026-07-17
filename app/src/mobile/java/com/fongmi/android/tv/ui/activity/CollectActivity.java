@@ -144,8 +144,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         int count = Product.getColumn(this) - 1;
         mSearchAdapter.setViewType(viewType, count);
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (count - 1));
-        int itemWidth = (ResUtil.getScreenWidth(this) - space) / count;
-        int imageWidth = itemWidth - ResUtil.dp2px(16);
+        int imageWidth = (ResUtil.getScreenWidth(this) - space) / count;
         int imageHeight;
         if (viewType == ViewType.PORTRAIT) {
             // 3:4 纵向封面（竖屏海报）

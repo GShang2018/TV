@@ -10,9 +10,11 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.databinding.ActivityKeepBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -44,27 +46,42 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     protected void initView(Bundle savedInstanceState) {
         setRecyclerView();
         getKeep();
+        updateViewIcon();
     }
 
     @Override
     protected void initEvent() {
         mBinding.sync.setOnClickListener(this::onSync);
+        mBinding.view.setOnClickListener(this::toggleView);
         mBinding.delete.setOnClickListener(this::onDelete);
     }
 
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.getItemAnimator().setChangeDuration(0);
-        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn(this)));
         mBinding.recycler.setAdapter(mAdapter = new KeepAdapter(this));
-        // 固定 4:3 比例，考虑 item margin (8dp 左右各)
-        int column = Product.getColumn(this);
+        setLayout(Setting.getKeepViewType());
+    }
+
+    private void setLayout(int viewType) {
+        int column = viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1;
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1));
-        // 每个 item 有左右各 8dp margin，所以图片宽度 = 分配空间 - 16dp
-        int itemWidth = (ResUtil.getScreenWidth(this) - space) / column;
-        int imageWidth = itemWidth - ResUtil.dp2px(16);
-        int imageHeight = imageWidth * 3 / 4;
+        int imageWidth = (ResUtil.getScreenWidth(this) - space) / column;
+        int imageHeight = viewType == ViewType.PORTRAIT ? imageWidth * 4 / 3 : imageWidth * 3 / 4;
         mAdapter.setSize(new int[]{imageWidth, imageHeight});
+    }
+
+    private void toggleView(View view) {
+        int viewType = Setting.getKeepViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
+        Setting.putKeepViewType(viewType);
+        updateViewIcon();
+        setLayout(viewType);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    private void updateViewIcon() {
+        mBinding.view.setImageResource(Setting.getKeepViewType() == ViewType.PORTRAIT ? R.drawable.ic_action_grid : R.drawable.ic_action_portrait);
     }
 
     private void getKeep() {

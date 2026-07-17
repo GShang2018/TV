@@ -86,6 +86,8 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Keep item = mItems.get(position);
+        holder.binding.image.getLayoutParams().width = width;
+        holder.binding.image.getLayoutParams().height = height;
         holder.binding.name.setText(item.getVodName());
         holder.binding.remark.setVisibility(View.GONE);
         holder.binding.site.setVisibility(View.VISIBLE);
