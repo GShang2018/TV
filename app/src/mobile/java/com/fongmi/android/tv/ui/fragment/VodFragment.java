@@ -33,6 +33,7 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.databinding.FragmentVodBinding;
 import com.fongmi.android.tv.event.CastEvent;
@@ -49,6 +50,7 @@ import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
@@ -80,11 +82,11 @@ import okhttp3.Response;
 public class VodFragment extends BaseFragment implements SiteCallback, FilterCallback, TypeAdapter.OnClickListener, ConfigCallback {
 
     private FragmentVodBinding mBinding;
-    private SiteViewModel mViewModel;
-    private TypeAdapter mAdapter;
-    private Runnable mRunnable;
-    private List<String> mHots;
-    private Result mResult;
+	private SiteViewModel mViewModel;
+	private TypeAdapter mAdapter;
+	private Runnable mRunnable;
+	private List<String> mHots;
+	private Result mResult;
 
     public static VodFragment newInstance() {
         return new VodFragment();
@@ -112,6 +114,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         showProgress();
         initHot();
         getHot();
+        updateViewIcon();
     }
 
     @Override
@@ -122,6 +125,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.logo.setOnLongClickListener(this::onRefresh);
         mBinding.hot.setOnClickListener(this::onHot);
         mBinding.site.setOnClickListener(this::onSite);
+        mBinding.view.setOnClickListener(this::toggleView);
         mBinding.keep.setOnClickListener(this::onKeep);
         mBinding.retry.setOnClickListener(this::onRetry);
         mBinding.filter.setOnClickListener(this::onFilter);
@@ -278,6 +282,26 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
     private void onHistory(View view) {
         HistoryActivity.start(getActivity());
+    }
+
+    private void toggleView(View view) {
+		int viewType = Setting.getHomeViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
+		Setting.putHomeViewType(viewType);
+		updateViewIcon();
+		TypeFragment fragment = getFragment();
+		if (fragment != null) fragment.refreshStyle();
+	}
+
+    private void updateViewIcon() {
+        if (Setting.getHomeViewType() == ViewType.PORTRAIT) {
+            mBinding.view.setImageResource(R.drawable.ic_action_grid);
+        } else {
+            mBinding.view.setImageResource(R.drawable.ic_action_portrait);
+        }
+    }
+
+    Style getHomeViewStyle() {
+        return Setting.getHomeViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
     }
 
     private void checkTypeOverflow() {

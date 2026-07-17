@@ -130,6 +130,14 @@ public class Setting {
         Prefers.put("viewType", viewType);
     }
 
+    public static int getHomeViewType() {
+        return Prefers.getInt("homeViewType", 3);
+    }
+
+    public static void putHomeViewType(int viewType) {
+        Prefers.put("homeViewType", viewType);
+    }
+
     public static int getScale() {
         return Prefers.getInt("scale");
     }
@@ -543,7 +551,7 @@ public class Setting {
     }
 
     public static boolean isRemoveAd() {
-        return Prefers.getBoolean("remove_ad", false);
+        return Prefers.getBoolean("remove_ad", true);
     }
 
     public static void putRemoveAd(boolean remove) {

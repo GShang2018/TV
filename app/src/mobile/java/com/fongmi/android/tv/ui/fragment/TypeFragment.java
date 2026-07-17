@@ -66,8 +66,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private Style getStyle() {
-        return isFolder() ? Style.list() : getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
-    }
+		if (isFolder()) return Style.list();
+		Style style = getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
+		if (style != null && style.isList()) return style;
+		VodFragment parent = getParent();
+		return parent != null ? parent.getHomeViewStyle() : Style.rect();
+	}
 
     private boolean isIndexs() {
         return getSite().isIndexs();
@@ -205,6 +209,14 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     public void scrollToTop() {
         mBinding.recycler.smoothScrollToPosition(0);
+    }
+
+    public void refreshStyle() {
+        int position = findPosition();
+        List<Vod> items = new ArrayList<>(mAdapter.getItems());
+        setStyle(getStyle());
+        mAdapter.addAll(items);
+        mBinding.recycler.scrollToPosition(position);
     }
 
     public void setFilter(String key, Value value) {

@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.fongmi.android.tv.plus"
+        applicationId "com.fongmi.android.tv"
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28

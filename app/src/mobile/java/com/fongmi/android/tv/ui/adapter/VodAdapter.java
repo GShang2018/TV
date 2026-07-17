@@ -60,6 +60,10 @@ public class VodAdapter extends RecyclerView.Adapter<BaseVodHolder> {
         return mItems.get(position);
     }
 
+    public List<Vod> getItems() {
+        return mItems;
+    }
+
     @Override
     public int getItemCount() {
         return mItems.size();
