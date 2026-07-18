@@ -83,7 +83,6 @@
     <string name="setting_player">Player setting</string>
     <string name="setting_danmu">Danmu setting</string>
     <string name="setting_custom">Custom setting</string>
-    <string name="setting_theme">Theme color</string>
     <string name="setting_config_cache">Config cache</string>
     <string name="setting_cache_dir">Thunder cache</string>
     <string name="setting_reset">Reset app</string>
@@ -99,7 +98,7 @@
     <string name="setting_site_search">Site search</string>
     <string name="setting_remove_ad">Remove ads</string>
     <string name="setting_debug">Debug mode</string>
-    <string name="dialog_type_title">Select category</string>
+    <string name="dialog_type_title">Select Category</string>
     <string name="setting_small_window_back_key">Small window back key</string>
     <string name="setting_home_display_name">Home display name</string>
     <string name="setting_home_ui">Home ui style</string>

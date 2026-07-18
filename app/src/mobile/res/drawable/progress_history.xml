@@ -10,7 +10,7 @@
         <clip>
             <shape>
                 <corners android:radius="4dp" />
-                <solid android:color="@color/green_theme" />
+                <solid android:color="@color/spotify_green" />
             </shape>
         </clip>
     </item>

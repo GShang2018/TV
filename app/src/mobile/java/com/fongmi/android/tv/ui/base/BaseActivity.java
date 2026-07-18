@@ -33,7 +33,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        enableDynamicColor();
         if (transparent()) setTransparent(this);
         setContentView(getBinding().getRoot());
         EventBus.getDefault().register(this);
@@ -46,9 +45,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void setContentView(View view) {
         super.setContentView(view);
         refreshWall();
-    }
-
-    protected void enableDynamicColor() {
     }
 
     protected Activity getActivity() {
@@ -124,16 +120,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         try {
             if (!customWall()) return;
             File file = FileUtil.getWall(Setting.getWall());
-            if (file.exists() && file.length() > 0 && isImageFile(file)) getWindow().setBackgroundDrawable(Drawable.createFromPath(file.getAbsolutePath()));
+            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(Drawable.createFromPath(file.getAbsolutePath()));
             else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
         } catch (Exception e) {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
         }
-    }
-
-    private boolean isImageFile(File file) {
-        String name = file.getName().toLowerCase();
-        return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".webp") || name.endsWith(".bmp") || name.endsWith(".gif");
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

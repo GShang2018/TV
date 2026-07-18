@@ -1,10 +1,19 @@
 <resources>
 
-    <color name="green_theme">#52b54b</color>
+    <!-- Spotify Green -->
+    <color name="spotify_green">#1DB954</color>
+    <color name="spotify_green_70">#B31DB954</color>
 
-    <color name="primary">@color/green_theme</color>
-    <color name="primaryDark">@color/green_theme</color>
-    <color name="accent">@color/green_theme</color>
+    <!-- Surface Colors -->
+    <color name="spotify_surface">#121212</color>
+    <color name="spotify_surface_elevated">#1E1E1E</color>
+
+    <!-- Black 20% transparency for nav indicator -->
+    <color name="black_20">#33000000</color>
+
+    <color name="primary">@color/spotify_green</color>
+    <color name="primaryDark">@color/spotify_green</color>
+    <color name="accent">@color/spotify_green</color>
     <color name="indicator">@color/white_80</color>
 
 </resources>

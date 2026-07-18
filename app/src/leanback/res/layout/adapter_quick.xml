@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:singleLine="true"
-        android:textColor="@color/yellow_500"
+        android:textColor="@color/spotify_green"
         android:textSize="14sp"
         tools:text="1080p" />
 
