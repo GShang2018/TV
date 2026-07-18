@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <LinearLayout
         android:id="@+id/searchInput"
@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:layout_marginBottom="13dp">
-
+        android:layout_marginBottom="8dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -59,10 +58,20 @@
 
     </LinearLayout>
 
-    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
-        android:id="@+id/recycler"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:maxHeight="380dp" />
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:maxHeight="380dp">
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/flexbox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap"
+            app:alignItems="flex_start"
+            app:alignContent="flex_start" />
+    </ScrollView>
+
 </LinearLayout>

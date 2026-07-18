@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
@@ -107,6 +108,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     protected void initEvent() {
         mBinding.site.setOnClickListener(this::onSite);
         mBinding.view.setOnClickListener(this::toggleView);
+        mBinding.siteMore.setOnClickListener(this::onSiteMore);
         mBinding.keyword.setOnEditorActionListener((textView, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) search();
             return true;
@@ -121,15 +123,20 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void setRecyclerView() {
-        mBinding.collect.setHasFixedSize(true);
-        mBinding.collect.setItemAnimator(null);
-        mBinding.collect.setAdapter(mCollectAdapter = new CollectAdapter(this));
+        // 站点横向标签
+        mBinding.siteRecycler.setHasFixedSize(true);
+        mBinding.siteRecycler.setItemAnimator(null);
+        mBinding.siteRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.siteRecycler.setAdapter(mCollectAdapter = new CollectAdapter(this));
+        // 视频网格
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.addOnScrollListener(mScroller);
         mBinding.recycler.setAdapter(mSearchAdapter = new SearchAdapter(this));
+        // 搜索建议
         mBinding.wordRecycler.setHasFixedSize(false);
         mBinding.wordRecycler.setAdapter(mWordAdapter = new WordAdapter(this));
         mBinding.wordRecycler.setLayoutManager(new FlexboxLayoutManager(this, FlexDirection.ROW));
+        // 搜索记录
         mBinding.recordRecycler.setHasFixedSize(false);
         mBinding.recordRecycler.setAdapter(mRecordAdapter = new RecordAdapter(this));
         mBinding.recordRecycler.setLayoutManager(new FlexboxLayoutManager(this, FlexDirection.ROW));
@@ -141,10 +148,10 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void setViewType(int viewType) {
         Setting.putViewType(viewType);
-        int count = Product.getColumn(this) - 1;
+        int count = Product.getColumn(this);
         mSearchAdapter.setViewType(viewType, count);
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (count - 1));
-        int imageWidth = (ResUtil.getScreenWidth(this) - ResUtil.dp2px(128) - space) / count;
+        int imageWidth = (ResUtil.getScreenWidth(this) - ResUtil.dp2px(16) - space) / count;
         int imageHeight;
         if (viewType == ViewType.PORTRAIT) {
             // 3:4 纵向封面（竖屏海报）
@@ -201,6 +208,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         Util.hideKeyboard(mBinding.keyword);
         mBinding.site.setVisibility(View.GONE);
         mBinding.agent.setVisibility(View.GONE);
+        mBinding.siteLayout.setVisibility(View.VISIBLE);
         mBinding.view.setVisibility(View.VISIBLE);
         mBinding.result.setVisibility(View.VISIBLE);
         if (mExecutor != null) mExecutor.shutdownNow();
@@ -208,6 +216,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         String keyword = mBinding.keyword.getText().toString().trim();
         for (Site site : mSites) mExecutor.execute(() -> search(site, keyword));
         App.post(() -> mRecordAdapter.add(keyword), 250);
+        // 检查站点标签是否溢出
+        mBinding.siteRecycler.post(this::checkSiteOverflow);
     }
 
     private void search(Site site, String keyword) {
@@ -248,6 +258,11 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         App.post(() -> SiteDialog.create(this).search().show(), 50);
     }
 
+    private void onSiteMore(View view) {
+        // 弹窗显示所有站点列表供选择
+        SiteDialog.create(this).search().show();
+    }
+
     private void toggleView(View view) {
         setViewType(mSearchAdapter.isGrid() ? ViewType.PORTRAIT : ViewType.GRID);
     }
@@ -257,10 +272,19 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mSearchAdapter.clear();
         mCollectAdapter.clear();
         mBinding.view.setVisibility(View.GONE);
+        mBinding.siteLayout.setVisibility(View.GONE);
         mBinding.result.setVisibility(View.GONE);
         mBinding.site.setVisibility(View.VISIBLE);
         mBinding.agent.setVisibility(View.VISIBLE);
         if (mExecutor != null) mExecutor.shutdownNow();
+    }
+
+    private void checkSiteOverflow() {
+        if (mCollectAdapter == null || mBinding.siteRecycler.getLayoutManager() == null) return;
+        LinearLayoutManager llm = (LinearLayoutManager) mBinding.siteRecycler.getLayoutManager();
+        int last = llm.findLastCompletelyVisibleItemPosition();
+        int total = mCollectAdapter.getItemCount() - 1;
+        mBinding.siteMore.setVisibility(last < total ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -292,6 +316,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mCollectAdapter.setActivated(position);
         mSearchAdapter.setAll(item.getList());
         mScroller.setPage(item.getPage());
+        // 刷新站点标签溢出状态
+        mBinding.siteRecycler.post(this::checkSiteOverflow);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -9,22 +10,27 @@ import android.view.inputmethod.EditorInfo;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.SiteCallback;
-import com.fongmi.android.tv.ui.adapter.SiteAdapter;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
-import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-public class SiteDialog implements SiteAdapter.OnClickListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class SiteDialog {
 
     private final SiteCallback callback;
     private DialogSiteBinding binding;
-    private SiteAdapter adapter;
     private AlertDialog dialog;
+    private List<Site> allSites;
+    private List<Site> filteredSites;
+    private boolean change;
 
     public static SiteDialog create(Activity activity) {
         return new SiteDialog(activity);
@@ -47,41 +53,53 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
     private void init(Activity activity) {
         this.binding = DialogSiteBinding.inflate(LayoutInflater.from(activity));
         this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
-        this.adapter = new SiteAdapter(this);
+        this.allSites = VodConfig.get().getSites();
+        this.filteredSites = new ArrayList<>(allSites);
     }
 
     public SiteDialog search() {
-        this.adapter.search(true);
         return this;
     }
 
     public SiteDialog change() {
-        this.adapter.change(true);
+        this.change = true;
         return this;
     }
 
     public SiteDialog all() {
-        this.adapter.search(true);
-        this.adapter.change(true);
+        this.change = true;
         return this;
     }
 
     public void show() {
-        setRecyclerView();
+        setupFlexbox();
         setSearchView();
         setDialog();
     }
 
-    private void setRecyclerView() {
-        binding.recycler.setAdapter(adapter);
-        binding.recycler.setItemAnimator(null);
-        binding.recycler.setHasFixedSize(true);
-        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
+    private void setupFlexbox() {
+        FlexboxLayout flexbox = binding.flexbox;
+        flexbox.removeAllViews();
+        for (int i = 0; i < filteredSites.size(); i++) {
+            Site item = filteredSites.get(i);
+            android.widget.TextView textView = (android.widget.TextView) LayoutInflater.from(flexbox.getContext()).inflate(
+                    R.layout.adapter_type_dialog, flexbox, false);
+            textView.setText(item.getName());
+            textView.setSelected(item.isActivated());
+            textView.setTextColor(androidx.core.content.res.ResourcesCompat.getColorStateList(flexbox.getContext().getResources(), com.fongmi.android.tv.R.color.selector_site_text, flexbox.getContext().getTheme()));
+            textView.setOnClickListener(v -> onTextClick(item));
+            if (change) {
+                textView.setOnLongClickListener(v -> {
+                    onChangeLongClick(item);
+                    return true;
+                });
+            }
+            flexbox.addView(textView);
+        }
     }
 
     private void setDialog() {
-        if (adapter.getItemCount() == 0) return;
+        if (filteredSites.size() == 0) return;
         dialog.getWindow().setDimAmount(0);
         dialog.show();
     }
@@ -98,48 +116,35 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
             }
         });
         binding.search.setOnClickListener(v -> searchSite());
-        if (adapter.getItemCount() < 10 || !Setting.isSiteSearch()) binding.searchInput.setVisibility(View.GONE);
+        if (allSites.size() < 10 || !Setting.isSiteSearch()) binding.searchInput.setVisibility(View.GONE);
     }
 
     private void searchSite() {
         String keyword = binding.keyword.getText().toString().trim();
-        adapter.keyword(keyword);
+        filteredSites.clear();
+        if (TextUtils.isEmpty(keyword)) {
+            filteredSites.addAll(allSites);
+        } else {
+            for (Site site : allSites) {
+                if (site.getName().toLowerCase().contains(keyword.toLowerCase())) {
+                    filteredSites.add(site);
+                }
+            }
+        }
+        setupFlexbox();
     }
 
-    @Override
-    public void onTextClick(Site item) {
+    private void onTextClick(Site item) {
         if (callback == null) return;
         callback.setSite(item);
         dialog.dismiss();
     }
 
-    @Override
-    public void onSearchClick(int position, Site item) {
-        item.setSearchable(!item.isSearchable()).save();
-        adapter.notifyItemChanged(position);
-        callback.onChanged();
-    }
-
-    @Override
-    public void onChangeClick(int position, Site item) {
-        item.setChangeable(!item.isChangeable()).save();
-        adapter.notifyItemChanged(position);
-    }
-
-    @Override
-    public boolean onSearchLongClick(Site item) {
-        boolean result = !item.isSearchable();
-        for (Site site : VodConfig.get().getSites()) site.setSearchable(result).save();
-        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-        callback.onChanged();
-        return true;
-    }
-
-    @Override
-    public boolean onChangeLongClick(Site item) {
+    private void onChangeLongClick(Site item) {
         boolean result = !item.isChangeable();
         for (Site site : VodConfig.get().getSites()) site.setChangeable(result).save();
-        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-        return true;
+        filteredSites.clear();
+        filteredSites.addAll(allSites);
+        setupFlexbox();
     }
 }

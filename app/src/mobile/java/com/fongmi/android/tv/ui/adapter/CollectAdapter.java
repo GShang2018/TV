@@ -71,7 +71,7 @@ public class CollectAdapter extends RecyclerView.Adapter<CollectAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Collect item = mItems.get(position);
-        holder.binding.text.setActivated(item.isActivated());
+        holder.binding.text.setSelected(item.isActivated());
         holder.binding.text.setText(item.getSite().getName());
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(position, item));
     }
