@@ -597,7 +597,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         String host = UrlUtil.host(uri);
         String scheme = UrlUtil.scheme(uri);
         if ("data".equals(scheme)) return false;
-        return scheme.isEmpty() || "file".equals(scheme) ? !Path.exists(url) : host.isEmpty();
+        if ("file".equals(scheme)) return !Path.exists(url);
+        // magnet, thunder, ed2k 等协议没有 host，但链接是有效的
+        if (host.isEmpty()) return !"magnet".equals(scheme) && !"thunder".equals(scheme) && !"ed2k".equals(scheme);
+        return scheme.isEmpty();
     }
 
     public static Map<String, String> checkUa(Map<String, String> headers) {

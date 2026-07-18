@@ -60,6 +60,9 @@ public class MediaSourceFactory implements MediaSource.Factory {
     public MediaSource createMediaSource(@NonNull MediaItem mediaItem) {
         if (mediaItem.mediaId.contains("***") && mediaItem.mediaId.contains("|||")) {
             return createConcatenatingMediaSource(setHeader(mediaItem));
+        } else if (mediaItem.mediaId.startsWith("file://")) {
+            // file:// 协议直接使用 FileDataSource，绕过 CacheDataSource 避免缓存干扰
+            return new DefaultMediaSourceFactory(new DefaultDataSource.Factory(App.get())).createMediaSource(setHeader(mediaItem));
         } else {
             return defaultMediaSourceFactory.createMediaSource(setHeader(mediaItem));
         }

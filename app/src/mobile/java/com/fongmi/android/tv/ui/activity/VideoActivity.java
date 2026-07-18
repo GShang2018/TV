@@ -1456,9 +1456,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void startFlow() {
-        if (!getSite().isChangeable()) return;
-        if (isUseParse()) checkParse();
-        else checkFlag();
+        if (getSite().isChangeable()) {
+            if (isUseParse()) checkParse();
+            else checkFlag();
+        } else if (getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
+            // push_agent 等不可切换站点的场景，尝试切换播放器
+            toggleCount++;
+            nextPlayer();
+        }
     }
 
     private void checkParse() {
