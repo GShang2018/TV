@@ -9,7 +9,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 
@@ -292,12 +291,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         }
         dialog.getWindow().setDimAmount(0);
         dialog.show();
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams params = window.getAttributes();
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        params.gravity = Gravity.CENTER;
-        window.setAttributes(params);
     }
 
     private List<Site> getCollectSites() {

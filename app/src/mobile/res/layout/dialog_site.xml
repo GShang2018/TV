@@ -4,85 +4,70 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp">
 
-    <ScrollView
-        android:id="@+id/scrollView"
+    <LinearLayout
+        android:id="@+id/searchInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:paddingLeft="16dp"
-        android:paddingTop="16dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="16dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:background="@drawable/search_item_round"
+            android:orientation="horizontal"
+            android:visibility="visible">
 
-            <LinearLayout
-                android:id="@+id/searchInput"
+            <EditText
+                android:id="@+id/keyword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:padding="10dp"
-                    android:background="@drawable/search_item_round"
-                    android:orientation="horizontal"
-                    android:visibility="visible">
-
-                    <EditText
-                        android:id="@+id/keyword"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:background="@null"
-                        android:hint="@string/search_keyword"
-                        android:imeOptions="actionDone"
-                        android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
-                        android:letterSpacing="0.02"
-                        android:maxLength="255"
-                        android:singleLine="true"
-                        android:gravity="center_horizontal"
-                        android:layout_marginEnd="4dp"
-                        android:textColor="@color/control"
-                        android:textCursorDrawable="@drawable/site_cursor"
-                        android:textSize="14sp"
-                        tools:ignore="NestedWeights"
-                        tools:text="狂飆" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/search"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="16dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_site_search" />
-
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                tools:listitem="@layout/adapter_site" />
+                android:layout_gravity="center_vertical"
+                android:background="@null"
+                android:hint="@string/search_keyword"
+                android:imeOptions="actionDone"
+                android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
+                android:letterSpacing="0.02"
+                android:maxLength="255"
+                android:singleLine="true"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="4dp"
+                android:textColor="@color/control"
+                android:textCursorDrawable="@drawable/site_cursor"
+                android:textSize="14sp"
+                tools:ignore="NestedWeights"
+                tools:text="狂飆" />
 
         </LinearLayout>
 
-    </ScrollView>
+        <ImageView
+            android:id="@+id/search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_site_search" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        tools:listitem="@layout/adapter_site" />
 
 </LinearLayout>

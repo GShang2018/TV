@@ -2,13 +2,8 @@ package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 
 import androidx.appcompat.app.AlertDialog;
@@ -115,12 +110,6 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
         if (adapter.getItemCount() == 0) return;
         dialog.getWindow().setDimAmount(0);
         dialog.show();
-        Window window = dialog.getWindow();
-        WindowManager.LayoutParams params = window.getAttributes();
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        params.gravity = Gravity.CENTER;
-        window.setAttributes(params);
     }
 
     @Override
