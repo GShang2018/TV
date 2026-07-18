@@ -30,6 +30,7 @@ public class SiteDialog {
     private AlertDialog dialog;
     private List<Site> allSites;
     private List<Site> filteredSites;
+    private List<Site> customSites;
     private boolean change;
 
     public static SiteDialog create(Activity activity) {
@@ -57,6 +58,11 @@ public class SiteDialog {
         this.filteredSites = new ArrayList<>(allSites);
     }
 
+    public SiteDialog sites(List<Site> sites) {
+        this.customSites = sites;
+        return this;
+    }
+
     public SiteDialog search() {
         return this;
     }
@@ -72,6 +78,11 @@ public class SiteDialog {
     }
 
     public void show() {
+        if (customSites != null) {
+            this.allSites = customSites;
+            this.filteredSites = new ArrayList<>(allSites);
+            binding.title.setVisibility(View.VISIBLE);
+        }
         setupFlexbox();
         setSearchView();
         setDialog();

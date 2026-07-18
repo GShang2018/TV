@@ -12,6 +12,9 @@
     <!-- Vod -->
     <string name="vod_home">推荐</string>
 
+    <!-- Dialog -->
+    <string name="dialog_site_title">选择站点</string>
+
     <!-- Detail -->
     <string name="detail_flag">线路</string>
     <string name="detail_more">更多</string>

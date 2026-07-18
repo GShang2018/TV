@@ -13,6 +13,9 @@
     <string name="vod_home">Home</string>
     <string name="vod_type">分类</string>
 
+    <!-- Dialog -->
+    <string name="dialog_site_title">Select Site</string>
+
     <!-- Detail -->
     <string name="detail_flag">Flag</string>
     <string name="detail_more">More</string>

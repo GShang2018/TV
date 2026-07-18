@@ -21,7 +21,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingBottom="8dp"
         android:clipToPadding="false"
         android:fillViewport="true">
 
@@ -29,9 +28,12 @@
             android:id="@+id/flexbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="12dp"
             app:flexWrap="wrap"
             app:alignItems="flex_start"
             app:alignContent="flex_start" />
     </ScrollView>
 
 </LinearLayout>
+

@@ -24,6 +24,7 @@ import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Suggest;
 import com.fongmi.android.tv.bean.SuggestTwo;
 import com.fongmi.android.tv.bean.Vod;
@@ -148,22 +149,17 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void setViewType(int viewType) {
         Setting.putViewType(viewType);
-        int count = Product.getColumn(this);
+        Style style = viewType == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        int count = Product.getColumn(this, style);
         mSearchAdapter.setViewType(viewType, count);
-        int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (count - 1));
-        int imageWidth = (ResUtil.getScreenWidth(this) - ResUtil.dp2px(16) - space) / count;
-        int imageHeight;
+        int[] spec = Product.getSpec(this, style);
+        mSearchAdapter.setSize(spec);
+        ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(count);
         if (viewType == ViewType.PORTRAIT) {
-            // 3:4 纵向封面（竖屏海报）
-            imageHeight = imageWidth * 4 / 3;
             mBinding.view.setImageResource(R.drawable.ic_action_grid);
         } else {
-            // 4:3 横向封面（横屏海报）
-            imageHeight = imageWidth * 3 / 4;
             mBinding.view.setImageResource(R.drawable.ic_action_portrait);
         }
-        mSearchAdapter.setSize(new int[]{imageWidth, imageHeight});
-        ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(count);
         // 强制刷新列表
         mSearchAdapter.notifyDataSetChanged();
     }
@@ -255,12 +251,24 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void onSite(View view) {
         Util.hideKeyboard(mBinding.keyword);
-        App.post(() -> SiteDialog.create(this).search().show(), 50);
+        syncSiteActivated();
+        App.post(() -> SiteDialog.create(this).sites(mSites).search().show(), 50);
     }
 
     private void onSiteMore(View view) {
-        // 弹窗显示所有站点列表供选择
-        SiteDialog.create(this).search().show();
+        // 弹窗显示搜索站点列表供选择
+        syncSiteActivated();
+        SiteDialog.create(this).sites(mSites).search().show();
+    }
+
+    private void syncSiteActivated() {
+        // 将 CollectAdapter 的选中状态同步到 mSites
+        if (mCollectAdapter == null) return;
+        Collect activated = mCollectAdapter.getActivated();
+        if (activated == null) return;
+        for (Site site : mSites) {
+            site.setActivated(site.getKey().equals(activated.getSite().getKey()));
+        }
     }
 
     private void toggleView(View view) {
@@ -289,6 +297,18 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     @Override
     public void setSite(Site item) {
+        if (mCollectAdapter == null) return;
+        for (int i = 0; i < mCollectAdapter.getItemCount(); i++) {
+            Collect collect = mCollectAdapter.getItem(i);
+            if (collect.getSite().getKey().equals(item.getKey())) {
+                mBinding.recycler.scrollToPosition(0);
+                mCollectAdapter.setActivated(i);
+                mSearchAdapter.setAll(collect.getList());
+                mScroller.setPage(collect.getPage());
+                mBinding.siteRecycler.post(this::checkSiteOverflow);
+                return;
+            }
+        }
     }
 
     @Override
