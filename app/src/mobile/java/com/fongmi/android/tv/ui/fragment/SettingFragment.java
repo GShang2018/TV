@@ -141,6 +141,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.about.setOnClickListener(this::onAbout);
+        mBinding.theme.setOnClickListener(this::onTheme);
     }
 
     @Override
@@ -278,6 +279,19 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
 
     private void onAbout(View view) {
         mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+    }
+
+    private void onTheme(View view) {
+        String[] items = new String[]{"默认", "紫色", "蓝色", "绿色", "红色", "橙色", "棕色"};
+        int[] colors = new int[]{-1, 0xFF6750A4, 0xFF1E88E5, 0xFF43A047, 0xFFE53935, 0xFFFB8C00, 0xFF8D6E63};
+        int current = Setting.getThemeColor();
+        int index = 0;
+        for (int i = 0; i < colors.length; i++) if (colors[i] == current) index = i;
+        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_theme).setSingleChoiceItems(items, index, (dialog, which) -> {
+            Setting.putThemeColor(colors[which]);
+            RefreshEvent.theme();
+            dialog.dismiss();
+        }).setNegativeButton(R.string.dialog_negative, null).show();
     }
 
     private void onVersion(View view) {

@@ -40,7 +40,7 @@ public class ExoUtil {
 
     public static TrackSelector buildTrackSelector() {
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(App.get());
-        trackSelector.setParameters(trackSelector.buildUponParameters().setPreferredTextLanguage(Locale.getDefault().getISO3Language()).setForceHighestSupportedBitrate(true).setTunnelingEnabled(Setting.isTunnel()));
+        trackSelector.setParameters(trackSelector.buildUponParameters().setPreferredTextLanguage(Locale.getDefault().getISO3Language()).setForceHighestSupportedBitrate(true).setTunnelingEnabled(Setting.isTunnel()).setPreferredAudioMimeType(MimeTypes.AUDIO_AAC));
         return trackSelector;
     }
 

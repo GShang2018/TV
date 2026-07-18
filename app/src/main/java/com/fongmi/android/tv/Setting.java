@@ -346,6 +346,22 @@ public class Setting {
         Prefers.put("exo_tunnel", tunnel);
     }
 
+    public static boolean isAudioPassThrough() {
+        return Prefers.getBoolean("audio_pass_through", true);
+    }
+
+    public static void putAudioPassThrough(boolean passThrough) {
+        Prefers.put("audio_pass_through", passThrough);
+    }
+
+    public static boolean isDv7HevcFallback() {
+        return Prefers.getBoolean("dv7_hevc_fallback", true);
+    }
+
+    public static void putDv7HevcFallback(boolean fallback) {
+        Prefers.put("dv7_hevc_fallback", fallback);
+    }
+
     public static int getBackupMode() {
         return Prefers.getInt("backup_mode", 1);
     }
@@ -596,6 +612,14 @@ public class Setting {
 
     public static void putThunderCacheDir(String dir) {
         Prefers.put("thunder_cache_dir", dir);
+    }
+
+    public static int getThemeColor() {
+        return Prefers.getInt("theme_color", -1);
+    }
+
+    public static void putThemeColor(int color) {
+        Prefers.put("theme_color", color);
     }
 
 }

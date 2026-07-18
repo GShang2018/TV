@@ -27,11 +27,11 @@ public class LiveDialog implements LiveAdapter.OnClickListener {
     }
 
     private LiveDialog(Activity activity) {
-        this.adapter = new LiveAdapter(this);
-        this.callback = (LiveCallback) activity;
-        this.binding = DialogLiveBinding.inflate(LayoutInflater.from(activity));
-        this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
-    }
+		this.adapter = new LiveAdapter(this);
+		this.callback = (LiveCallback) activity;
+		this.binding = DialogLiveBinding.inflate(LayoutInflater.from(activity));
+		this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
+	}
 
     public LiveDialog action() {
         adapter.setAction(true);

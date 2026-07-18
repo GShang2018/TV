@@ -15,10 +15,7 @@
 
     <style name="BaseTheme" parent="Theme.MaterialComponents.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primaryDark</item>
         <item name="colorAccent">@color/accent</item>
-        <item name="android:colorBackground">#242424</item>
-        <item name="colorSurface">#242424</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowBackground">@null</item>
         <item name="android:windowAnimationStyle">@null</item>
@@ -26,12 +23,6 @@
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="bottomSheetDialogTheme">@style/BottomSheetDialog</item>
-        <item name="materialAlertDialogTheme">@style/AlertDialog</item>
-    </style>
-
-    <style name="AlertDialog" parent="Theme.MaterialComponents.Dark.Dialog.Alert">
-        <item name="colorSurface">#242424</item>
-        <item name="android:background">#242424</item>
     </style>
 
     <style name="ModalBottomSheetDialog" parent="Widget.Design.BottomSheet.Modal">

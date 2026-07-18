@@ -61,7 +61,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         this.callback = (ConfigCallback) activity;
         this.binding = DialogConfigBinding.inflate(LayoutInflater.from(activity));
         this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
-        this.append = true;
+		this.append = true;
     }
 
     public void show() {
@@ -71,13 +71,13 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void initDialog() {
-        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-        params.width = (int) (ResUtil.getScreenWidth() * 0.55f);
-        dialog.getWindow().setAttributes(params);
-        dialog.getWindow().setDimAmount(0);
-        dialog.setOnDismissListener(this);
-        dialog.show();
-    }
+		WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+		params.width = (int) (ResUtil.getScreenWidth() * 0.55f);
+		dialog.getWindow().setAttributes(params);
+		dialog.getWindow().setDimAmount(0);
+		dialog.setOnDismissListener(this);
+		dialog.show();
+	}
 
     private void initView() {
         binding.text.setText(url = getUrl());
