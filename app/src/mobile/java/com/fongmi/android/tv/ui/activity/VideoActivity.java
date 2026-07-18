@@ -76,6 +76,7 @@ import com.fongmi.android.tv.utils.Timer;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
+import com.fongmi.android.tv.ui.adapter.GalleryAdapter;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
@@ -89,6 +90,7 @@ import com.fongmi.android.tv.ui.dialog.ControlDialog;
 import com.fongmi.android.tv.ui.dialog.DanmuDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
+import com.fongmi.android.tv.ui.dialog.ImageDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
@@ -146,6 +148,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private ExecutorService mExecutor;
     private SiteViewModel mViewModel;
     private FlagAdapter mFlagAdapter;
+    private GalleryAdapter mGalleryAdapter;
     private List<Dialog> mDialogs;
     private List<String> mBroken;
     private History mHistory;
@@ -418,6 +421,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.quality.setItemAnimator(null);
         mBinding.quality.addItemDecoration(new SpaceItemDecoration(8));
         mBinding.quality.setAdapter(mQualityAdapter = new QualityAdapter(this));
+        mBinding.gallery.setHasFixedSize(true);
+        mBinding.gallery.setItemAnimator(null);
+        mBinding.gallery.addItemDecoration(new SpaceItemDecoration(8));
+        mBinding.gallery.setAdapter(mGalleryAdapter = new GalleryAdapter(position -> openGallery(mGalleryAdapter.getItems(), position)));
         mBinding.control.parse.setHasFixedSize(true);
         mBinding.control.parse.setItemAnimator(null);
         mBinding.control.parse.addItemDecoration(new SpaceItemDecoration(8));
@@ -570,6 +577,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(mBinding.other, item);
         setArtwork(item.getVodPic());
+        setGallery(item);
         App.removeCallbacks(mR4);
         checkHistory(item);
         checkFlag(item);
@@ -620,6 +628,28 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (!item.getTypeName().isEmpty()) sb.append(getString(R.string.detail_type, item.getTypeName())).append("  ");
         view.setVisibility(sb.length() == 0 ? View.GONE : View.VISIBLE);
         view.setText(Util.substring(sb.toString(), 2));
+    }
+
+    private void setGallery(Vod item) {
+        List<String> items = item.getGallery();
+        if (items.isEmpty()) {
+            mBinding.galleryLayout.setVisibility(View.GONE);
+        } else {
+            mBinding.galleryLayout.setVisibility(View.VISIBLE);
+			mBinding.galleryAll.setVisibility(View.VISIBLE);
+			mBinding.galleryAll.setText(getString(R.string.detail_gallery_all, items.size()));
+            ArrayList<String> urls = new ArrayList<>(items);
+            mBinding.galleryAll.setOnClickListener(v -> GalleryGridActivity.start(this, urls));
+            mGalleryAdapter.addAll(items);
+        }
+    }
+
+    private void openGallery(List<String> items, int position) {
+        GalleryActivity.start(this, new ArrayList<>(items), position);
+    }
+
+    private void showImage(String url) {
+        ImageDialog.create(this).url(url).show();
     }
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
@@ -1017,6 +1047,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void enterFullscreen() {
         if (isFullscreen()) return;
+        mBinding.video.setClipToOutline(false);
         App.post(() -> mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)), 50);
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.full.setVisibility(View.GONE);
@@ -1029,6 +1060,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void exitFullscreen() {
         if (!isFullscreen()) return;
+        mBinding.video.setClipToOutline(true);
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
         mBinding.control.full.setVisibility(View.VISIBLE);

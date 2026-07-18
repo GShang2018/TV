@@ -73,6 +73,15 @@ public class Vod implements Parcelable {
     @SerializedName("vod_tag")
     private String vodTag;
 
+    @SerializedName("vod_pic_thumb")
+    private String vodPicThumb;
+
+    @SerializedName("vod_pic_slide")
+    private String vodPicSlide;
+
+    @SerializedName("vod_pic_screenshot")
+    private String vodPicScreenshot;
+
     @SerializedName("action")
     private String action;
 
@@ -168,6 +177,34 @@ public class Vod implements Parcelable {
 
     public String getVodTag() {
         return TextUtils.isEmpty(vodTag) ? "" : vodTag;
+    }
+
+    public String getVodPicThumb() {
+        return TextUtils.isEmpty(vodPicThumb) ? "" : vodPicThumb.trim();
+    }
+
+    public String getVodPicSlide() {
+        return TextUtils.isEmpty(vodPicSlide) ? "" : vodPicSlide.trim();
+    }
+
+    public String getVodPicScreenshot() {
+        return TextUtils.isEmpty(vodPicScreenshot) ? "" : vodPicScreenshot.trim();
+    }
+
+    public List<String> getGallery() {
+        List<String> items = new ArrayList<>();
+        if (!getVodPicThumb().isEmpty()) items.add(getVodPicThumb());
+        for (String s : getVodPicSlide().split("\\$\\$\\$")) {
+            if (!s.trim().isEmpty()) items.add(s.trim());
+        }
+        for (String s : getVodPicScreenshot().split("\\$\\$\\$")) {
+            if (!s.trim().isEmpty()) items.add(s.trim());
+        }
+        return items;
+    }
+
+    public boolean hasGallery() {
+        return !getVodPicThumb().isEmpty() || !getVodPicSlide().isEmpty() || !getVodPicScreenshot().isEmpty();
     }
 
     public String getAction() {
@@ -314,6 +351,9 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
         dest.writeString(this.vodTag);
+        dest.writeString(this.vodPicThumb);
+        dest.writeString(this.vodPicSlide);
+        dest.writeString(this.vodPicScreenshot);
         dest.writeString(this.action);
         dest.writeInt(this.land);
         dest.writeInt(this.circle);
@@ -338,6 +378,9 @@ public class Vod implements Parcelable {
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();
         this.vodTag = in.readString();
+        this.vodPicThumb = in.readString();
+        this.vodPicSlide = in.readString();
+        this.vodPicScreenshot = in.readString();
         this.action = in.readString();
         this.land = in.readInt();
         this.circle = in.readInt();

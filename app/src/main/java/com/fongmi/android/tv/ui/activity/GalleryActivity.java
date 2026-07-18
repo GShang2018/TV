@@ -1,0 +1,230 @@
+package com.fongmi.android.tv.ui.activity;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.databinding.ActivityGalleryBinding;
+import com.fongmi.android.tv.databinding.ItemGalleryThumbBinding;
+import com.fongmi.android.tv.ui.custom.TouchImageView;
+import com.fongmi.android.tv.utils.ImgUtil;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class GalleryActivity extends AppCompatActivity {
+
+    private ActivityGalleryBinding mBinding;
+    private ThumbAdapter mThumbAdapter;
+    private List<String> mUrls;
+    private int mPosition;
+    private ExecutorService mExecutor;
+
+    public static void start(Context context, ArrayList<String> urls, int position) {
+        Intent intent = new Intent(context, GalleryActivity.class);
+        intent.putStringArrayListExtra("urls", urls);
+        intent.putExtra("position", position);
+        context.startActivity(intent);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mBinding = ActivityGalleryBinding.inflate(getLayoutInflater());
+        setContentView(mBinding.getRoot());
+        mUrls = getIntent().getStringArrayListExtra("urls");
+        mPosition = getIntent().getIntExtra("position", 0);
+        if (mUrls == null || mUrls.isEmpty()) {
+            finish();
+            return;
+        }
+        mExecutor = Executors.newSingleThreadExecutor();
+        setPager();
+        setThumbs();
+        updateCounter(mPosition);
+        mBinding.pager.setCurrentItem(mPosition, false);
+        mBinding.back.setOnClickListener(v -> finish());
+        mBinding.download.setOnClickListener(v -> downloadCurrent());
+        mBinding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                mPosition = position;
+                updateCounter(position);
+                mThumbAdapter.setSelected(position);
+                mThumbAdapter.scrollToPosition(position);
+            }
+        });
+    }
+
+    private void setPager() {
+        mBinding.pager.setAdapter(new PagerAdapter());
+    }
+
+    private void setThumbs() {
+        mBinding.thumbs.setHasFixedSize(true);
+        mThumbAdapter = new ThumbAdapter();
+        mBinding.thumbs.setAdapter(mThumbAdapter);
+        mThumbAdapter.setSelected(mPosition);
+        mBinding.thumbs.scrollToPosition(mPosition);
+    }
+
+    private void updateCounter(int position) {
+        mBinding.counter.setText(getString(R.string.gallery_counter, position + 1, mUrls.size()));
+    }
+
+    private void downloadCurrent() {
+        String url = mUrls.get(mPosition);
+        if (url.isEmpty()) return;
+        mExecutor.execute(() -> {
+            try {
+                Bitmap bitmap = Glide.with(GalleryActivity.this).asBitmap().load(ImgUtil.getUrl(url)).submit().get();
+                saveBitmap(bitmap);
+                runOnUiThread(() -> Toast.makeText(this, R.string.gallery_saved, Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, R.string.gallery_save_fail, Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private void saveBitmap(Bitmap bitmap) throws Exception {
+        String name = "TV_" + System.currentTimeMillis() + ".jpg";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+            Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (uri != null) {
+                try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out);
+                }
+            }
+        } else {
+            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File file = new File(dir, name);
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out);
+            }
+            MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), name, null);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mExecutor != null) mExecutor.shutdown();
+    }
+
+    private class PagerAdapter extends RecyclerView.Adapter<PagerAdapter.Holder> {
+
+        @NonNull
+        @Override
+        public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            TouchImageView image = new TouchImageView(parent.getContext());
+            image.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            return new Holder(image);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull Holder holder, int position) {
+            String url = mUrls.get(position);
+            Glide.with(GalleryActivity.this).asBitmap().load(ImgUtil.getUrl(url)).into(new CustomTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    holder.image.setOrigSize(resource.getWidth(), resource.getHeight());
+                    holder.image.setImageBitmap(resource);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return mUrls.size();
+        }
+
+        class Holder extends RecyclerView.ViewHolder {
+            TouchImageView image;
+
+            Holder(TouchImageView image) {
+                super(image);
+                this.image = image;
+            }
+        }
+    }
+
+    private class ThumbAdapter extends RecyclerView.Adapter<ThumbAdapter.Holder> {
+
+        private int selected = 0;
+
+        void setSelected(int position) {
+            int old = selected;
+            selected = position;
+            notifyItemChanged(old);
+            notifyItemChanged(selected);
+        }
+
+        void scrollToPosition(int position) {
+            mBinding.thumbs.smoothScrollToPosition(position);
+        }
+
+        @NonNull
+        @Override
+        public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new Holder(ItemGalleryThumbBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull Holder holder, int position) {
+            String url = mUrls.get(position);
+            ImgUtil.loadVod("", url, holder.binding.thumb);
+            holder.binding.border.setVisibility(position == selected ? View.VISIBLE : View.GONE);
+            holder.itemView.setOnClickListener(v -> {
+                mBinding.pager.setCurrentItem(position, false);
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return mUrls.size();
+        }
+
+        class Holder extends RecyclerView.ViewHolder {
+            ItemGalleryThumbBinding binding;
+
+            Holder(ItemGalleryThumbBinding binding) {
+                super(binding.getRoot());
+                this.binding = binding;
+            }
+        }
+    }
+}

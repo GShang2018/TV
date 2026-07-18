@@ -160,6 +160,18 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
+        <activity
+            android:name=".ui.activity.GalleryActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme.Gallery" />
+
+        <activity
+            android:name=".ui.activity.GalleryGridActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme.Gallery" />
+
         <service
             android:name="com.android.cast.dlna.dmr.DLNARendererService"
             android:exported="false" />

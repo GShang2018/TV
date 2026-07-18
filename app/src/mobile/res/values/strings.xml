@@ -19,6 +19,11 @@
     <string name="detail_download">Download</string>
     <string name="detail_episode">Episode</string>
     <string name="detail_quality">Quality</string>
+    <string name="detail_gallery">Gallery</string>
+    <string name="detail_gallery_all">All %d \u00A0</string>
+    <string name="gallery_counter">%d / %d</string>
+    <string name="gallery_saved">Saved to gallery</string>
+    <string name="gallery_save_fail">Save failed</string>
     <string name="detail_content">Summary</string>
     <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
 

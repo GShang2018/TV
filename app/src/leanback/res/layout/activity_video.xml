@@ -271,6 +271,17 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/gallery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_marginBottom="12dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:visibility="gone" />
+
             <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
                 android:id="@+id/quality"
                 android:layout_width="match_parent"

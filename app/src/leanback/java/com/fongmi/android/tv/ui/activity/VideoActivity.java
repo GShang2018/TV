@@ -73,12 +73,14 @@ import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.dialog.DescDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog;
 import com.fongmi.android.tv.ui.dialog.FileChooserDialog;
+import com.fongmi.android.tv.ui.dialog.ImageDialog;
 import com.fongmi.android.tv.ui.dialog.PlayerDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
 import com.fongmi.android.tv.ui.presenter.EpisodePresenter;
 import com.fongmi.android.tv.ui.presenter.FlagPresenter;
+import com.fongmi.android.tv.ui.presenter.GalleryPresenter;
 import com.fongmi.android.tv.ui.presenter.ParsePresenter;
 import com.fongmi.android.tv.ui.presenter.PartPresenter;
 import com.fongmi.android.tv.ui.presenter.QuickPresenter;
@@ -133,6 +135,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private ArrayObjectAdapter mFlagAdapter;
     private ArrayObjectAdapter mPartAdapter;
     private QualityAdapter mQualityAdapter;
+    private ArrayObjectAdapter mGalleryAdapter;
+    private GalleryPresenter mGalleryPresenter;
     private DanmakuContext mDanmakuContext;
     private ArrayPresenter mArrayPresenter;
     private FlagPresenter mFlagPresenter;
@@ -444,6 +448,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.quick.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.quick.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.quick.setAdapter(new ItemBridgeAdapter(mQuickAdapter = new ArrayObjectAdapter(new QuickPresenter(this::setSearch))));
+        mBinding.gallery.setHorizontalSpacing(ResUtil.dp2px(8));
+        mBinding.gallery.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        mBinding.gallery.setAdapter(new ItemBridgeAdapter(mGalleryAdapter = new ArrayObjectAdapter(mGalleryPresenter = new GalleryPresenter(position -> openGallery(mGalleryAdapter, position)))));
         mBinding.control.parse.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.control.parse.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.control.parse.setAdapter(new ItemBridgeAdapter(mParseAdapter = new ArrayObjectAdapter(new ParsePresenter(this::setParseActivated))));
@@ -610,6 +617,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.content, R.string.detail_content, Html.fromHtml(item.getVodContent()).toString());
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
         mFlagAdapter.setItems(item.getVodFlags(), null);
+        setGallery(item);
         mBinding.content.setMaxLines(getMaxLines());
         mBinding.video.requestFocus();
         setArtwork(item.getVodPic());
@@ -618,6 +626,27 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkHistory(item);
         checkFlag(item);
         checkKeep();
+    }
+
+    private void setGallery(Vod item) {
+        List<String> items = item.getGallery();
+        mGalleryAdapter.clear();
+        if (!items.isEmpty()) {
+            mGalleryAdapter.addAll(0, items);
+            mBinding.gallery.setVisibility(View.VISIBLE);
+        } else {
+            mBinding.gallery.setVisibility(View.GONE);
+        }
+    }
+
+    private void showImage(String url) {
+        ImageDialog.create(this).url(url).show();
+    }
+
+    private void openGallery(ArrayObjectAdapter adapter, int position) {
+        List<String> urls = new ArrayList<>();
+        for (int i = 0; i < adapter.size(); i++) urls.add((String) adapter.get(i));
+        GalleryActivity.start(this, new ArrayList<>(urls), position);
     }
 
     private int getMaxLines() {
