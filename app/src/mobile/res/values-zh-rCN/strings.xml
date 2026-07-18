@@ -14,6 +14,9 @@
 
     <!-- Dialog -->
     <string name="dialog_site_title">选择站点</string>
+    <string name="dialog_site_list">站点列表</string>
+    <string name="dialog_site_line">选择线路</string>
+    <string name="dialog_site_source">选择直播源</string>
 
     <!-- Detail -->
     <string name="detail_flag">线路</string>

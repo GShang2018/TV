@@ -5,8 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 
 import androidx.annotation.NonNull;
@@ -264,8 +267,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     private void showSiteFlexboxDialog(List<Site> sites) {
         if (sites.isEmpty()) return;
         android.widget.LinearLayout layout = (android.widget.LinearLayout) LayoutInflater.from(this).inflate(R.layout.dialog_type, null);
-        android.widget.TextView title = layout.findViewById(R.id.title);
-        title.setText(R.string.dialog_site_title);
         com.google.android.flexbox.FlexboxLayout flexbox = layout.findViewById(R.id.flexbox);
         flexbox.removeAllViews();
         AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(layout).create();
@@ -289,7 +290,13 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
             flexbox.addView(textView);
         }
         dialog.getWindow().setDimAmount(0);
+        dialog.getWindow().setDecorFitsSystemWindows(false);
         dialog.show();
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.CENTER;
+        dialog.getWindow().setAttributes(params);
     }
 
     private List<Site> getCollectSites() {

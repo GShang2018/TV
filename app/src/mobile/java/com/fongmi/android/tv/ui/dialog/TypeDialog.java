@@ -1,7 +1,9 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -65,7 +67,13 @@ public class TypeDialog implements TypeAdapter.OnClickListener {
     private void setDialog() {
         if (adapter.getItemCount() == 0) return;
         dialog.getWindow().setDimAmount(0);
+        dialog.getWindow().setDecorFitsSystemWindows(false);
         dialog.show();
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.CENTER;
+        dialog.getWindow().setAttributes(params);
     }
 
     @Override

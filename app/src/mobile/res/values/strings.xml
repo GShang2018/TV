@@ -15,6 +15,9 @@
 
     <!-- Dialog -->
     <string name="dialog_site_title">Select Site</string>
+    <string name="dialog_site_list">Site List</string>
+    <string name="dialog_site_line">Select Line</string>
+    <string name="dialog_site_source">Select Source</string>
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>
