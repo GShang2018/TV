@@ -121,20 +121,6 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         params.gravity = Gravity.CENTER;
         window.setAttributes(params);
-        // 布局完成后检查是否超出屏幕，超出则改为顶部对齐
-        DisplayMetrics dm = window.getContext().getResources().getDisplayMetrics();
-        int screenHeight = dm.heightPixels;
-        binding.getRoot().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (bottom - top > screenHeight) {
-                    WindowManager.LayoutParams p = window.getAttributes();
-                    p.gravity = Gravity.TOP;
-                    window.setAttributes(p);
-                }
-                v.removeOnLayoutChangeListener(this);
-            }
-        });
     }
 
     @Override
