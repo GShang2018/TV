@@ -9,6 +9,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 
@@ -290,13 +291,27 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
             flexbox.addView(textView);
         }
         dialog.getWindow().setDimAmount(0);
-        dialog.getWindow().setDecorFitsSystemWindows(false);
         dialog.show();
-        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        Window window = dialog.getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
         params.width = ViewGroup.LayoutParams.MATCH_PARENT;
         params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         params.gravity = Gravity.CENTER;
-        dialog.getWindow().setAttributes(params);
+        window.setAttributes(params);
+        // 布局完成后检查是否超出屏幕，超出则改为顶部对齐
+        android.util.DisplayMetrics dm = window.getContext().getResources().getDisplayMetrics();
+        int screenHeight = dm.heightPixels;
+        layout.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (bottom - top > screenHeight) {
+                    WindowManager.LayoutParams p = window.getAttributes();
+                    p.gravity = Gravity.TOP;
+                    window.setAttributes(p);
+                }
+                v.removeOnLayoutChangeListener(this);
+            }
+        });
     }
 
     private List<Site> getCollectSites() {
