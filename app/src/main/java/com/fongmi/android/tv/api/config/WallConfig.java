@@ -99,6 +99,7 @@ public class WallConfig {
             bitmap.recycle();
             return file;
         } catch (Exception e) {
+            file.delete();
             return file;
         }
     }

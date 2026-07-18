@@ -26,7 +26,7 @@ public class GalleryPresenter extends Presenter {
         String url = (String) item;
         ViewHolder holder = (ViewHolder) viewHolder;
         ImgUtil.loadVod("", url, holder.binding.image);
-        holder.binding.getRoot().setOnClickListener(v -> listener.onItemClick(holder.getAbsoluteAdapterPosition()));
+        holder.binding.getRoot().setOnClickListener(v -> listener.onItemClick(url));
     }
 
     @Override
@@ -34,7 +34,7 @@ public class GalleryPresenter extends Presenter {
     }
 
     public interface OnClickListener {
-        void onItemClick(int position);
+        void onItemClick(String url);
     }
 
     static class ViewHolder extends Presenter.ViewHolder {

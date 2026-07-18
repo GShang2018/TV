@@ -450,7 +450,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.quick.setAdapter(new ItemBridgeAdapter(mQuickAdapter = new ArrayObjectAdapter(new QuickPresenter(this::setSearch))));
         mBinding.gallery.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.gallery.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.gallery.setAdapter(new ItemBridgeAdapter(mGalleryAdapter = new ArrayObjectAdapter(mGalleryPresenter = new GalleryPresenter(position -> openGallery(mGalleryAdapter, position)))));
+        mBinding.gallery.setAdapter(new ItemBridgeAdapter(mGalleryAdapter = new ArrayObjectAdapter(mGalleryPresenter = new GalleryPresenter(url -> openGallery(mGalleryAdapter, url)))));
         mBinding.control.parse.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.control.parse.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.control.parse.setAdapter(new ItemBridgeAdapter(mParseAdapter = new ArrayObjectAdapter(new ParsePresenter(this::setParseActivated))));
@@ -643,9 +643,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         ImageDialog.create(this).url(url).show();
     }
 
-    private void openGallery(ArrayObjectAdapter adapter, int position) {
+    private void openGallery(ArrayObjectAdapter adapter, String url) {
         List<String> urls = new ArrayList<>();
-        for (int i = 0; i < adapter.size(); i++) urls.add((String) adapter.get(i));
+        int position = 0;
+        for (int i = 0; i < adapter.size(); i++) {
+            String item = (String) adapter.get(i);
+            if (item.equals(url)) position = i;
+            urls.add(item);
+        }
         GalleryActivity.start(this, new ArrayList<>(urls), position);
     }
 

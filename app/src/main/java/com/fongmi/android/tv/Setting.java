@@ -614,12 +614,4 @@ public class Setting {
         Prefers.put("thunder_cache_dir", dir);
     }
 
-    public static int getThemeColor() {
-        return Prefers.getInt("theme_color", -1);
-    }
-
-    public static void putThemeColor(int color) {
-        Prefers.put("theme_color", color);
-    }
-
 }

@@ -20,7 +20,10 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/flexbox"

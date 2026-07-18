@@ -198,11 +198,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:textColor="@color/primary"
+                                android:textColor="@color/white"
                                 android:textSize="14sp"
                                 android:visibility="gone"
                                 app:drawableEndCompat="@drawable/ic_detail_more"
-                                app:drawableTint="@color/primary"
+                                app:drawableTint="@color/white"
                                 tools:text="全部 12"
                                 tools:visibility="visible" />
 

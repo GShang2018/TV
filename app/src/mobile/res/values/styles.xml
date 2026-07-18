@@ -46,7 +46,16 @@
     </style>
 
     <style name="Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/indicator</item>
+        <item name="android:color">@color/black_30</item>
+        <item name="shapeAppearance">@style/IndicatorShape</item>
+    </style>
+
+    <style name="IndicatorShape" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamilyTopLeft">rounded</item>
+        <item name="cornerFamilyTopRight">rounded</item>
+        <item name="cornerFamilyBottomLeft">rounded</item>
+        <item name="cornerFamilyBottomRight">rounded</item>
+        <item name="cornerSize">20dp</item>
     </style>
 
 </resources>
