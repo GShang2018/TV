@@ -7,18 +7,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:padding="8dp"
-        android:text="@string/dialog_site_title"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
     <LinearLayout
         android:id="@+id/searchInput"
         android:layout_width="match_parent"
@@ -70,22 +58,13 @@
 
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
-        android:fillViewport="true"
-        android:maxHeight="380dp">
-
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/flexbox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="4dp"
-            android:paddingBottom="12dp"
-            app:flexWrap="wrap"
-            app:alignItems="flex_start"
-            app:alignContent="flex_start" />
-    </ScrollView>
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        tools:listitem="@layout/adapter_site" />
 
 </LinearLayout>

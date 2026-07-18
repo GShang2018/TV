@@ -20,7 +20,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
     private List<Site> mItems;
-    private final List<Site> allItems;
+    private List<Site> allItems;
     private boolean search;
     private boolean change;
 
@@ -28,6 +28,12 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         this.mListener = listener;
         this.mItems = VodConfig.get().getSites();
         this.allItems = this.mItems;
+    }
+
+    public void setSites(List<Site> sites) {
+        this.mItems = sites;
+        this.allItems = new ArrayList<>(sites);
+        notifyDataSetChanged();
     }
 
     public SiteAdapter search(boolean search) {

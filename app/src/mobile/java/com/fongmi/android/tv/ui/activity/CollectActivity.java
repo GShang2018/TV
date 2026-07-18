@@ -5,10 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -48,6 +50,7 @@ import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -212,8 +215,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         String keyword = mBinding.keyword.getText().toString().trim();
         for (Site site : mSites) mExecutor.execute(() -> search(site, keyword));
         App.post(() -> mRecordAdapter.add(keyword), 250);
-        // 检查站点标签是否溢出
-        mBinding.siteRecycler.post(this::checkSiteOverflow);
+        // 更多按钮固定显示，不依赖列表加载完成
+        mBinding.siteMore.setVisibility(View.VISIBLE);
     }
 
     private void search(Site site, String keyword) {
@@ -251,14 +254,54 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void onSite(View view) {
         Util.hideKeyboard(mBinding.keyword);
-        syncSiteActivated();
-        App.post(() -> SiteDialog.create(this).sites(mSites).search().show(), 50);
+        SiteDialog.create(this).search().show();
     }
 
     private void onSiteMore(View view) {
-        // 弹窗显示搜索站点列表供选择
-        syncSiteActivated();
-        SiteDialog.create(this).sites(mSites).search().show();
+        showSiteFlexboxDialog(getCollectSites());
+    }
+
+    private void showSiteFlexboxDialog(List<Site> sites) {
+        if (sites.isEmpty()) return;
+        android.widget.LinearLayout layout = (android.widget.LinearLayout) LayoutInflater.from(this).inflate(R.layout.dialog_type, null);
+        android.widget.TextView title = layout.findViewById(R.id.title);
+        title.setText(R.string.dialog_site_title);
+        com.google.android.flexbox.FlexboxLayout flexbox = layout.findViewById(R.id.flexbox);
+        flexbox.removeAllViews();
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(layout).create();
+        for (int i = 0; i < sites.size(); i++) {
+            Site site = sites.get(i);
+            android.widget.TextView textView = (android.widget.TextView) LayoutInflater.from(this).inflate(R.layout.adapter_type_dialog, flexbox, false);
+            textView.setText(site.getName());
+            textView.setSelected(site.isActivated());
+            textView.setOnClickListener(v -> {
+                setSite(site);
+                // 同步更新 CollectAdapter 的选中状态
+                for (int j = 0; j < mCollectAdapter.getItemCount(); j++) {
+                    Collect collect = mCollectAdapter.getItem(j);
+                    if (collect.getSite().getKey().equals(site.getKey())) {
+                        mCollectAdapter.setActivated(j);
+                        break;
+                    }
+                }
+                dialog.dismiss();
+            });
+            flexbox.addView(textView);
+        }
+        dialog.getWindow().setDimAmount(0);
+        dialog.show();
+    }
+
+    private List<Site> getCollectSites() {
+        List<Site> sites = new ArrayList<>();
+        if (mCollectAdapter == null) return sites;
+        for (int i = 0; i < mCollectAdapter.getItemCount(); i++) {
+            Collect collect = mCollectAdapter.getItem(i);
+            Site site = collect.getSite();
+            site.setActivated(collect.isActivated());
+            sites.add(site);
+        }
+        return sites;
     }
 
     private void syncSiteActivated() {
@@ -305,7 +348,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
                 mCollectAdapter.setActivated(i);
                 mSearchAdapter.setAll(collect.getList());
                 mScroller.setPage(collect.getPage());
-                mBinding.siteRecycler.post(this::checkSiteOverflow);
+                // 横向滚动列表滚动到选中位置
+                mBinding.siteRecycler.smoothScrollToPosition(i);
                 return;
             }
         }
@@ -336,8 +380,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mCollectAdapter.setActivated(position);
         mSearchAdapter.setAll(item.getList());
         mScroller.setPage(item.getPage());
-        // 刷新站点标签溢出状态
-        mBinding.siteRecycler.post(this::checkSiteOverflow);
     }
 
     @Override

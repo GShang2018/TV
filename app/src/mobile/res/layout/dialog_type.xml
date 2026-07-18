@@ -29,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
-            android:paddingBottom="12dp"
+            android:paddingBottom="4dp"
             app:flexWrap="wrap"
             app:alignItems="flex_start"
             app:alignContent="flex_start" />
