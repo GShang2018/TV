@@ -7,6 +7,7 @@ import com.fongmi.android.tv.databinding.AdapterVodRectBinding;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.ImgUtil;
+import com.fongmi.android.tv.utils.ResUtil;
 
 public class VodRectHolder extends BaseVodHolder {
 
@@ -20,9 +21,16 @@ public class VodRectHolder extends BaseVodHolder {
     }
 
     public VodRectHolder size(int[] size) {
-        binding.getRoot().getLayoutParams().width = size[0];
-        binding.getRoot().getLayoutParams().height = size[1];
+        setSize(size);
         return this;
+    }
+
+    @Override
+    public void setSize(int[] size) {
+        binding.getRoot().getLayoutParams().width = size[0];
+        binding.getRoot().getLayoutParams().height = size[1] + ResUtil.dp2px(32);
+        binding.image.getLayoutParams().width = size[0];
+        binding.image.getLayoutParams().height = size[1];
     }
 
     @Override

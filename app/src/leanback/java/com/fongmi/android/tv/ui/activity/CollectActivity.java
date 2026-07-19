@@ -22,6 +22,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Site;
@@ -76,6 +77,7 @@ public class CollectActivity extends BaseActivity {
         setPager();
         setSite();
         search();
+        updateViewIcon();
     }
 
     @Override
@@ -92,6 +94,7 @@ public class CollectActivity extends BaseActivity {
                 onChildSelected(child);
             }
         });
+        mBinding.viewToggle.setOnClickListener(v -> toggleView(v));
     }
 
     private void setRecyclerView() {
@@ -137,6 +140,38 @@ public class CollectActivity extends BaseActivity {
         }
     }
 
+    private void toggleView(View view) {
+        if (Setting.getCollectViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+            Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.GRID);
+        } else {
+            Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.PORTRAIT);
+        }
+        updateViewIcon();
+        // 刷新所有 fragment 的封面样式
+        refreshAllFragments();
+    }
+
+    private void refreshAllFragments() {
+        try {
+            FragmentManager fm = getSupportFragmentManager();
+            List<Fragment> fragments = fm.getFragments();
+            for (Fragment f : fragments) {
+                if (f instanceof CollectFragment && f.isAdded()) {
+                    ((CollectFragment) f).refreshStyle();
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void updateViewIcon() {
+        if (Setting.getCollectViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+        } else {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        }
+    }
+
     private void stop() {
         if (mExecutor == null) return;
         mExecutor.shutdownNow();
@@ -170,6 +205,8 @@ public class CollectActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         if (mExecutor != null) mExecutor.resume();
+        // 刷新所有 fragment 的封面样式
+        refreshAllFragments();
     }
 
     @Override

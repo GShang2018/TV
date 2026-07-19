@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -40,6 +41,7 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.ActivityHomeBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.CastEvent;
@@ -51,6 +53,7 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.MenuDialog;
@@ -118,6 +121,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setViewModel();
         setHomeType();
         setPager();
+        updateViewIcon();
         initConfig();
     }
 
@@ -136,6 +140,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 onChildSelected(child);
             }
         });
+        mBinding.viewToggle.setOnClickListener(this::toggleView);
     }
 
     private void checkAction(Intent intent) {
@@ -264,6 +269,45 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     public void showToolBar() {
         mBinding.toolbar.setVisibility(View.VISIBLE);
         mBinding.blank.setVisibility(View.GONE);
+    }
+
+    private void toggleView(View view) {
+        int viewType = Setting.getHomeViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
+        Setting.putHomeViewType(viewType);
+        // 首页切换按钮同时控制分类页（VodFragment）的布局
+        Setting.putCategoryViewType(viewType);
+        updateViewIcon();
+        // 刷新所有 fragment 的封面样式
+        refreshAllFragments();
+    }
+
+    private void updateViewIcon() {
+        if (Setting.getHomeViewType() == ViewType.PORTRAIT) {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+        } else {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        }
+    }
+
+    private Style getHomeViewStyle() {
+        return Setting.getHomeViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+    }
+
+    private void refreshAllFragments() {
+        try {
+            HomeFragment homeFragment = getHomeFragment();
+            if (homeFragment != null && homeFragment.mBinding != null) {
+                homeFragment.refreshWithStyle();
+            }
+            // 同时刷新 ViewPager 中所有 VodFragment（分类页）
+            for (int i = 1; i < mPageAdapter.getCount(); i++) {
+                Fragment fragment = (Fragment) mPageAdapter.instantiateItem(mBinding.pager, i);
+                if (fragment instanceof VodFragment && fragment.isAdded()) {
+                    ((VodFragment) fragment).refreshStyle();
+                }
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     private HomeFragment getHomeFragment() {
@@ -595,7 +639,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         public Fragment getItem(int position) {
             if (position == 0) return new HomeFragment();
             Class type = (Class) mAdapter.get(position);
-            return VodFragment.newInstance(getHome().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
+            // 始终使用 categoryViewType 设置，与 refreshStyle 保持一致
+            Style style = Setting.getCategoryViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+            return VodFragment.newInstance(getHome().getKey(), type.getTypeId(), style, type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 
         @Override

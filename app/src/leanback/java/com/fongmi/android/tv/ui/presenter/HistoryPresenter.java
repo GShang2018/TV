@@ -9,9 +9,12 @@ import androidx.leanback.widget.Presenter;
 
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.History;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
@@ -43,18 +46,30 @@ public class HistoryPresenter extends Presenter {
         this.delete = delete;
     }
 
+    private Style getViewStyle() {
+        return Setting.getHomeViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+    }
+
+    public void refreshLayout() {
+        setLayoutSize();
+    }
+
     private void setLayoutSize() {
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
+        Style style = getViewStyle();
+        int column = Product.getColumn(style);
+        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (column - 1));
         int base = ResUtil.getScreenWidth() - space;
-        width = base / Product.getColumn();
-        height = (int) (width / 0.75f);
+        width = base / column;
+        height = (int) (width / style.getRatio());
     }
 
     @Override
     public Presenter.ViewHolder onCreateViewHolder(ViewGroup parent) {
         ViewHolder holder = new ViewHolder(AdapterVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         holder.binding.getRoot().getLayoutParams().width = width;
-        holder.binding.getRoot().getLayoutParams().height = height;
+        holder.binding.getRoot().getLayoutParams().height = height + ResUtil.dp2px(32);
+        holder.binding.image.getLayoutParams().width = width;
+        holder.binding.image.getLayoutParams().height = height;
         return holder;
     }
 

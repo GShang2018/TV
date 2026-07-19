@@ -16,6 +16,8 @@ public abstract class BaseVodHolder extends Presenter.ViewHolder {
 
     public abstract void initView(Vod item);
 
+    public abstract void setSize(int[] size);
+
     public static void setTagMaxWidth(View imageView, int paddingDp, TextView... tags) {
         imageView.post(() -> {
             int imageWidth = imageView.getWidth();

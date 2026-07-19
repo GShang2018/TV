@@ -12,8 +12,8 @@
         android:stepSize="0.1"
         android:valueFrom="0.6"
         android:valueTo="2"
-        app:thumbColor="@color/blue_500"
-        app:trackColorActive="@color/blue_500"
-        app:trackColorInactive="@color/blue_50" />
+        app:thumbColor="@color/spotify_green"
+        app:trackColorActive="@color/spotify_green"
+        app:trackColorInactive="@color/white_20" />
 
 </FrameLayout>

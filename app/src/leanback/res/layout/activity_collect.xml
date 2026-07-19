@@ -7,30 +7,56 @@
     android:keepScreenOn="true"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/result"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="16dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="24sp"
-        tools:text="@string/collect_result" />
+        android:paddingStart="24dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
-        android:id="@+id/recycler"
+        <TextView
+            android:id="@+id/result"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            tools:text="@string/collect_result" />
+
+        <ImageView
+            android:id="@+id/viewToggle"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_action_grid" />
+
+    </LinearLayout>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        app:focusOutEnd="true"
-        app:focusOutFront="true" />
+        android:paddingEnd="24dp">
+
+        <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingStart="12dp"
+            app:focusOutEnd="true"
+            app:focusOutFront="true" />
+
+    </RelativeLayout>
 
     <com.fongmi.android.tv.ui.custom.CustomViewPager
         android:id="@+id/pager"

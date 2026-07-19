@@ -234,9 +234,24 @@
                 android:background="@drawable/selector_text"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusRight="@id/next"
+                android:nextFocusRight="@id/share"
                 android:nextFocusDown="@id/timeBar"
                 android:text="@string/play_loop"
+                android:textColor="@color/text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/share"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/selector_text"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusLeft="@id/loop"
+                android:nextFocusRight="@id/next"
+                android:nextFocusDown="@id/timeBar"
+                android:text="@string/play_share"
                 android:textColor="@color/text"
                 android:textSize="14sp" />
 

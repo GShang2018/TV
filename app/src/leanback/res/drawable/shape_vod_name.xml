@@ -3,9 +3,11 @@
     android:shape="rectangle">
 
     <corners
+        android:topLeftRadius="0dp"
+        android:topRightRadius="0dp"
         android:bottomLeftRadius="8dp"
         android:bottomRightRadius="8dp" />
 
-    <solid android:color="@color/black_60" />
+    <solid android:color="@color/spotify_surface" />
 
 </shape>

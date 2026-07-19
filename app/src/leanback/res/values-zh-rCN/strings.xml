@@ -19,4 +19,11 @@
     <string name="push_clip">推送剪贴板内容</string>
     <string name="push_info">使用手机扫描二维码，或于浏览器访问地址\n<xliff:g name="name">%s</xliff:g></string>
 
+    <!-- Player -->
+    <string name="play_share">分享</string>
+
+    <!-- Player Cache -->
+    <string name="player_cache_time">缓存时间</string>
+    <string name="second">秒</string>
+
 </resources>

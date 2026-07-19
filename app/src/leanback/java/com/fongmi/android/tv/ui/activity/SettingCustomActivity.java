@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -17,6 +18,7 @@ import com.fongmi.android.tv.impl.CacheDirCallback;
 import com.fongmi.android.tv.impl.LanguageCallback;
 import com.fongmi.android.tv.impl.MenuKeyCallback;
 import com.fongmi.android.tv.impl.X5WebViewCallback;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ButtonsDialog;
 import com.fongmi.android.tv.ui.dialog.CacheDirDialog;
@@ -44,6 +46,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     private String[] homeUI;
     private String[] parseWebview;
     private String[] configCache;
+    private String[] lang;
 
     @Override
     protected ViewBinding getBinding() {
@@ -75,9 +78,12 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
         mBinding.cacheDirText.setText(Setting.getThunderCacheDir());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
-        mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
+        mBinding.languageText.setText((lang = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
+        mBinding.homeDisplayNameText.setText(getSwitch(Setting.isHomeDisplayName()));
+        mBinding.siteSearchText.setText(getSwitch(Setting.isSiteSearch()));
+        mBinding.debugText.setText(getSwitch(Setting.isDebug()));
     }
 
 
@@ -104,6 +110,9 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.configCache.setOnClickListener(this::setConfigCache);
         mBinding.cacheDir.setOnClickListener(this::setCacheDir);
         mBinding.reset.setOnClickListener(this::onReset);
+        mBinding.homeDisplayName.setOnClickListener(this::setHomeDisplayName);
+        mBinding.siteSearch.setOnClickListener(this::setSiteSearch);
+        mBinding.debug.setOnClickListener(this::setDebug);
     }
 
     private void setQuality(View view) {
@@ -114,10 +123,12 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     }
 
     private void setSize(View view) {
-        int index = Setting.getSize();
-        Setting.putSize(index = index == size.length - 1 ? 0 : ++index);
-        mBinding.sizeText.setText(size[index]);
-        RefreshEvent.size();
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, Setting.getSize(), (dialog, which) -> {
+            mBinding.sizeText.setText(size[which]);
+            Setting.putSize(which);
+            RefreshEvent.size();
+            dialog.dismiss();
+        }).show();
     }
 
     private void setEpisode(View view) {
@@ -208,7 +219,13 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     }
 
     private void setLanguage(View view) {
-        LanguageDialog.create(this).show();
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.setting_language).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(lang, Setting.getLanguage(), (dialog, which) -> {
+            mBinding.languageText.setText(lang[which]);
+            Setting.putLanguage(which);
+            LanguageUtil.setLocale(LanguageUtil.getLocale(Setting.getLanguage()));
+            dialog.dismiss();
+            App.post(() -> Util.restartApp(this), 1000);
+        }).show();
     }
 
     private void setParseWebview(View view) {
@@ -276,6 +293,28 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     public void onMenuKeyItemClick(int position) {
         Setting.putHomeMenuKey(position);
         mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
+    }
+
+    private void setHomeDisplayName(View view) {
+        Setting.putHomeDisplayName(!Setting.isHomeDisplayName());
+        mBinding.homeDisplayNameText.setText(getSwitch(Setting.isHomeDisplayName()));
+        RefreshEvent.config();
+    }
+
+    private void setSiteSearch(View view) {
+        Setting.putSiteSearch(!Setting.isSiteSearch());
+        mBinding.siteSearchText.setText(getSwitch(Setting.isSiteSearch()));
+    }
+
+    private void setDebug(View view) {
+        boolean debug = !Setting.isDebug();
+        Setting.putDebug(debug);
+        mBinding.debugText.setText(getSwitch(debug));
+        if (debug) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(Server.get().getAddress("/log.html")));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
     }
 
 }

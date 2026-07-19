@@ -2,20 +2,26 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.Product;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.ActivityKeepBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.adapter.KeepAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Notify;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -39,14 +45,69 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     protected void initView() {
         setRecyclerView();
         getKeep();
+        updateViewIcon();
+    }
+
+    @Override
+    protected void initEvent() {
+        mBinding.delete.setOnClickListener(this::onDelete);
+        mBinding.viewToggle.setOnClickListener(this::toggleView);
+    }
+
+    private Style getViewStyle() {
+        return Setting.getKeepViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+    }
+
+    private void toggleView(View view) {
+        if (Setting.getKeepViewType() == ViewType.PORTRAIT) {
+            Setting.putKeepViewType(ViewType.GRID);
+        } else {
+            Setting.putKeepViewType(ViewType.PORTRAIT);
+        }
+        updateViewIcon();
+        // 刷新封面样式
+        if (mAdapter != null) {
+            Style style = getViewStyle();
+            int column = Product.getColumn(style);
+            mAdapter.setStyle(style);
+            mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+            while (mBinding.recycler.getItemDecorationCount() > 0) {
+                mBinding.recycler.removeItemDecorationAt(0);
+            }
+            mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void updateViewIcon() {
+        if (Setting.getKeepViewType() == ViewType.PORTRAIT) {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+        } else {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        }
+    }
+
+    private void onDelete(View view) {
+        if (mAdapter.isDelete()) {
+            mAdapter.setDelete(false);
+        } else if (mAdapter.getItemCount() > 0) {
+            mAdapter.setDelete(true);
+        } else {
+            mBinding.delete.setVisibility(View.GONE);
+        }
     }
 
     private void setRecyclerView() {
+        Style style = getViewStyle();
+        int column = Product.getColumn(style);
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setItemAnimator(null);
-        mBinding.recycler.setAdapter(mAdapter = new KeepAdapter(this));
-        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn()));
-        mBinding.recycler.addItemDecoration(new SpaceItemDecoration(Product.getColumn(), 16));
+        mBinding.recycler.setClipToPadding(false);
+        int padding = ResUtil.dp2px(8);
+        mBinding.recycler.setPadding(padding, padding, padding, padding);
+        mBinding.recycler.setAdapter(mAdapter = new KeepAdapter(this, style));
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+        mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
     }
 
     private void getKeep() {
@@ -99,5 +160,23 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     public void onBackPressed() {
         if (mAdapter.isDelete()) mAdapter.setDelete(false);
         else super.onBackPressed();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 刷新封面样式
+        if (mAdapter != null) {
+            Style style = getViewStyle();
+            int column = Product.getColumn(style);
+            mAdapter.setStyle(style);
+            mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+            // 清除旧的 ItemDecoration 并添加新的
+            while (mBinding.recycler.getItemDecorationCount() > 0) {
+                mBinding.recycler.removeItemDecorationAt(0);
+            }
+            mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
+            mAdapter.notifyDataSetChanged();
+        }
     }
 }

@@ -154,7 +154,23 @@ public class Setting {
 		Prefers.put("keepViewType", viewType);
 	}
 
-    public static int getScale() {
+	public static int getCollectViewType() {
+		return Prefers.getInt("collectViewType", 3);
+	}
+
+	public static void putCollectViewType(int viewType) {
+		Prefers.put("collectViewType", viewType);
+	}
+
+	public static int getCategoryViewType() {
+		return Prefers.getInt("categoryViewType", 3);
+	}
+
+	public static void putCategoryViewType(int viewType) {
+		Prefers.put("categoryViewType", viewType);
+	}
+
+	   public static int getScale() {
         return Prefers.getInt("scale");
     }
 

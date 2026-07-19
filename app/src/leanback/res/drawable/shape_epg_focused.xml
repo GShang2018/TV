@@ -6,6 +6,6 @@
 
     <stroke
         android:width="1.5dp"
-        android:color="@color/white" />
+        android:color="@color/spotify_green" />
 
 </shape>

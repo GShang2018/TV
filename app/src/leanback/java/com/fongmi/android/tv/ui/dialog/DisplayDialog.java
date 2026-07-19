@@ -47,8 +47,8 @@ public class DisplayDialog {
         binding.recycler.setAdapter(adapter);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setItemAnimator(null);
-        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.recycler.setLayoutManager(new GridLayoutManager(dialog.getContext(), 1));
+        binding.recycler.addItemDecoration(new SpaceItemDecoration(3, 16));
+        binding.recycler.setLayoutManager(new GridLayoutManager(dialog.getContext(), 3));
         binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
 
     }

@@ -28,10 +28,10 @@
         android:nextFocusRight="@id/timeBar"
         android:nextFocusUp="@id/next"
         android:nextFocusDown="@id/timeBar"
-        app:buffered_color="@color/blue_200"
-        app:played_color="@color/blue_500"
-        app:scrubber_color="@color/blue_500"
-        app:unplayed_color="@color/grey_500" />
+        app:buffered_color="@color/spotify_green_70"
+        app:played_color="@color/spotify_green"
+        app:scrubber_color="@color/spotify_green"
+        app:unplayed_color="@color/white_20" />
 
     <TextView
         android:id="@+id/duration"

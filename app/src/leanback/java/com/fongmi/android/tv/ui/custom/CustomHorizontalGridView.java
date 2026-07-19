@@ -43,7 +43,17 @@ public class CustomHorizontalGridView extends HorizontalGridView {
         if (focused != null) {
             View found = FocusFinder.getInstance().findNextFocus(this, focused, direction);
             if (direction == View.FOCUS_LEFT || direction == View.FOCUS_RIGHT) {
-                if ((found == null || found.getId() != R.id.text) && getScrollState() == SCROLL_STATE_IDLE) {
+                // 如果找到了焦点且不是 text 控件，允许移出到外部（如 viewToggle 按钮）
+                if (found != null && found.getId() != R.id.text) {
+                    return found;
+                }
+                // 没找到焦点或找到的是 text 控件时，检查外部是否有可聚焦的兄弟视图
+                if (getScrollState() == SCROLL_STATE_IDLE) {
+                    // 尝试从整个父布局查找下一个焦点
+                    View externalFound = FocusFinder.getInstance().findNextFocus((ViewGroup) getParent(), focused, direction);
+                    if (externalFound != null) {
+                        return externalFound;
+                    }
                     focused.clearAnimation();
                     focused.startAnimation(shake);
                     return null;

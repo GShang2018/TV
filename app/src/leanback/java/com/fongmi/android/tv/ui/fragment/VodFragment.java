@@ -13,12 +13,14 @@ import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.HorizontalGridView;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Page;
@@ -58,6 +60,8 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     private List<Page> mPages;
     private boolean mOpen;
     private Page mPage;
+    private Style mStyle;
+    private Result mResult;
 
     public static VodFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
@@ -105,7 +109,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     }
 
     private Style getStyle() {
-        return isFolder() ? Style.list() : getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
+        return isFolder() ? Style.list() : getSite().getStyle(mPages.isEmpty() ? mStyle : getLastPage().getStyle());
     }
 
     @Override
@@ -118,6 +122,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
         mPages = new ArrayList<>();
         mExtends = getExtend();
         mFilters = getFilter();
+        mStyle = getArguments().getParcelable("style");
         setRecyclerView();
         setViewModel();
         setFilters();
@@ -185,7 +190,9 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     }
 
     private void addVideo(Result result) {
-        Style style = result.getStyle(getStyle());
+        mResult = result;
+        // 始终使用用户设置的布局样式，忽略 API 返回数据自带的 style
+        Style style = Setting.getCategoryViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
     }
@@ -277,6 +284,92 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
         mPages.clear();
         getVideo();
         return true;
+    }
+
+    public void refreshStyle() {
+        // 分类页使用独立的布局设置
+        if (Setting.getCategoryViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+            mStyle = new Style("rect", 0.75f);
+        } else {
+            mStyle = Style.rect();
+        }
+        // 如果没有数据，触发网络加载
+        if (mResult == null || mResult.getList().isEmpty()) {
+            onRefresh();
+            return;
+        }
+        // 保存当前滚动位置和子项位置
+        int position = mBinding.recycler.getSelectedPosition();
+        int subPosition = 0;
+        RecyclerView.ViewHolder rowHolder = mBinding.recycler.findViewHolderForAdapterPosition(position);
+        if (rowHolder != null && rowHolder.itemView instanceof ViewGroup) {
+            ViewGroup rowGroup = (ViewGroup) rowHolder.itemView;
+            // ListRowPresenter 的布局中，HorizontalGridView 是第一个 RecyclerView
+            for (int i = 0; i < rowGroup.getChildCount(); i++) {
+                View child = rowGroup.getChildAt(i);
+                if (child instanceof RecyclerView) {
+                    RecyclerView horizontalGrid = (RecyclerView) child;
+                    View focusedChild = horizontalGrid.getFocusedChild();
+                    if (focusedChild != null) {
+                        subPosition = horizontalGrid.getChildAdapterPosition(focusedChild);
+                    } else {
+                        subPosition = ((androidx.leanback.widget.VerticalGridView) mBinding.recycler).getSelectedSubPosition();
+                    }
+                    break;
+                }
+            }
+        }
+        // 获取 filter 行数
+        int filterSize = mOpen ? mFilters.size() : 0;
+        // 移除所有非 filter 的行（vod 数据行）
+        if (mAdapter.size() > filterSize) {
+            mAdapter.removeItems(filterSize, mAdapter.size() - filterSize);
+        }
+        // 使用 mResult 中的数据重新添加 vod 行，使用新的 style
+        Style style = mResult.getStyle(mStyle);
+        if (style.isList()) {
+            mAdapter.addAll(mAdapter.size(), mResult.getList());
+        } else {
+            mLast = null;
+            for (List<Vod> part : Lists.partition(mResult.getList(), Product.getColumn(style))) {
+                mLast = new ArrayObjectAdapter(new VodPresenter(this, style));
+                mLast.setItems(part, null);
+                mAdapter.add(new ListRow(mLast));
+            }
+        }
+        // 强制 ItemBridgeAdapter 刷新所有行
+        mBinding.recycler.swapAdapter(mBinding.recycler.getAdapter(), true);
+        // 恢复滚动位置和焦点
+        if (position < mAdapter.size()) {
+            mBinding.recycler.setSelectedPosition(position);
+            mBinding.recycler.requestFocus();
+        }
+        mBinding.recycler.requestLayout();
+        // 延迟恢复子项焦点（等待布局完成）
+        final int finalPosition = position;
+        final int finalSubPosition = subPosition;
+        App.post(() -> {
+            if (finalPosition < mAdapter.size()) {
+                RecyclerView.ViewHolder vh = mBinding.recycler.findViewHolderForAdapterPosition(finalPosition);
+                if (vh != null && vh.itemView instanceof ViewGroup) {
+                    ViewGroup rowGroup = (ViewGroup) vh.itemView;
+                    for (int i = 0; i < rowGroup.getChildCount(); i++) {
+                        View child = rowGroup.getChildAt(i);
+                        if (child instanceof RecyclerView) {
+                            RecyclerView horizontalGrid = (RecyclerView) child;
+                            if (finalSubPosition >= 0 && finalSubPosition < horizontalGrid.getAdapter().getItemCount()) {
+                                horizontalGrid.getLayoutManager().scrollToPosition(finalSubPosition);
+                                View itemView = horizontalGrid.getLayoutManager().findViewByPosition(finalSubPosition);
+                                if (itemView != null) {
+                                    itemView.requestFocus();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }, 150);
     }
 
     @Override

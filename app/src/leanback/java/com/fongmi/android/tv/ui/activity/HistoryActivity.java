@@ -9,12 +9,16 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.History;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.ActivityHistoryBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.adapter.HistoryAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -39,19 +43,59 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     protected void initView() {
         setRecyclerView();
         getHistory();
+        updateViewIcon();
     }
 
     @Override
     protected void initEvent() {
         mBinding.delete.setOnClickListener(this::onDelete);
+        mBinding.viewToggle.setOnClickListener(this::toggleView);
+    }
+
+    private void toggleView(View view) {
+        if (Setting.getHistoryViewType() == ViewType.PORTRAIT) {
+            Setting.putHistoryViewType(ViewType.GRID);
+        } else {
+            Setting.putHistoryViewType(ViewType.PORTRAIT);
+        }
+        updateViewIcon();
+        // 刷新封面样式
+        if (mAdapter != null) {
+            Style style = getViewStyle();
+            int column = Product.getColumn(style);
+            mAdapter.setStyle(style);
+            mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+            while (mBinding.recycler.getItemDecorationCount() > 0) {
+                mBinding.recycler.removeItemDecorationAt(0);
+            }
+            mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void updateViewIcon() {
+        if (Setting.getHistoryViewType() == ViewType.PORTRAIT) {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+        } else {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        }
+    }
+
+    private Style getViewStyle() {
+        return Setting.getHistoryViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
     }
 
     private void setRecyclerView() {
+        Style style = getViewStyle();
+        int column = Product.getColumn(style);
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setItemAnimator(null);
-        mBinding.recycler.setAdapter(mAdapter = new HistoryAdapter(this));
-        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn()));
-        mBinding.recycler.addItemDecoration(new SpaceItemDecoration(Product.getColumn(), 16));
+        mBinding.recycler.setClipToPadding(false);
+        int padding = ResUtil.dp2px(8);
+        mBinding.recycler.setPadding(padding, padding, padding, padding);
+        mBinding.recycler.setAdapter(mAdapter = new HistoryAdapter(this, style));
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+        mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
     }
 
     private void getHistory() {
@@ -118,6 +162,24 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     public void onBackPressed() {
         if (mAdapter.isDelete()) mAdapter.setDelete(false);
         else super.onBackPressed();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 刷新封面样式
+        if (mAdapter != null) {
+            Style style = getViewStyle();
+            int column = Product.getColumn(style);
+            mAdapter.setStyle(style);
+            mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+            // 清除旧的 ItemDecoration 并添加新的
+            while (mBinding.recycler.getItemDecorationCount() > 0) {
+                mBinding.recycler.removeItemDecorationAt(0);
+            }
+            mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override

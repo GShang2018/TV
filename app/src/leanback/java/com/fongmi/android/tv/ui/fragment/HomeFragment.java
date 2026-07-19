@@ -14,6 +14,7 @@ import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -61,6 +62,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     public boolean inited;
     private int homeUI;
     private String button;
+    private Result mResult;
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -123,14 +125,104 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     }
 
     public void addVideo(Result result) {
+        mResult = result;
         int index = getRecommendIndex();
         if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
         Style style = result.getStyle(getHome().getStyle());
+        if (Setting.getHomeViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+            style = new Style("rect", 0.75f);
+        }
         for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
             adapter.setItems(items, null);
             mAdapter.add(new ListRow(adapter));
         }
+    }
+
+    public void refreshWithStyle() {
+        if (mResult == null || mResult.getList().isEmpty()) return;
+        final Style style;
+        if (Setting.getHomeViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+            style = new Style("rect", 0.75f);
+        } else {
+            style = Style.rect();
+        }
+        // 保存当前滚动位置和子项位置
+        int position = mBinding.recycler.getSelectedPosition();
+        int subPosition = 0;
+        RecyclerView.ViewHolder rowHolder = mBinding.recycler.findViewHolderForAdapterPosition(position);
+        if (rowHolder != null && rowHolder.itemView instanceof ViewGroup) {
+            ViewGroup rowGroup = (ViewGroup) rowHolder.itemView;
+            for (int i = 0; i < rowGroup.getChildCount(); i++) {
+                View child = rowGroup.getChildAt(i);
+                if (child instanceof RecyclerView) {
+                    RecyclerView horizontalGrid = (RecyclerView) child;
+                    View focusedChild = horizontalGrid.getFocusedChild();
+                    if (focusedChild != null) {
+                        subPosition = horizontalGrid.getChildAdapterPosition(focusedChild);
+                    } else {
+                        subPosition = mBinding.recycler.getSelectedSubPosition();
+                    }
+                    break;
+                }
+            }
+        }
+        // 刷新历史记录行 - 重新创建 Presenter 以应用新的尺寸
+        int historyIndex = getHistoryIndex();
+        if (historyIndex != -1) {
+            // 移除旧的历史记录行
+            mAdapter.removeItems(historyIndex, 1);
+            // 创建新的 HistoryPresenter 和 adapter
+            mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
+            // 重新添加历史记录行
+            mAdapter.add(historyIndex, new ListRow(mHistoryAdapter));
+            // 重新加载数据
+            mHistoryAdapter.setItems(History.get(), null);
+        }
+        // 获取推荐行的起始索引（历史行可能已变化，重新计算）
+        int recommendIndex = getRecommendIndex();
+        // 移除所有推荐行（保留 funcRow、history、recommend header）
+        if (mAdapter.size() > recommendIndex) {
+            mAdapter.removeItems(recommendIndex, mAdapter.size() - recommendIndex);
+        }
+        // 重新添加推荐行，使用新的 style（新的列数）
+        for (List<Vod> items : Lists.partition(mResult.getList(), Product.getColumn(style))) {
+            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
+            adapter.setItems(items, null);
+            mAdapter.add(new ListRow(adapter));
+        }
+        // 保持垂直间距
+        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        if (position < mAdapter.size()) {
+            mBinding.recycler.setSelectedPosition(position);
+            mBinding.recycler.requestFocus();
+        }
+        mBinding.recycler.requestLayout();
+        // 延迟恢复子项焦点（等待布局完成）
+        final int finalPosition = position;
+        final int finalSubPosition = subPosition;
+        App.post(() -> {
+            if (finalPosition < mAdapter.size()) {
+                RecyclerView.ViewHolder vh = mBinding.recycler.findViewHolderForAdapterPosition(finalPosition);
+                if (vh != null && vh.itemView instanceof ViewGroup) {
+                    ViewGroup rowGroup = (ViewGroup) vh.itemView;
+                    for (int i = 0; i < rowGroup.getChildCount(); i++) {
+                        View child = rowGroup.getChildAt(i);
+                        if (child instanceof RecyclerView) {
+                            RecyclerView horizontalGrid = (RecyclerView) child;
+                            if (finalSubPosition >= 0 && finalSubPosition < horizontalGrid.getAdapter().getItemCount()) {
+                                horizontalGrid.getLayoutManager().scrollToPosition(finalSubPosition);
+                                View itemView = horizontalGrid.getLayoutManager().findViewByPosition(finalSubPosition);
+                                if (itemView != null) {
+                                    itemView.requestFocus();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }, 150);
     }
 
     private ListRow getFuncRow() {

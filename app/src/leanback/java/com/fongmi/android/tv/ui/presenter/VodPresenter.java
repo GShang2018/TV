@@ -54,7 +54,9 @@ public class VodPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object object) {
-        ((BaseVodHolder) viewHolder).initView((Vod) object);
+        BaseVodHolder holder = (BaseVodHolder) viewHolder;
+        holder.setSize(size);
+        holder.initView((Vod) object);
     }
 
     @Override

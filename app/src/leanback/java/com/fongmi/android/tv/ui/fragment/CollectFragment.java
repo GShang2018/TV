@@ -3,26 +3,32 @@ package com.fongmi.android.tv.ui.fragment;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.FragmentVodBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.activity.VodActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
@@ -42,6 +48,7 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     private SiteViewModel mViewModel;
     private Collect mCollect;
     private String mKeyword;
+    private List<Vod> mSavedItems;
 
     public static CollectFragment newInstance(String keyword, Collect collect) {
         Bundle args = new Bundle();
@@ -58,6 +65,10 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     private CollectFragment setCollect(Collect collect) {
         this.mCollect = collect;
         return this;
+    }
+
+    private Style getViewStyle() {
+        return Setting.getCollectViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
     }
 
     @Override
@@ -95,7 +106,9 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
 
     private boolean checkLastSize(List<Vod> items) {
         if (mLast == null || items.size() == 0) return false;
-        int size = Product.getColumn() - mLast.size();
+        Style style = getViewStyle();
+        int column = Product.getColumn(style);
+        int size = column - mLast.size();
         if (size == 0) return false;
         size = Math.min(size, items.size());
         mLast.addAll(mLast.size(), new ArrayList<>(items.subList(0, size)));
@@ -105,13 +118,79 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
 
     public void addVideo(List<Vod> items) {
         if (checkLastSize(items) || getActivity() == null || getActivity().isFinishing()) return;
+        if (mSavedItems == null) mSavedItems = new ArrayList<>();
+        mSavedItems.addAll(items);
+        Style style = getViewStyle();
         List<ListRow> rows = new ArrayList<>();
-        for (List<Vod> part : Lists.partition(items, Product.getColumn())) {
-            mLast = new ArrayObjectAdapter(new VodPresenter(this));
+        for (List<Vod> part : Lists.partition(items, Product.getColumn(style))) {
+            mLast = new ArrayObjectAdapter(new VodPresenter(this, style));
             mLast.setItems(part, null);
             rows.add(new ListRow(mLast));
         }
         mAdapter.addAll(mAdapter.size(), rows);
+    }
+
+    public void refreshStyle() {
+        if (mSavedItems == null || mSavedItems.isEmpty()) return;
+        // 保存当前滚动位置和子项位置
+        int position = mBinding.recycler.getSelectedPosition();
+        int subPosition = 0;
+        RecyclerView.ViewHolder rowHolder = mBinding.recycler.findViewHolderForAdapterPosition(position);
+        if (rowHolder != null && rowHolder.itemView instanceof ViewGroup) {
+            ViewGroup rowGroup = (ViewGroup) rowHolder.itemView;
+            for (int i = 0; i < rowGroup.getChildCount(); i++) {
+                View child = rowGroup.getChildAt(i);
+                if (child instanceof RecyclerView) {
+                    RecyclerView horizontalGrid = (RecyclerView) child;
+                    View focusedChild = horizontalGrid.getFocusedChild();
+                    if (focusedChild != null) {
+                        subPosition = horizontalGrid.getChildAdapterPosition(focusedChild);
+                    } else {
+                        subPosition = mBinding.recycler.getSelectedSubPosition();
+                    }
+                    break;
+                }
+            }
+        }
+        mAdapter.clear();
+        mLast = null;
+        Style style = getViewStyle();
+        List<ListRow> rows = new ArrayList<>();
+        for (List<Vod> part : Lists.partition(mSavedItems, Product.getColumn(style))) {
+            mLast = new ArrayObjectAdapter(new VodPresenter(this, style));
+            mLast.setItems(part, null);
+            rows.add(new ListRow(mLast));
+        }
+        mAdapter.addAll(0, rows);
+        if (position < mAdapter.size()) {
+            mBinding.recycler.setSelectedPosition(position);
+        }
+        mBinding.recycler.requestLayout();
+        // 延迟恢复子项焦点（等待布局完成）
+        final int finalPosition = position;
+        final int finalSubPosition = subPosition;
+        App.post(() -> {
+            if (finalPosition < mAdapter.size()) {
+                RecyclerView.ViewHolder vh = mBinding.recycler.findViewHolderForAdapterPosition(finalPosition);
+                if (vh != null && vh.itemView instanceof ViewGroup) {
+                    ViewGroup rowGroup = (ViewGroup) vh.itemView;
+                    for (int i = 0; i < rowGroup.getChildCount(); i++) {
+                        View child = rowGroup.getChildAt(i);
+                        if (child instanceof RecyclerView) {
+                            RecyclerView horizontalGrid = (RecyclerView) child;
+                            if (finalSubPosition >= 0 && finalSubPosition < horizontalGrid.getAdapter().getItemCount()) {
+                                horizontalGrid.getLayoutManager().scrollToPosition(finalSubPosition);
+                                View itemView = horizontalGrid.getLayoutManager().findViewByPosition(finalSubPosition);
+                                if (itemView != null) {
+                                    itemView.requestFocus();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }, 150);
     }
 
     @Override

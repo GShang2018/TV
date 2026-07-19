@@ -373,6 +373,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.text.setUpListener(this::onSubtitleClick);
         mBinding.control.text.setDownListener(this::onSubtitleClick);
         mBinding.control.loop.setOnClickListener(view -> onLoop());
+        mBinding.control.share.setOnClickListener(view -> onShareClick());
         mBinding.control.danmu.setOnClickListener(view -> onDanmu());
         mBinding.control.danmu.setUpListener(this::onDanmuAdd);
         mBinding.control.danmu.setDownListener(this::onDanmuSub);
@@ -568,6 +569,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setMetadata();
         hidePreview();
         hideCenter();
+        String epOriginalUrl = episode.getOriginalUrl();
+        if (epOriginalUrl != null && epOriginalUrl.startsWith("magnet:")) {
+            mPlayers.setOriginalUrl(epOriginalUrl);
+        } else {
+            mPlayers.setOriginalUrl(null);
+        }
     }
 
     private void setPlayer(Result result) {
@@ -1096,6 +1103,25 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         return true;
     }
 
+    private void onShareClick() {
+        try {
+            if (mPlayers.isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            String title = mBinding.widget.title.getText().toString();
+            String shareUrl = mPlayers.getOriginalUrl() != null ? mPlayers.getOriginalUrl() : mPlayers.getUrl();
+            String shareText = "我正在看" + title + "，观看链接: " + shareUrl;
+            intent.putExtra(Intent.EXTRA_TEXT, shareText);
+            intent.putExtra("extra_headers", mPlayers.getHeaderBundle());
+            intent.putExtra("title", title);
+            intent.putExtra("name", title);
+            intent.setType("text/plain");
+            startActivity(Intent.createChooser(intent, getString(R.string.play_share)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void onPlayer() {
         PlayerDialog.create().select(mPlayers.getPlayer()).title(mBinding.widget.title.getText().toString()).show(this);
         hideControl();
@@ -1182,6 +1208,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void showControl(View view) {
         mBinding.control.danmu.setVisibility(mBinding.danmaku.isPrepared() ? View.VISIBLE : View.GONE);
+        mBinding.control.share.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         mBinding.control.episodes.setVisibility(Setting.getFullscreenMenuKey() == 0 ? View.VISIBLE : View.GONE);
         view.requestFocus();
@@ -1827,7 +1854,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Override
     public void onPlayerShare(String title) {
-        this.onChoose();
+        onShareClick();
     }
 
     @Override

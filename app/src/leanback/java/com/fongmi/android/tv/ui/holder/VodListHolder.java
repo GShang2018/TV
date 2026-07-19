@@ -22,6 +22,11 @@ public class VodListHolder extends BaseVodHolder {
     }
 
     @Override
+    public void setSize(int[] size) {
+        // List mode doesn't use size
+    }
+
+    @Override
     public void initView(Vod item) {
         binding.name.setText(item.getVodName());
         binding.remark.setText(item.getVodRemarks());
