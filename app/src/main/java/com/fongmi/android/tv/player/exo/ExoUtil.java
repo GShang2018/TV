@@ -35,7 +35,19 @@ import java.util.Map;
 public class ExoUtil {
 
     public static LoadControl buildLoadControl() {
-        return new DefaultLoadControl();
+        // 根据用户设置的缓存时长（秒）计算缓冲参数
+        int cacheTimeSec = Setting.getCacheTime();
+        // bufferForPlaybackMs: 开始播放前需要缓冲的最小时长
+        // bufferForPlaybackAfterRebufferMs: 重新缓冲后需要的最小时长
+        // 将秒转换为毫秒，并确保最小值，setBufferDurationsMs 参数类型为 int
+        int bufferMs = (int) Math.max(cacheTimeSec * 1000L, 2500L);
+        return new DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                        /* minBufferMs */ bufferMs,
+                        /* maxBufferMs */ bufferMs * 2,
+                        /* bufferForPlaybackMs */ Math.min(bufferMs, 5000),
+                        /* bufferForPlaybackAfterRebufferMs */ Math.min(bufferMs / 2, 5000))
+                .build();
     }
 
     public static TrackSelector buildTrackSelector() {

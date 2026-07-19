@@ -64,6 +64,10 @@
     <!-- Hint -->
     <string name="shortcut">Shortcut has been added.</string>
 
+    <!-- Player Cache -->
+    <string name="player_cache_time">Cache Time</string>
+    <string name="second">s</string>
+
     <string-array name="select_background">
         <item>Off</item>
         <item>On</item>

@@ -827,16 +827,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onShareClick() {
-        // 直接使用 mPlayers.getUrl() 分享，与视频信息弹窗中显示的链接一致
+        // 分享格式化文本：我正在看[标题]，观看链接: [链接]
         try {
             if (mPlayers.isEmpty()) return;
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            String title = mBinding.control.title.getText().toString();
             String shareUrl = mPlayers.getOriginalUrl() != null ? mPlayers.getOriginalUrl() : mPlayers.getUrl();
-            intent.putExtra(Intent.EXTRA_TEXT, shareUrl);
+            String shareText = "我正在看" + title + "，观看链接: " + shareUrl;
+            intent.putExtra(Intent.EXTRA_TEXT, shareText);
             intent.putExtra("extra_headers", mPlayers.getHeaderBundle());
-            intent.putExtra("title", mBinding.control.title.getText());
-            intent.putExtra("name", mBinding.control.title.getText());
+            intent.putExtra("title", title);
+            intent.putExtra("name", title);
             intent.setType("text/plain");
             startActivity(Util.getChooser(intent));
         } catch (Exception e) {

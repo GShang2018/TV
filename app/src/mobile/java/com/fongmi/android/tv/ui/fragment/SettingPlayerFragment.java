@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.fragment;
 
 import android.content.Intent;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,16 +14,17 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.FragmentSettingPlayerBinding;
-import com.fongmi.android.tv.impl.BufferCallback;
+import com.fongmi.android.tv.impl.CacheTimeCallback;
 import com.fongmi.android.tv.impl.UaCallback;
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.player.extractor.BtEngine;
 import com.fongmi.android.tv.ui.base.BaseFragment;
-import com.fongmi.android.tv.ui.dialog.BufferDialog;
+import com.fongmi.android.tv.ui.dialog.CacheTimeDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-public class SettingPlayerFragment extends BaseFragment implements UaCallback, BufferCallback {
+public class SettingPlayerFragment extends BaseFragment implements UaCallback, CacheTimeCallback {
 
     private FragmentSettingPlayerBinding mBinding;
     private String[] background;
@@ -54,7 +56,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
         mBinding.uaText.setText(Setting.getUa());
         mBinding.tunnelText.setText(getSwitch(Setting.isTunnel()));
         mBinding.captionText.setText(getSwitch(Setting.isCaption()));
-        mBinding.bufferText.setText(String.valueOf(Setting.getBuffer()));
+        mBinding.cacheTimeText.setText(String.valueOf(Setting.getCacheTime()));
+        mBinding.btEngineText.setText(getSwitch(Setting.isBtEngineEnabled()));
+        mBinding.trackerText.setText(getTrackerSummary());
         mBinding.playWithOthersText.setText(getSwitch(Setting.isPlayWithOthers()));
         mBinding.danmuLoadText.setText(getSwitch(Setting.isDanmuLoad()));
         mBinding.rtspText.setText((rtsp = ResUtil.getStringArray(R.array.select_rtsp))[Setting.getRtsp()]);
@@ -75,7 +79,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
         mBinding.http.setOnClickListener(this::setHttp);
         mBinding.flag.setOnClickListener(this::setFlag);
         mBinding.scale.setOnClickListener(this::onScale);
-        mBinding.buffer.setOnClickListener(this::onBuffer);
+        mBinding.cacheTime.setOnClickListener(this::onCacheTime);
         mBinding.player.setOnClickListener(this::setPlayer);
         mBinding.decode.setOnClickListener(this::setDecode);
         mBinding.render.setOnClickListener(this::setRender);
@@ -85,12 +89,14 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
         mBinding.playWithOthers.setOnClickListener(this::setPlayWithOthers);
         mBinding.danmuLoad.setOnClickListener(this::setDanmuLoad);
         mBinding.background.setOnClickListener(this::onBackground);
+        mBinding.btEngine.setOnClickListener(this::setBtEngine);
+        mBinding.tracker.setOnClickListener(this::setTracker);
     }
 
     private void setVisible() {
         mBinding.caption.setVisibility(Setting.hasCaption() ? View.VISIBLE : View.GONE);
         mBinding.http.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
-        mBinding.buffer.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
+        mBinding.cacheTime.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
         mBinding.tunnel.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
         mBinding.playWithOthers.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
     }
@@ -131,14 +137,14 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
         }).show();
     }
 
-    private void onBuffer(View view) {
-        BufferDialog.create(this).show();
+    private void onCacheTime(View view) {
+        CacheTimeDialog.create(this).show();
     }
 
     @Override
-    public void setBuffer(int times) {
-        mBinding.bufferText.setText(String.valueOf(times));
-        Setting.putBuffer(times);
+    public void setCacheTime(int seconds) {
+        mBinding.cacheTimeText.setText(String.valueOf(seconds));
+        Setting.putCacheTime(seconds);
     }
 
     private void setPlayer(View view) {
@@ -195,6 +201,60 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
             Setting.putBackground(which);
             dialog.dismiss();
         }).show();
+    }
+
+    private String getTrackerSummary() {
+        String list = Setting.getTrackerList();
+        if (TextUtils.isEmpty(list)) return getString(R.string.setting_off);
+        String[] lines = list.split("\n");
+        int count = 0;
+        for (String line : lines) {
+            if (!TextUtils.isEmpty(line.trim()) && !line.trim().startsWith("#")) count++;
+        }
+        return count + " trackers";
+    }
+
+    private void setBtEngine(View view) {
+        boolean enabled = !Setting.isBtEngineEnabled();
+        Setting.putBtEngineEnabled(enabled);
+        mBinding.btEngineText.setText(getSwitch(enabled));
+        if (enabled) {
+            BtEngine.ensureRunning();
+        } else {
+            BtEngine.shutdown();
+        }
+    }
+
+    private void setTracker(View view) {
+        View dialogView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_tracker, null);
+        android.widget.EditText editText = dialogView.findViewById(R.id.editText);
+        String trackerList = Setting.getTrackerList();
+        if (TextUtils.isEmpty(trackerList)) {
+            trackerList = "udp://tracker.opentrackr.org:1337/announce\n" +
+                    "udp://tracker.openbittorrent.com:6969/announce\n" +
+                    "udp://tracker.torrent.eu.org:451/announce\n" +
+                    "udp://tracker.moeking.me:6969/announce\n" +
+                    "udp://exodus.desync.com:6969/announce\n" +
+                    "udp://open.demonii.com:1337/announce\n" +
+                    "udp://tracker.cyberia.is:6969/announce\n" +
+                    "udp://tracker.dler.org:6969/announce\n" +
+                    "https://tracker.nanoha.org:443/announce\n" +
+                    "https://tracker.lilithraws.org:443/announce\n" +
+                    "http://tracker.bt4g.com:2095/announce\n" +
+                    "http://tracker.files.fm:6969/announce";
+        }
+        editText.setText(trackerList);
+        new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_tracker)
+                .setMessage(R.string.setting_tracker_hint)
+                .setView(dialogView)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    String text = editText.getText().toString().trim();
+                    Setting.putTrackerList(text);
+                    mBinding.trackerText.setText(getTrackerSummary());
+                })
+                .create().show();
     }
 
     @Override

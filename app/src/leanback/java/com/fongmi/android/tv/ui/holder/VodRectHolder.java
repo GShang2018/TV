@@ -38,5 +38,6 @@ public class VodRectHolder extends BaseVodHolder {
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
+        setTagMaxWidth(binding.image, 8, binding.year, binding.site, binding.remark);
     }
 }

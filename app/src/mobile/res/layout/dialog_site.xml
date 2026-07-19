@@ -68,6 +68,8 @@
         android:clipToPadding="false"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:maxHeight="376dp"
         tools:listitem="@layout/adapter_site" />
 
 </LinearLayout>

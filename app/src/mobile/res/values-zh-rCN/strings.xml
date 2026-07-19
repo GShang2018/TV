@@ -63,6 +63,10 @@
     <!-- Hint -->
     <string name="shortcut"> 已于主屏幕新增快捷方式。</string>
 
+    <!-- Player Cache -->
+    <string name="player_cache_time">缓存时长</string>
+    <string name="second">秒</string>
+
     <string-array name="select_background">
         <item>关闭</item>
         <item>开启</item>

@@ -29,5 +29,6 @@ public class VodOneHolder extends BaseVodHolder {
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
+        setTagMaxWidth(binding.image, 12, binding.site, binding.remark);
     }
 }

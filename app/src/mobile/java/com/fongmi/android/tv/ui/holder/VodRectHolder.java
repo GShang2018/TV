@@ -44,5 +44,6 @@ public class VodRectHolder extends BaseVodHolder {
         } else {
             ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
         }
+        setTagMaxWidth(binding.image, 12, binding.year, binding.site, binding.remark);
     }
 }

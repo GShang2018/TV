@@ -560,7 +560,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
-        if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
+        if (isIjk() && ijkPlayer != null) {
+            ijkPlayer.setCacheOptions(Setting.getCacheTime());
+            ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
+        }
         if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
         // 本地代理 (Thunder/BtEngine 磁力鏈接) 需要更長的超時時間等待緩衝
@@ -677,7 +680,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             // 如果是磁力链接，使用原始磁力链接；否则使用视频信息弹窗中的链接 (getUrl())
             String shareUrl = originalUrl != null ? originalUrl : getUrl();
-            intent.putExtra(Intent.EXTRA_TEXT, shareUrl);
+            String shareText = "我正在看" + title + "，观看链接: " + shareUrl;
+            intent.putExtra(Intent.EXTRA_TEXT, shareText);
             intent.putExtra("extra_headers", getHeaderBundle());
             intent.putExtra("title", title);
             intent.putExtra("name", title);

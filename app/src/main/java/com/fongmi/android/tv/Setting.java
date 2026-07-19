@@ -178,12 +178,16 @@ public class Setting {
         Prefers.put("exo_http", http);
     }
 
-    public static int getBuffer() {
-        return Math.min(Math.max(Prefers.getInt("exo_buffer"), 1), 15);
+    /**
+     * 获取预加载缓存时长（秒），范围 5-300 秒，默认 30 秒
+     * 用于 ExoPlayer 和 IJKPlayer 的缓冲预加载，减少播放卡顿
+     */
+    public static int getCacheTime() {
+        return Math.min(Math.max(Prefers.getInt("exo_cache_time"), 5), 300);
     }
 
-    public static void putBuffer(int buffer) {
-        Prefers.put("exo_buffer", buffer);
+    public static void putCacheTime(int seconds) {
+        Prefers.put("exo_cache_time", seconds);
     }
 
     public static int getFlag() {

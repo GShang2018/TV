@@ -201,6 +201,19 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mStartPosition = position;
     }
 
+    /**
+     * 设置 IJKPlayer 缓存选项（max-buffer-size、packet-buffering、timeout）
+     * 需在 setMediaSource 之前调用，以便在 prepareAsync 前生效
+     * @param cacheTimeSec 缓存时长（秒），用于计算 max-buffer-size（字节）和 timeout（毫秒）
+     */
+    public void setCacheOptions(int cacheTimeSec) {
+        if (mPlayer == null) return;
+        long maxBufferSize = Math.max(cacheTimeSec, 5) * 1024L * 1024L;
+        mPlayer.setOption(player, "max-buffer-size", maxBufferSize);
+        mPlayer.setOption(player, "packet-buffering", 1L);
+        mPlayer.setOption(format, "timeout", Math.max(cacheTimeSec * 1000L, 30000L));
+    }
+
     private void setVideoURI(Uri uri, Map<String, String> headers) {
         if (!mKeepContentOnPlayerReset) removeRenderView();
         openVideo(uri, headers);
