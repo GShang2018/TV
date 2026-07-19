@@ -193,8 +193,13 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setHeader(site.getHeader());
                 result.setPlayUrl(site.getPlayUrl());
-                result.setUrl(Source.get().fetch(result));
-                result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
+                String fetchedUrl = Source.get().fetch(result);
+                result.setUrl(fetchedUrl);
+                if (fetchedUrl.equals(id)) {
+                    result.setParse(Sniffer.isVideoFormat(fetchedUrl) && result.getPlayUrl().isEmpty() ? 0 : 1);
+                } else {
+                    result.setParse(1);
+                }
                 SpiderDebug.log(result.toString());
                 return result;
             }

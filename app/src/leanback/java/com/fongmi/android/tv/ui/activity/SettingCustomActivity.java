@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
@@ -15,6 +16,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.CacheDirCallback;
 import com.fongmi.android.tv.impl.LanguageCallback;
 import com.fongmi.android.tv.impl.MenuKeyCallback;
+import com.fongmi.android.tv.impl.TrackerCallback;
 import com.fongmi.android.tv.impl.X5WebViewCallback;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ButtonsDialog;
@@ -22,6 +24,7 @@ import com.fongmi.android.tv.ui.dialog.CacheDirDialog;
 import com.fongmi.android.tv.ui.dialog.DisplayDialog;
 import com.fongmi.android.tv.ui.dialog.LanguageDialog;
 import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
+import com.fongmi.android.tv.ui.dialog.TrackerDialog;
 import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -32,7 +35,7 @@ import com.permissionx.guolindev.PermissionX;
 import com.tencent.smtt.sdk.QbSdk;
 import java.util.Locale;
 
-public class SettingCustomActivity extends BaseActivity implements MenuKeyCallback, X5WebViewCallback, LanguageCallback, CacheDirCallback {
+public class SettingCustomActivity extends BaseActivity implements MenuKeyCallback, X5WebViewCallback, LanguageCallback, CacheDirCallback, TrackerCallback {
 
     private ActivitySettingCustomBinding mBinding;
     private String[] quality;
@@ -77,6 +80,19 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
+        mBinding.btEngineText.setText(getSwitch(Setting.isBtEngineEnabled()));
+        mBinding.trackerText.setText(getTrackerSummary());
+    }
+
+    private String getTrackerSummary() {
+        String list = Setting.getTrackerList();
+        if (TextUtils.isEmpty(list)) return getString(R.string.setting_off);
+        String[] lines = list.split("\n");
+        int count = 0;
+        for (String line : lines) {
+            if (!TextUtils.isEmpty(line.trim()) && !line.trim().startsWith("#")) count++;
+        }
+        return count + " trackers";
     }
 
     @Override
@@ -101,6 +117,8 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.parseWebview.setOnClickListener(this::setParseWebview);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
         mBinding.cacheDir.setOnClickListener(this::setCacheDir);
+        mBinding.btEngine.setOnClickListener(this::setBtEngine);
+        mBinding.tracker.setOnClickListener(this::setTracker);
         mBinding.reset.setOnClickListener(this::onReset);
     }
 
@@ -222,6 +240,21 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.configCacheText.setText(configCache[index]);
     }
 
+    private void setBtEngine(View view) {
+        boolean enabled = !Setting.isBtEngineEnabled();
+        Setting.putBtEngineEnabled(enabled);
+        mBinding.btEngineText.setText(getSwitch(enabled));
+        if (enabled) {
+            com.fongmi.android.tv.player.extractor.BtEngine.ensureRunning();
+        } else {
+            com.fongmi.android.tv.player.extractor.BtEngine.shutdown();
+        }
+    }
+
+    private void setTracker(View view) {
+        TrackerDialog.create(this).show();
+    }
+
     private void onReset(View view) {
         new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_reset_app).setMessage(R.string.dialog_reset_app_data).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> reset()).show();
     }
@@ -237,6 +270,11 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         Setting.putThunderCacheDir(dir);
         mBinding.cacheDirText.setText(dir);
         App.post(() -> Util.restartApp(this), 1000);
+    }
+
+    @Override
+    public void setTracker(String text) {
+        mBinding.trackerText.setText(getTrackerSummary());
     }
 
     @Override

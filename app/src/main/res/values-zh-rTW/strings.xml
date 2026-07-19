@@ -315,4 +315,9 @@
         <item>選擇字幕</item>
     </string-array>
 
+    <!-- Setting -->
+    <string name="setting_bt_engine">BT引擎</string>
+    <string name="setting_tracker">Tracker</string>
+    <string name="setting_tracker_hint">每行一個Tracker地址，以#開頭的行將被忽略</string>
+
 </resources>

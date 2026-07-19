@@ -331,4 +331,9 @@
         <item>TCP</item>
     </string-array>
 
+    <!-- Setting -->
+    <string name="setting_bt_engine">BT Engine</string>
+    <string name="setting_tracker">Tracker</string>
+    <string name="setting_tracker_hint">One tracker URL per line. Lines starting with # are ignored.</string>
+
 </resources>

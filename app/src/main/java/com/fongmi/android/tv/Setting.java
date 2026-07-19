@@ -614,4 +614,20 @@ public class Setting {
         Prefers.put("thunder_cache_dir", dir);
     }
 
+    public static boolean isBtEngineEnabled() {
+        return Prefers.getBoolean("bt_engine_enabled", false);
+    }
+
+    public static void putBtEngineEnabled(boolean enabled) {
+        Prefers.put("bt_engine_enabled", enabled);
+    }
+
+    public static String getTrackerList() {
+        return Prefers.getString("tracker_list", "");
+    }
+
+    public static void putTrackerList(String list) {
+        Prefers.put("tracker_list", list);
+    }
+
 }

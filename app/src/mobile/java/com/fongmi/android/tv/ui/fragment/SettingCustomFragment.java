@@ -10,6 +10,7 @@ import androidx.viewbinding.ViewBinding;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
@@ -58,6 +59,19 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.debugText.setText(getSwitch(Setting.isDebug()));
         mBinding.languageText.setText((lang = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
+        mBinding.btEngineText.setText(getSwitch(Setting.isBtEngineEnabled()));
+        mBinding.trackerText.setText(getTrackerSummary());
+    }
+
+    private String getTrackerSummary() {
+        String list = Setting.getTrackerList();
+        if (TextUtils.isEmpty(list)) return getString(R.string.setting_off);
+        String[] lines = list.split("\n");
+        int count = 0;
+        for (String line : lines) {
+            if (!TextUtils.isEmpty(line.trim()) && !line.trim().startsWith("#")) count++;
+        }
+        return count + " trackers";
     }
 
     @Override
@@ -73,6 +87,8 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.debug.setOnClickListener(this::setDebug);
         mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
+        mBinding.btEngine.setOnClickListener(this::setBtEngine);
+        mBinding.tracker.setOnClickListener(this::setTracker);
         mBinding.reset.setOnClickListener(this::onReset);
     }
 
@@ -154,6 +170,49 @@ public class SettingCustomFragment extends BaseFragment {
         int index = Setting.getConfigCache();
         Setting.putConfigCache(index = index == configCache.length - 1 ? 0 : ++index);
         mBinding.configCacheText.setText(configCache[index]);
+    }
+
+    private void setBtEngine(View view) {
+        boolean enabled = !Setting.isBtEngineEnabled();
+        Setting.putBtEngineEnabled(enabled);
+        mBinding.btEngineText.setText(getSwitch(enabled));
+        if (enabled) {
+            com.fongmi.android.tv.player.extractor.BtEngine.ensureRunning();
+        } else {
+            com.fongmi.android.tv.player.extractor.BtEngine.shutdown();
+        }
+    }
+
+    private void setTracker(View view) {
+        View dialogView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_tracker, null);
+        android.widget.EditText editText = dialogView.findViewById(R.id.editText);
+        String trackerList = Setting.getTrackerList();
+        if (TextUtils.isEmpty(trackerList)) {
+            trackerList = "udp://tracker.opentrackr.org:1337/announce\n" +
+                    "udp://tracker.openbittorrent.com:6969/announce\n" +
+                    "udp://tracker.torrent.eu.org:451/announce\n" +
+                    "udp://tracker.moeking.me:6969/announce\n" +
+                    "udp://exodus.desync.com:6969/announce\n" +
+                    "udp://open.demonii.com:1337/announce\n" +
+                    "udp://tracker.cyberia.is:6969/announce\n" +
+                    "udp://tracker.dler.org:6969/announce\n" +
+                    "https://tracker.nanoha.org:443/announce\n" +
+                    "https://tracker.lilithraws.org:443/announce\n" +
+                    "http://tracker.bt4g.com:2095/announce\n" +
+                    "http://tracker.files.fm:6969/announce";
+        }
+        editText.setText(trackerList);
+        new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_tracker)
+                .setMessage(R.string.setting_tracker_hint)
+                .setView(dialogView)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    String text = editText.getText().toString().trim();
+                    Setting.putTrackerList(text);
+                    mBinding.trackerText.setText(getTrackerSummary());
+                })
+                .create().show();
     }
 
     private void onReset(View view) {
