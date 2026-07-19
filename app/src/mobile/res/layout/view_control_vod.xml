@@ -64,6 +64,14 @@
                 android:src="@drawable/ic_control_info" />
 
             <ImageView
+                android:id="@+id/share"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:src="@drawable/ic_control_share" />
+
+            <ImageView
                 android:id="@+id/keep"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -230,11 +230,21 @@ public class Thunder implements Source.Extractor {
             List<Episode> episodes = new ArrayList<>();
             String magnetUrl = url.startsWith("magnet") ? appendTrackers(url) : url;
             GetTaskId taskId = XLTaskHelper.get().parse(magnetUrl, Path.thunder(Util.md5(url)));
-            if (!torrent && !taskId.getRealUrl().startsWith("magnet")) return Arrays.asList(Episode.create(taskId.getFileName(), taskId.getRealUrl()));
+            if (!torrent && !taskId.getRealUrl().startsWith("magnet")) {
+                Episode episode = Episode.create(taskId.getFileName(), taskId.getRealUrl());
+                // 保存原始磁力链接 (magnet:?xt=urn:btih:...)，用于长按复制
+                if (url.startsWith("magnet:")) episode.setOriginalUrl(url);
+                return Arrays.asList(episode);
+            }
             if (torrent) Download.create(url, taskId.getSaveFile()).start();
             else while (XLTaskHelper.get().getTaskInfo(taskId).getTaskStatus() != 2 && time < 5000) sleep();
             List<TorrentFileInfo> medias = XLTaskHelper.get().getTorrentInfo(taskId.getSaveFile()).getMedias();
-            for (TorrentFileInfo media : medias) episodes.add(Episode.create(media.getFileName(), media.getSize(), media.getPlayUrl()));
+            for (TorrentFileInfo media : medias) {
+                Episode episode = Episode.create(media.getFileName(), media.getSize(), media.getPlayUrl());
+                // 保存原始磁力链接 (magnet:?xt=urn:btih:...)，用于长按复制
+                if (url.startsWith("magnet:")) episode.setOriginalUrl(url);
+                episodes.add(episode);
+            }
             XLTaskHelper.get().stopTask(taskId);
             return episodes;
         }

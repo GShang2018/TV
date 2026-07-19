@@ -16,6 +16,7 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
 
     private final OnClickListener mListener;
     private final List<Vod> mItems;
+    private int mSelectedPosition = -1;
 
     public QuickAdapter(OnClickListener listener) {
         this.mListener = listener;
@@ -29,6 +30,7 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
 
     public void clear() {
         mItems.clear();
+        mSelectedPosition = -1;
         notifyDataSetChanged();
     }
 
@@ -68,7 +70,14 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
         holder.binding.name.setText(item.getVodName());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.remark.setText(item.getVodRemarks());
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
+        holder.itemView.setSelected(position == mSelectedPosition);
+        holder.binding.getRoot().setOnClickListener(v -> {
+            int previousSelected = mSelectedPosition;
+            mSelectedPosition = holder.getAdapterPosition();
+            if (previousSelected != -1) notifyItemChanged(previousSelected);
+            if (mSelectedPosition != -1) notifyItemChanged(mSelectedPosition);
+            mListener.onItemClick(item);
+        });
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

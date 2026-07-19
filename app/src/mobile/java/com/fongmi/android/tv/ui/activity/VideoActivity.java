@@ -108,6 +108,7 @@ import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -371,6 +372,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.control.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
+        mBinding.control.share.setOnClickListener(view -> onShareClick());
         mBinding.control.full.setOnClickListener(view -> onFull());
         mBinding.control.keep.setOnClickListener(view -> onKeep());
         mBinding.control.danmu.setOnClickListener(view -> onDanmu());
@@ -660,6 +662,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         updateHistory(episode, replay);
         mPlayers.clear();
         mPlayers.stop();
+        // 只有磁力链接才设置 originalUrl，非磁力链接使用 getUrl() 即 InfoDialog 中的链接
+        // Episode.getOriginalUrl() 在 originalUrl 为 null 时会回退到 url，所以需要判断是否真的是磁力链接
+        String epOriginalUrl = episode.getOriginalUrl();
+        if (epOriginalUrl != null && epOriginalUrl.startsWith("magnet:")) {
+            mPlayers.setOriginalUrl(epOriginalUrl);
+        } else {
+            mPlayers.setOriginalUrl(null);
+        }
         showProgress();
         setMetadata();
         hidePreview();
@@ -814,6 +824,24 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onInfo() {
         InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).show();
+    }
+
+    private void onShareClick() {
+        // 直接使用 mPlayers.getUrl() 分享，与视频信息弹窗中显示的链接一致
+        try {
+            if (mPlayers.isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            String shareUrl = mPlayers.getOriginalUrl() != null ? mPlayers.getOriginalUrl() : mPlayers.getUrl();
+            intent.putExtra(Intent.EXTRA_TEXT, shareUrl);
+            intent.putExtra("extra_headers", mPlayers.getHeaderBundle());
+            intent.putExtra("title", mBinding.control.title.getText());
+            intent.putExtra("name", mBinding.control.title.getText());
+            intent.setType("text/plain");
+            startActivity(Util.getChooser(intent));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void onFull() {
@@ -1119,6 +1147,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.action.getRoot().setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.right.lock.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.info.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
+        mBinding.control.share.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.cast.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
@@ -1452,15 +1481,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onError(ErrorEvent event) {
         onErrorPlayer(event);
-        startFlow();
     }
 
     private void startFlow() {
-        if (getSite().isChangeable()) {
-            if (isUseParse()) checkParse();
-            else checkFlag();
-        } else if (getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
-            // push_agent 等不可切换站点的场景，尝试切换播放器
+        if (getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
             toggleCount++;
             nextPlayer();
         }

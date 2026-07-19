@@ -86,6 +86,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private List<Sub> subs;
     private String format;
     private String url;
+    /** 原始磁力链接 (magnet:?xt=urn:btih:...)，用于分享 */
+    private String originalUrl;
     private Drm drm;
     private Sub sub;
 
@@ -185,6 +187,14 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public String getUrl() {
         return url;
+    }
+
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
     }
 
     public Map<String, String> getHeaders() {
@@ -553,9 +563,17 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
+        // 本地代理 (Thunder/BtEngine 磁力鏈接) 需要更長的超時時間等待緩衝
+        if (timeout > 0 && isLocalProxyUrl(url)) {
+            timeout = Math.max(timeout, Constant.TIMEOUT_PROXY);
+        }
         App.post(runnable, timeout);
         PlayerEvent.prepare();
         Logger.t(TAG).d(url);
+    }
+
+    private boolean isLocalProxyUrl(String url) {
+        return url != null && (url.startsWith("http://127.0.0.1") || url.startsWith("http://localhost"));
     }
 
     private void removeTimeoutCheck() {
@@ -657,7 +675,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             if (isEmpty()) return;
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra(Intent.EXTRA_TEXT, UrlUtil.fixDownloadUrl(getUrl()));
+            // 如果是磁力链接，使用原始磁力链接；否则使用视频信息弹窗中的链接 (getUrl())
+            String shareUrl = originalUrl != null ? originalUrl : getUrl();
+            intent.putExtra(Intent.EXTRA_TEXT, shareUrl);
             intent.putExtra("extra_headers", getHeaderBundle());
             intent.putExtra("title", title);
             intent.putExtra("name", title);

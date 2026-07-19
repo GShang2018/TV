@@ -62,7 +62,7 @@ public class InfoDialog {
 
     private void initView() {
         binding.title.setText(title);
-        binding.url.setText(fixUrl());
+        binding.url.setText(fixUrl(url));
         binding.header.setText(header);
         binding.url.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         binding.header.setVisibility(TextUtils.isEmpty(header) ? View.GONE : View.VISIBLE);
@@ -74,8 +74,10 @@ public class InfoDialog {
         binding.header.setOnLongClickListener(v -> onCopy(header));
     }
 
-    private String fixUrl() {
-        return TextUtils.isEmpty(url) ? "" : url.startsWith("data") ? url.substring(0, Math.min(url.length(), 128)).concat("...") : url;
+    private String fixUrl(String url) {
+        if (TextUtils.isEmpty(url)) return "";
+        if (url.startsWith("data")) return url.substring(0, Math.min(url.length(), 128)).concat("...");
+        return url;
     }
 
     private void onShare(View view) {

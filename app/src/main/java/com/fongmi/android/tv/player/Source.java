@@ -86,45 +86,30 @@ public class Source {
 
     public String fetch(Result result) throws Exception {
         String url = result.getUrl().v();
-        android.util.Log.e("Source", "fetch url: " + url);
         Extractor extractor = getExtractor(url);
-        String extractorName = extractor != null ? extractor.getClass().getSimpleName() : "null";
-        android.util.Log.e("Source", "fetch extractor: " + extractorName + " (class=" + (extractor != null ? extractor.getClass().getName() : "null") + ")");
         if (extractor != null) result.setParse(0);
         if (extractor instanceof Video) result.setParse(1);
         if (extractor instanceof Thunder || extractor instanceof BtEngine) {
-            android.util.Log.e("Source", "fetch calling Thunder/BtEngine.fetch (instanceof BtEngine=" + (extractor instanceof BtEngine) + ")");
             try {
                 String fetchedUrl = extractor.fetch(url);
-                android.util.Log.e("Source", "fetch Thunder/BtEngine returned: " + fetchedUrl);
-                // Thunder and BtEngine internally resolve magnet links to playable local URLs.
-                // If the returned URL differs from the original, it means resolution succeeded
-                // and we have a directly playable URL, so keep parse=0 to skip the parse workflow.
-                // If resolution failed (returned same URL or null), set parse=1 for fallback parsing.
                 if (fetchedUrl != null && !fetchedUrl.equals(url)) {
                     result.setParse(0);
-                    android.util.Log.e("Source", "fetch resolution succeeded, parse=0");
                 } else {
                     result.setParse(1);
-                    android.util.Log.e("Source", "fetch resolution failed, parse=1");
                 }
                 return fetchedUrl;
             } catch (Exception e) {
-                android.util.Log.e("Source", "fetch Thunder/BtEngine exception: " + e.getMessage());
-                // If BtEngine failed (e.g. libtorrent4j not running), fall back to Thunder
                 if (extractor instanceof BtEngine) {
-                    android.util.Log.e("Source", "BtEngine failed, falling back to Thunder");
                     for (Extractor ex : extractors) {
                         if (ex instanceof Thunder) {
                             try {
                                 String thunderUrl = ex.fetch(url);
-                                android.util.Log.e("Source", "Thunder fallback returned: " + thunderUrl);
                                 if (thunderUrl != null && !thunderUrl.equals(url)) {
                                     result.setParse(0);
                                     return thunderUrl;
                                 }
                             } catch (Exception e2) {
-                                android.util.Log.e("Source", "Thunder fallback also failed: " + e2.getMessage());
+                                // ignore
                             }
                             break;
                         }
@@ -134,7 +119,6 @@ public class Source {
                 return url;
             }
         }
-        android.util.Log.e("Source", "fetch calling other extractor or returning raw url");
         return extractor == null ? url : extractor.fetch(url);
     }
 

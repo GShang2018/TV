@@ -17,6 +17,8 @@ public class Constant {
     public static final int TIMEOUT_XML = 15 * 1000;
     //播放超時時間
     public static final int TIMEOUT_PLAY = 15 * 1000;
+    //本地代理播放超時時間 (Thunder/BtEngine 磁力鏈接)
+    public static final int TIMEOUT_PROXY = 60 * 1000;
     //解析預設時間
     public static final int TIMEOUT_PARSE_DEF = 15 * 1000;
     //嗅探超時時間

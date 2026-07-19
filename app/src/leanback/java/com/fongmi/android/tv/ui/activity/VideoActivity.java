@@ -1499,13 +1499,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void onError(ErrorEvent event) {
         onErrorPlayer(event);
-        startFlow();
     }
 
     private void startFlow() {
-        if (!getSite().isChangeable()) return;
-        if (isUseParse()) checkParse();
-        else checkFlag();
+        // 不再自动切换站点或搜索，交由用户手动操作
     }
 
     private void checkParse() {

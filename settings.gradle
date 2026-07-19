@@ -37,4 +37,5 @@ include ':jianpian'
 include ':forcetech'
 include ':ijkplayer'
 include ':pyramid'
+include ':btengine'
 rootProject.name = "TV"

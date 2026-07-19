@@ -106,7 +106,10 @@ public class BtEngine implements Source.Extractor {
                     android.net.Uri uri = android.net.Uri.parse(fileUrl);
                     if (uri.getPath() != null) {
                         java.io.File file = new java.io.File(uri.getPath());
-                        episodes.add(com.fongmi.android.tv.bean.Episode.create(file.getName(), fileUrl));
+                        com.fongmi.android.tv.bean.Episode episode = com.fongmi.android.tv.bean.Episode.create(file.getName(), fileUrl);
+                        // 保存原始磁力链接 (magnet:?xt=urn:btih:...)，用于长按复制
+                        if (url.startsWith("magnet:")) episode.setOriginalUrl(url);
+                        episodes.add(episode);
                     }
                 }
             } catch (Exception e) {

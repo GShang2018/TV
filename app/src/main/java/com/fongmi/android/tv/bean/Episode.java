@@ -21,6 +21,8 @@ public class Episode implements Parcelable {
     private int number;
     private boolean activated;
     private boolean selected;
+    /** 原始磁力链接 (magnet:?xt=urn:btih:...)，由 Thunder.Parser 在解析时保存 */
+    private String originalUrl;
 
     public static Episode create(String name, String url) {
         return new Episode(name, "", url);
@@ -58,6 +60,14 @@ public class Episode implements Parcelable {
 
     public String getUrl() {
         return url;
+    }
+
+    public String getOriginalUrl() {
+        return originalUrl != null ? originalUrl : url;
+    }
+
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
     }
 
     public int getIndex() {
@@ -134,6 +144,7 @@ public class Episode implements Parcelable {
         dest.writeInt(this.number);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
         dest.writeByte(this.selected ? (byte) 1 : (byte) 0);
+        dest.writeString(this.originalUrl);
     }
 
     protected Episode(Parcel in) {
@@ -143,6 +154,7 @@ public class Episode implements Parcelable {
         this.number = in.readInt();
         this.activated = in.readByte() != 0;
         this.selected = in.readByte() != 0;
+        this.originalUrl = in.readString();
     }
 
     public static final Creator<Episode> CREATOR = new Creator<>() {
