@@ -253,7 +253,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     }
 
     private void onVodHome(View view) {
-        SiteDialog.create(this).all().show();
+        SiteDialog.create().all().show(this);
     }
 
     private void onLiveHome(View view) {

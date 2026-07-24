@@ -7,8 +7,7 @@
     android:orientation="vertical"
     android:paddingLeft="16dp"
     android:paddingTop="16dp"
-    android:paddingRight="16dp"
-    android:paddingBottom="16dp">
+    android:paddingRight="16dp">
 
     <LinearLayout
         android:id="@+id/searchInput"
@@ -61,13 +60,17 @@
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipChildren="false"
         android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingLeft="0dp"
         android:paddingTop="4dp"
-        android:paddingBottom="4dp"
+        android:paddingRight="0dp"
+        android:paddingBottom="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:maxHeight="376dp"
         tools:listitem="@layout/adapter_site" />

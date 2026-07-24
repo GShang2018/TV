@@ -238,11 +238,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
     private void onLogo(View view) {
         if (Setting.isHomeDisplayName()) HistoryDialog.create(this).type(0).show();
-        else SiteDialog.create(this).change().show();
+        else SiteDialog.create().change().show(this);
     }
 
     private void onSite(View view) {
-        SiteDialog.create(this).change().show();
+        SiteDialog.create().change().show(this);
     }
 
     private boolean onRefresh(View view) {

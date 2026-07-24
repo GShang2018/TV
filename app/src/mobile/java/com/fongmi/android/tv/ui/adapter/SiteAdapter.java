@@ -18,46 +18,17 @@ import java.util.List;
 
 public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
-    private final OnClickListener mListener;
-    private List<Site> mItems;
+    private final OnClickListener listener;
+    private final List<Site> mItems;
     private List<Site> allItems;
     private boolean search;
     private boolean change;
 
     public SiteAdapter(OnClickListener listener) {
-        this.mListener = listener;
-        this.mItems = VodConfig.get().getSites();
-        this.allItems = this.mItems;
-    }
-
-    public void setSites(List<Site> sites) {
-        this.mItems = sites;
-        this.allItems = new ArrayList<>(sites);
-        notifyDataSetChanged();
-    }
-
-    public SiteAdapter search(boolean search) {
-        this.search = search;
-        return this;
-    }
-
-    public SiteAdapter change(boolean change) {
-        this.change = change;
-        return this;
-    }
-
-    public void keyword(String keyword) {
-        if (TextUtils.isEmpty(keyword)) {
-            this.mItems = allItems;
-            notifyDataSetChanged();
-            return;
-        }
-        List<Site> newItems = new ArrayList<>();
-        for(Site site : allItems) {
-            if (site.getName().toLowerCase().contains(keyword.toLowerCase())) newItems.add(site);
-        }
-        this.mItems = newItems;
-        notifyDataSetChanged();
+        this.listener = listener;
+        this.mItems = new ArrayList<>();
+        this.allItems = new ArrayList<>();
+        this.addAll();
     }
 
     public interface OnClickListener {
@@ -71,6 +42,37 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         boolean onSearchLongClick(Site item);
 
         boolean onChangeLongClick(Site item);
+    }
+
+    public SiteAdapter search(boolean search) {
+        this.search = search;
+        return this;
+    }
+
+    public SiteAdapter change(boolean change) {
+        this.change = change;
+        return this;
+    }
+
+    private void addAll() {
+        allItems.addAll(VodConfig.get().getSites());
+        mItems.addAll(allItems);
+    }
+
+    public List<Site> getItems() {
+        return mItems;
+    }
+
+    public void keyword(String keyword) {
+        mItems.clear();
+        if (TextUtils.isEmpty(keyword)) {
+            mItems.addAll(allItems);
+        } else {
+            for (Site site : allItems) {
+                if (site.getName().toLowerCase().contains(keyword.toLowerCase())) mItems.add(site);
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @Override
@@ -97,11 +99,11 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         holder.binding.change.setImageResource(getChangeIcon(item));
         holder.binding.search.setVisibility(search ? View.VISIBLE : View.GONE);
         holder.binding.change.setVisibility(change ? View.VISIBLE : View.GONE);
-        holder.binding.text.setOnClickListener(v -> mListener.onTextClick(item));
-        holder.binding.search.setOnClickListener(v -> mListener.onSearchClick(position, item));
-        holder.binding.change.setOnClickListener(v -> mListener.onChangeClick(position, item));
-        holder.binding.search.setOnLongClickListener(v -> mListener.onSearchLongClick(item));
-        holder.binding.change.setOnLongClickListener(v -> mListener.onChangeLongClick(item));
+        holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
+        holder.binding.search.setOnClickListener(v -> listener.onSearchClick(position, item));
+        holder.binding.change.setOnClickListener(v -> listener.onChangeClick(position, item));
+        holder.binding.search.setOnLongClickListener(v -> listener.onSearchLongClick(item));
+        holder.binding.change.setOnLongClickListener(v -> listener.onChangeLongClick(item));
     }
 
     private int getSearchIcon(Site item) {
@@ -112,7 +114,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         return item.isChangeable() ? R.drawable.ic_site_change : R.drawable.ic_site_block;
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterSiteBinding binding;
 

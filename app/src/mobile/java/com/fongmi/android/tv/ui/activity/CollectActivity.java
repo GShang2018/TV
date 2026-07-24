@@ -257,7 +257,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void onSite(View view) {
         Util.hideKeyboard(mBinding.keyword);
-        SiteDialog.create(this).search().show();
+        SiteDialog.create().search().show(this);
     }
 
     private void onSiteMore(View view) {

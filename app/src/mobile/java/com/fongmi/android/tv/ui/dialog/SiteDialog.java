@@ -1,14 +1,12 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.app.Activity;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -17,74 +15,67 @@ import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
+import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.List;
+public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickListener {
 
-public class SiteDialog implements SiteAdapter.OnClickListener {
+    private DialogSiteBinding binding;
+    private SiteCallback callback;
+    private SiteAdapter adapter;
+    private boolean search;
+    private boolean change;
 
-    private final SiteCallback callback;
-    private final SiteAdapter adapter;
-    private final DialogSiteBinding binding;
-    private final AlertDialog dialog;
-    private List<Site> customSites;
-
-    public static SiteDialog create(Activity activity) {
-        return new SiteDialog(activity);
-    }
-
-    public static SiteDialog create(Fragment fragment) {
-        return new SiteDialog(fragment);
-    }
-
-    public SiteDialog(Activity activity) {
-        this.adapter = new SiteAdapter(this);
-        this.callback = (SiteCallback) activity;
-        this.binding = DialogSiteBinding.inflate(LayoutInflater.from(activity));
-        this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
-    }
-
-    public SiteDialog(Fragment fragment) {
-        this.adapter = new SiteAdapter(this);
-        this.callback = (SiteCallback) fragment;
-        this.binding = DialogSiteBinding.inflate(LayoutInflater.from(fragment.getActivity()));
-        this.dialog = new MaterialAlertDialogBuilder(fragment.getActivity()).setView(binding.getRoot()).create();
-    }
-
-    public SiteDialog sites(List<Site> sites) {
-        this.customSites = sites;
-        return this;
+    public static SiteDialog create() {
+        return new SiteDialog();
     }
 
     public SiteDialog search() {
-        adapter.search(true);
+        search = true;
         return this;
     }
 
     public SiteDialog change() {
-        adapter.change(true);
+        change = true;
         return this;
     }
 
     public SiteDialog all() {
-        adapter.change(true);
+        change = true;
         return this;
     }
 
-    public void show() {
-        if (customSites != null) {
-            adapter.setSites(customSites);
-        }
-        setRecyclerView();
-        setSearchView();
-        setDialog();
+    public void show(Fragment fragment) {
+        show(fragment.getChildFragmentManager(), null);
+        if (fragment instanceof SiteCallback) callback = (SiteCallback) fragment;
     }
 
-    private void setRecyclerView() {
+    public void show(FragmentActivity activity) {
+        show(activity.getSupportFragmentManager(), null);
+        if (activity instanceof SiteCallback) callback = (SiteCallback) activity;
+    }
+
+    @Override
+    protected ViewBinding getBinding() {
+        return binding = DialogSiteBinding.inflate(getLayoutInflater());
+    }
+
+    @Override
+    protected MaterialAlertDialogBuilder getBuilder() {
+        return builder().setView(getBinding().getRoot());
+    }
+
+    @Override
+    protected void initView() {
+        adapter = new SiteAdapter(this);
         binding.recycler.setAdapter(adapter);
-        binding.recycler.setHasFixedSize(true);
+        adapter.search(search).change(change);
         binding.recycler.setItemAnimator(null);
-        binding.recycler.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
+        binding.recycler.setHasFixedSize(true);
+        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
+        binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
+        setSearchView();
     }
 
     private void setSearchView() {
@@ -106,17 +97,10 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
         adapter.keyword(binding.keyword.getText().toString().trim());
     }
 
-    private void setDialog() {
-        if (adapter.getItemCount() == 0) return;
-        dialog.getWindow().setDimAmount(0);
-        dialog.show();
-    }
-
     @Override
     public void onTextClick(Site item) {
-        if (callback == null) return;
-        callback.setSite(item);
-        dialog.dismiss();
+        if (callback != null) callback.setSite(item);
+        dismiss();
     }
 
     @Override
@@ -134,16 +118,23 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
     @Override
     public boolean onSearchLongClick(Site item) {
         boolean result = !item.isSearchable();
-        for (Site site : VodConfig.get().getSites()) site.setSearchable(result).save();
-        adapter.notifyDataSetChanged();
+        adapter.getItems().forEach(site -> site.setSearchable(result).save());
+        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
         return true;
     }
 
     @Override
     public boolean onChangeLongClick(Site item) {
         boolean result = !item.isChangeable();
-        for (Site site : VodConfig.get().getSites()) site.setChangeable(result).save();
-        adapter.notifyDataSetChanged();
+        adapter.getItems().forEach(site -> site.setChangeable(result).save());
+        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
         return true;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (adapter != null && adapter.getItemCount() == 0) dismiss();
+        else if (ResUtil.isLand(requireContext())) setWidth(0.5f);
     }
 }
