@@ -2,6 +2,7 @@ package com.fongmi.quickjs.utils;
 
 import android.net.Uri;
 import android.util.Base64;
+import android.util.LruCache;
 
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Asset;
@@ -10,13 +11,14 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ConcurrentHashMap;
 
 import okhttp3.Headers;
 
 public class Module {
 
-    private final ConcurrentHashMap<String, String> cache;
+    private static final int MAX_CACHE_SIZE = 64; // 最多缓存 64 个 JS 模块
+
+    private final LruCache<String, String> cache;
 
     private static class Loader {
         static volatile Module INSTANCE = new Module();
@@ -27,15 +29,28 @@ public class Module {
     }
 
     public Module() {
-        this.cache = new ConcurrentHashMap<>();
+        this.cache = new LruCache<>(MAX_CACHE_SIZE);
     }
 
     public String fetch(String name) {
-        if (cache.contains(name)) return cache.get(name);
-        if (name.startsWith("http")) cache.put(name, request(name));
-        if (name.startsWith("assets")) cache.put(name, Asset.read(name));
-        if (name.startsWith("lib/")) cache.put(name, Asset.read("js/" + name));
-        return cache.get(name);
+        String cached = cache.get(name);
+        if (cached != null) return cached;
+        if (name.startsWith("http")) {
+            String content = request(name);
+            if (!content.isEmpty()) cache.put(name, content);
+            return content;
+        }
+        if (name.startsWith("assets")) {
+            String content = Asset.read(name);
+            cache.put(name, content);
+            return content;
+        }
+        if (name.startsWith("lib/")) {
+            String content = Asset.read("js/" + name);
+            cache.put(name, content);
+            return content;
+        }
+        return "";
     }
 
     private String request(String url) {

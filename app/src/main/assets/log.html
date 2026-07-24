@@ -1,77 +1,279 @@
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
-
 <head>
-    <title>日誌</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0,viewport-fit=cover">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="stylesheet" type="text/css" href="css/ui.css">
-    <script src="js/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试日志</title>
     <style>
-        html, body { height: 100%; margin: 0; background: #121212; }
-        .log-container { height: 100%; padding: 8px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #e0e0e0; }
-        .log-line { padding: 2px 4px; border-bottom: 1px solid #222; word-break: break-all; }
-        .log-control { position: fixed; top: 8px; right: 8px; z-index: 10; }
-        .log-control button { background: #333; color: #fff; border: 1px solid #555; padding: 4px 8px; margin-left: 4px; border-radius: 4px; cursor: pointer; }
+        * { box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #f4f6f8; color: #1f2328; font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { display: flex; flex-direction: column; }
+        .header { flex: 0 0 auto; width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 8px; z-index: 10; }
+        .topbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; max-width: 100%; overflow: hidden; margin: 0; padding: 8px 8px 0; background: #f4f6f8; }
+        .topbar-inner { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; padding: 8px; background: #fff; border: 1px solid #d8dee4; border-radius: 8px 8px 0 0; border-bottom: none; box-shadow: 0 2px 10px rgba(31,35,40,.04); }
+        h1 { margin: 0 10px 0 0; font-size: 17px; font-weight: 650; white-space: nowrap; }
+        .meta { margin-left: auto; color: #656d76; font-size: 12px; white-space: nowrap; }
+        a, button { appearance: none; border: 1px solid #d0d7de; border-radius: 7px; background: #fff; color: #24292f; padding: 6px 9px; text-decoration: none; font: inherit; cursor: pointer; white-space: nowrap; }
+        button.on, .chip.on { background: #0969da; border-color: #0969da; color: #fff; }
+        a:active, button:active { background: #eaeef2; }
+        .tools { width: 100%; max-width: 100%; overflow: hidden; margin: 0; padding: 8px; background: #fff; border: 1px solid #d8dee4; border-top: none; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(31,35,40,.04); }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; overflow: hidden; padding-bottom: 2px; }
+        .chip { flex: 0 0 auto; }
+        .search { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; align-items: center; margin-top: 6px; }
+        input { box-sizing: border-box; width: 100%; min-width: 0; border: 1px solid #d0d7de; border-radius: 7px; padding: 7px 9px; font: inherit; }
+        .summary { margin-top: 6px; color: #57606a; font-size: 12px; white-space: normal; overflow-wrap: anywhere; word-break: break-all; }
+        main { flex: 1 1 auto; width: 100%; max-width: 1280px; margin: 0 auto; padding: 8px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+        .logs { display: grid; gap: 8px; width: 100%; max-width: 100%; min-width: 0; }
+        .fallback { max-width: 100%; margin: 0; background: #fff; border: 1px solid #d8dee4; border-radius: 8px; padding: 10px; color: #57606a; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all; }
+        .entry { width: 100%; max-width: 100%; min-width: 0; overflow: hidden; background: #fff; border: 1px solid #d8dee4; border-radius: 8px; padding: 9px 10px; }
+        .entry.ok { border-left: 4px solid #1a7f37; }
+        .entry.warn { border-left: 4px solid #bf8700; }
+        .entry.err { border-left: 4px solid #cf222e; }
+        .entry.raw { border-left: 4px solid #8c959f; }
+        .top { display: flex; gap: 8px; align-items: center; max-width: 100%; min-width: 0; overflow: hidden; }
+        .badge { flex: 0 0 auto; border-radius: 999px; padding: 2px 7px; background: #eaeef2; color: #57606a; font-size: 12px; }
+        .entry.ok .badge { background: #dafbe1; color: #116329; }
+        .entry.err .badge { background: #ffebe9; color: #cf222e; }
+        .title { min-width: 0; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .time { margin-left: auto; color: #8c959f; font-size: 12px; white-space: nowrap; }
+        .detail { max-width: 100%; min-width: 0; overflow: hidden; margin-top: 5px; color: #57606a; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all; }
+        .rawline { display: block; width: 100%; max-width: 100%; min-width: 0; overflow: hidden; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #d8dee4; color: #6e7781; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all; }
+        @media(max-width:680px) { .topbar { padding: 7px 8px 0; } h1 { font-size: 16px; } .meta { flex-basis: 100%; margin-left: 0; } .search { grid-template-columns: minmax(0,1fr) auto; } .title { white-space: normal; } .time { display: none; } .entry { padding: 8px; } .detail { font-size: 13px; } }
     </style>
 </head>
-
 <body>
-    <div class="log-control">
-        <button id="btnPause" onclick="togglePause()">暫停</button>
-        <button id="btnClear" onclick="clearLog()">清除</button>
+    <div class="header">
+        <section class="topbar">
+            <div class="topbar-inner">
+                <h1>调试日志</h1>
+                <a href="/debug/logs">刷新</a>
+                <a id="download" href="/debug/logs.txt" download="tv-debug-log.txt">下载</a>
+                <a href="/debug/clear">清空</a>
+                <span id="meta" class="meta">加载中...</span>
+            </div>
+        </section>
+        <section class="tools">
+            <div class="chips">
+                <button class="chip on" data-mode="all">全部</button>
+                <button class="chip" data-mode="error">错误</button>
+                <button class="chip" data-mode="quickjs">QuickJS</button>
+                <button class="chip" data-mode="py_spider">Python</button>
+                <button class="chip" data-mode="okhttp">网络</button>
+                <button class="chip" data-mode="server">服务</button>
+                <button class="chip" data-mode="SpiderDebug">爬虫</button>
+                <button class="chip" data-mode="execute_error">异常</button>
+            </div>
+            <div class="search">
+                <input id="filter" placeholder="过滤关键词...">
+                <button id="pause">暂停</button>
+            </div>
+            <div id="summary" class="summary"></div>
+        </section>
     </div>
-    <div class="log-container" id="logContainer"></div>
-
+    <main>
+        <div id="logs" class="logs"></div>
+        <pre id="raw" class="fallback" hidden></pre>
+    </main>
     <script>
-        var paused = false;
-        var timer = null;
+        const rawEl = document.getElementById('raw');
+        const logs = document.getElementById('logs');
+        const meta = document.getElementById('meta');
+        const summary = document.getElementById('summary');
+        const filter = document.getElementById('filter');
+        const pause = document.getElementById('pause');
+        const download = document.getElementById('download');
 
-        function togglePause() {
+        let raw = '';
+        let mode = 'all';
+        let paused = false;
+        let stick = true;
+        let lastVersion = 0;
+
+        window.addEventListener('scroll', () => {
+            stick = (innerHeight + scrollY) >= (document.body.scrollHeight - 80);
+        }, { passive: true });
+
+        document.querySelectorAll('.chip').forEach(b => {
+            b.onclick = () => {
+                document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+                b.classList.add('on');
+                mode = b.dataset.mode;
+                render();
+            };
+        });
+
+        filter.oninput = render;
+
+        pause.onclick = () => {
             paused = !paused;
-            $('#btnPause').text(paused ? '繼續' : '暫停');
-        }
+            pause.textContent = paused ? '继续' : '暂停';
+            pause.classList.toggle('on', paused);
+        };
 
-        function clearLog() {
-            $('#logContainer').empty();
-        }
+        download.onclick = () => {
+            paused = true;
+            pause.textContent = '继续';
+            pause.classList.add('on');
+        };
 
-        function fetchLog() {
-            if (paused) return;
-            $.ajax({
-                url: 'log-data',
-                method: 'GET',
-                success: function(data) {
-                    if (!data || data.trim() === '') return;
-                    var container = $('#logContainer');
-                    var wasAtBottom = container.scrollTop() + container.innerHeight() >= container[0].scrollHeight - 10;
-                    var lines = data.split('\n');
-                    for (var i = 0; i < lines.length; i++) {
-                        if (lines[i].trim() === '') continue;
-                        container.append('<div class="log-line">' + escapeHtml(lines[i]) + '</div>');
-                    }
-                    var maxLines = 500;
-                    var children = container.children();
-                    while (children.length > maxLines) {
-                        children.first().remove();
-                    }
-                    if (wasAtBottom) {
-                        container.scrollTop(container[0].scrollHeight);
-                    }
-                }
+        function esc(s) {
+            return String(s || '').replace(/[&<>"']/g, function(c) {
+                if (c === '&') return '&';
+                if (c === '<') return '<';
+                if (c === '>') return '>';
+                if (c === '"') return '"';
+                if (c === "'") return '&#x27;';
+                return c;
             });
         }
 
-        function escapeHtml(text) {
-            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        function parse(line) {
+            var a = line.indexOf(' [');
+            var b = line.indexOf('] ', a + 2);
+            var c = line.indexOf(': ', b + 2);
+            return {
+                line: line,
+                time: a > 0 ? line.slice(0, a) : '',
+                thread: a > 0 && b > 0 ? line.slice(a + 2, b) : '',
+                tag: b > 0 && c > 0 ? line.slice(b + 2, c) : '',
+                msg: c > 0 ? line.slice(c + 2) : line
+            };
         }
 
-        $(function() {
-            fetchLog();
-            timer = setInterval(fetchLog, 500);
-        });
+        function explain(r) {
+            var low = (r.tag + ': ' + r.msg).toLowerCase();
+            var e = {
+                kind: 'raw',
+                state: 'raw',
+                badge: r.tag || '日志',
+                title: r.tag ? '日志: ' + r.tag : '原始日志',
+                detail: r.msg || r.line,
+                raw: r.line,
+                time: r.time
+            };
+
+            if (low.indexOf('error') >= 0 || low.indexOf('exception') >= 0 || low.indexOf('failed') >= 0 ||
+                low.indexOf('timeout') >= 0 || low.indexOf('unable') >= 0 || low.indexOf('refused') >= 0 ||
+                low.indexOf('unreachable') >= 0) {
+                e.kind = 'error';
+                e.state = 'err';
+                e.badge = '错误';
+                e.title = '发现错误或异常';
+                return e;
+            }
+
+            if (r.tag === 'quickjs') {
+                e.kind = 'quickjs';
+                e.state = r.msg.indexOf('[error]') >= 0 ? 'err' : r.msg.indexOf('[warn]') >= 0 ? 'warn' : 'ok';
+                e.badge = 'QuickJS';
+                e.title = 'JS 引擎日志';
+                e.detail = r.msg;
+                return e;
+            }
+
+            if (r.tag === 'py_spider') {
+                e.kind = 'py_spider';
+                e.state = 'ok';
+                e.badge = 'Python';
+                e.title = 'Python 爬虫日志';
+                e.detail = r.msg;
+                return e;
+            }
+
+            if (r.tag === 'okhttp') {
+                e.kind = 'okhttp';
+                e.state = 'err';
+                e.badge = '网络';
+                e.title = 'HTTP 请求异常';
+                e.detail = r.msg;
+                return e;
+            }
+
+            if (r.tag === 'server') {
+                e.kind = 'server';
+                e.state = 'raw';
+                e.badge = '服务';
+                e.title = 'HTTP 服务请求';
+                e.detail = r.msg;
+                return e;
+            }
+
+            if (r.tag === 'SpiderDebug') {
+                e.kind = 'SpiderDebug';
+                e.state = 'raw';
+                e.badge = '爬虫';
+                e.title = '爬虫调试';
+                e.detail = r.msg;
+                return e;
+            }
+
+            if (r.tag === 'execute_error') {
+                e.kind = 'error';
+                e.state = 'err';
+                e.badge = '异常';
+                e.title = '执行异常';
+                e.detail = r.msg;
+                return e;
+            }
+
+            return e;
+        }
+
+        function pass(e, key) {
+            var all = (e.raw + ' ' + e.title + ' ' + e.detail).toLowerCase();
+            if (key && all.indexOf(key) < 0) return false;
+            if (mode === 'all') return true;
+            if (mode === 'error') return e.kind === 'error' || e.state === 'err';
+            return e.kind === mode;
+        }
+
+        function render() {
+            try {
+                var key = filter.value.trim().toLowerCase();
+                var rows = raw.split('\n').filter(Boolean).map(parse).map(explain);
+                var shown = 0, err = 0;
+                var html = [];
+                rows.forEach(function(e) {
+                    if (e.kind === 'error' || e.state === 'err') err++;
+                    if (!pass(e, key)) return;
+                    shown++;
+                    html.push('<div class="entry ' + e.state + '"><div class="top"><span class="badge">' +
+                        esc(e.badge) + '</span><span class="title">' + esc(e.title) +
+                        '</span><span class="time">' + esc(e.time) + '</span></div><div class="detail">' +
+                        esc(e.detail) + '</div><code class="rawline">' + esc(e.raw) + '</code></div>');
+                });
+                logs.innerHTML = html.join('') ||
+                    '<div class="entry raw"><div class="detail">没有匹配日志</div></div>';
+                summary.textContent = '显示 ' + shown + '/' + rows.length + ' 行 · 错误 ' + err + ' 条';
+                rawEl.hidden = true;
+            } catch (err) {
+                rawEl.hidden = false;
+                rawEl.textContent = raw;
+                logs.innerHTML = '<div class="entry err"><div class="detail">日志页面渲染失败，已显示原始日志：' +
+                    esc(err && err.message ? err.message : err) + '</div></div>';
+                summary.textContent = '渲染失败 · 已显示原始日志';
+            }
+        }
+
+        async function poll() {
+            try {
+                if (!paused) {
+                    var r = await fetch('/debug/stream?v=' + lastVersion + '&_=' + Date.now(), { cache: 'no-store' });
+                    var j = await r.json();
+                    lastVersion = j.version || lastVersion;
+                    meta.textContent = j.size + ' 行 · ' + Math.ceil((j.bytes || 0) / 1024) + ' KB';
+                    if (j.text !== null && j.text !== undefined) {
+                        raw = j.text || '';
+                        render();
+                        if (stick) scrollTo(0, document.body.scrollHeight);
+                    }
+                }
+            } catch (e) {}
+            setTimeout(poll, 1500);
+        }
+
+        render();
+        poll();
     </script>
 </body>
-
 </html>

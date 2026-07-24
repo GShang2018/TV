@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.player.exo;
 
+import android.os.StatFs;
+
 import androidx.media3.database.StandaloneDatabaseProvider;
 import androidx.media3.datasource.cache.Cache;
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
@@ -13,6 +15,8 @@ import java.io.File;
 public class CacheManager {
 
     private static final int CACHE_SPACE_PERCENT = 80;
+    private static final long MAX_CACHE_SIZE = 1024L * 1024 * 1024; // 1GB 硬上限
+    private static final long MIN_CACHE_SIZE = 256L * 1024 * 1024;  // 256MB 硬下限
 
     private SimpleCache cache;
 
@@ -34,21 +38,21 @@ public class CacheManager {
     }
 
     private long getMaxCacheSize() {
+        // 使用 StatFs 获取分区总空间，更准确地计算可用容量
         File dir = Path.exo();
-        long usedBytes = getDirectorySize(dir);
-        long availableBytes = Math.max(0, dir.getUsableSpace());
-        return Math.min(512L * 1024 * 1024, (usedBytes + availableBytes) * CACHE_SPACE_PERCENT / 100);
+        long totalSpace = getTotalSpace(dir);
+        long cacheSize = Math.max(MIN_CACHE_SIZE, totalSpace * CACHE_SPACE_PERCENT / 100);
+        return Math.min(MAX_CACHE_SIZE, cacheSize);
     }
 
-    private long getDirectorySize(File dir) {
-        long size = 0;
-        File[] files = dir.listFiles();
-        if (files == null) return 0;
-        for (File file : files) {
-            if (file.isFile()) size += file.length();
-            else size += getDirectorySize(file);
+    private long getTotalSpace(File dir) {
+        try {
+            StatFs stat = new StatFs(dir.getAbsolutePath());
+            return stat.getBlockCountLong() * stat.getBlockSizeLong();
+        } catch (Exception e) {
+            // 降级方案：使用 getTotalSpace()
+            return dir.getTotalSpace();
         }
-        return size;
     }
 }
 

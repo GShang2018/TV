@@ -91,7 +91,7 @@ public class OkHttp {
         try {
             return url.startsWith("http") ? newCall(url).execute().body().string() : "";
         } catch (Exception e) {
-            e.printStackTrace();
+            com.github.catvod.crawler.SpiderDebug.log("okhttp", e);
             return "";
         }
     }
@@ -100,7 +100,7 @@ public class OkHttp {
         try {
             return newCall(url, Headers.of(headers)).execute().body().string();
         } catch (Exception e) {
-            e.printStackTrace();
+            com.github.catvod.crawler.SpiderDebug.log("okhttp", e);
             return "";
         }
     }

@@ -92,7 +92,10 @@ public class FileUtil {
 
     public static void clearCache(Callback callback) {
         App.execute(() -> {
-            Path.clear(Path.cache());
+            // 清理所有缓存子目录，保留根缓存目录本身
+            for (File file : Path.list(Path.cache())) {
+                Path.clear(file);
+            }
             if (callback != null) App.post(callback::success);
         });
     }

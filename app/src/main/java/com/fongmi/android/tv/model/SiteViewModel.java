@@ -308,9 +308,14 @@ public class SiteViewModel extends ViewModel {
                 result.postValue(executor.submit(callable).get(Constant.TIMEOUT_VOD, TimeUnit.MILLISECONDS));
             } catch (Throwable e) {
                 if (e instanceof InterruptedException || Thread.interrupted()) return;
-                if (e.getCause() instanceof ExtractException) result.postValue(Result.error(e.getCause().getMessage()));
-                else result.postValue(Result.empty());
-                e.printStackTrace();
+                Throwable cause = e.getCause() != null ? e.getCause() : e;
+                if (cause instanceof ExtractException) {
+                    result.postValue(Result.error(cause.getMessage()));
+                } else {
+                    result.postValue(Result.empty());
+                    SpiderDebug.log("execute_error", cause.getMessage());
+                }
+                SpiderDebug.log(cause);
             }
         });
     }

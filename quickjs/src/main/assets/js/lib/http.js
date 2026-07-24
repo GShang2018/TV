@@ -7,7 +7,9 @@ function http(url, options = {}) {
     return new Promise(resolve => _http(url, Object.assign({
         complete: res => resolve(res)
     }, options))).catch(err => {
-        console.error(err.name, err.message, err.stack)
+        console.error(`[http] ${err.name}: ${err.message}`)
+        console.error(`[http] url: ${url}`)
+        if (err.stack) console.error(`[http] stack: ${err.stack}`)
         return {
             ok: false,
             status: 500,

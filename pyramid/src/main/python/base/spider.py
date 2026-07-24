@@ -2,6 +2,7 @@ import re
 import os
 import json
 import time
+import traceback
 import requests
 from lxml import etree
 from com.chaquo.python import Python
@@ -92,15 +93,37 @@ class Spider(metaclass=ABCMeta):
         clean = re.sub('[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]', '', src)
         return clean
 
-    def fetch(self, url, params=None, cookies=None, headers=None, timeout=5, verify=True, stream=False, allow_redirects = True):
-        rsp = requests.get(url, params=params, cookies=cookies, headers=headers, timeout=timeout, verify=verify, stream=stream, allow_redirects=allow_redirects)
-        rsp.encoding = 'utf-8'
-        return rsp
+    def fetch(self, url, params=None, cookies=None, headers=None, timeout=5, verify=True, stream=False, allow_redirects=True):
+        try:
+            rsp = requests.get(url, params=params, cookies=cookies, headers=headers, timeout=timeout, verify=verify, stream=stream, allow_redirects=allow_redirects)
+            rsp.encoding = 'utf-8'
+            self.log(f"[fetch] {rsp.status_code} {url}")
+            return rsp
+        except requests.exceptions.Timeout:
+            self.log(f"[fetch] TIMEOUT url={url} timeout={timeout}")
+            raise
+        except requests.exceptions.ConnectionError as e:
+            self.log(f"[fetch] CONNECTION_ERROR url={url} error={str(e)}")
+            raise
+        except Exception as e:
+            self.log(f"[fetch] ERROR url={url} error={str(e)}")
+            raise
 
-    def post(self, url, params=None, data=None, json=None, cookies=None, headers=None, timeout=5, verify=True, stream=False, allow_redirects = True):
-        rsp = requests.post(url, params=params, data=data, json=json, cookies=cookies, headers=headers, timeout=timeout, verify=verify, stream=stream, allow_redirects=allow_redirects)
-        rsp.encoding = 'utf-8'
-        return rsp
+    def post(self, url, params=None, data=None, json=None, cookies=None, headers=None, timeout=5, verify=True, stream=False, allow_redirects=True):
+        try:
+            rsp = requests.post(url, params=params, data=data, json=json, cookies=cookies, headers=headers, timeout=timeout, verify=verify, stream=stream, allow_redirects=allow_redirects)
+            rsp.encoding = 'utf-8'
+            self.log(f"[post] {rsp.status_code} {url}")
+            return rsp
+        except requests.exceptions.Timeout:
+            self.log(f"[post] TIMEOUT url={url} timeout={timeout}")
+            raise
+        except requests.exceptions.ConnectionError as e:
+            self.log(f"[post] CONNECTION_ERROR url={url} error={str(e)}")
+            raise
+        except Exception as e:
+            self.log(f"[post] ERROR url={url} error={str(e)}")
+            raise
 
     def html(self, content):
         return etree.HTML(content)
@@ -115,35 +138,62 @@ class Spider(metaclass=ABCMeta):
         return f'{Proxy.getUrl(local)}?do=py'
 
     def log(self, msg):
-        if isinstance(msg, dict) or isinstance(msg, list):
-            print(json.dumps(msg, ensure_ascii=False))
-        else:
-            print(f'{msg}')
+        try:
+            from com.github.catvod.crawler import DebugLogStore
+            if isinstance(msg, dict) or isinstance(msg, list):
+                text = json.dumps(msg, ensure_ascii=False)
+            else:
+                text = str(msg)
+            DebugLogStore.add("py_spider", text)
+        except:
+            try:
+                from com.orhanobut.logger import Logger
+                if isinstance(msg, dict) or isinstance(msg, list):
+                    Logger.t("py_spider").d(json.dumps(msg, ensure_ascii=False))
+                else:
+                    Logger.t("py_spider").d(str(msg))
+            except:
+                if isinstance(msg, dict) or isinstance(msg, list):
+                    print(json.dumps(msg, ensure_ascii=False))
+                else:
+                    print(f'{msg}')
 
     def getCache(self, key):
-        value = self.fetch(f'http://127.0.0.1:{Proxy.getPort()}/cache?do=get&key={key}', timeout=5).text
-        if len(value) > 0:
-            if value.startswith('{') and value.endswith('}') or value.startswith('[') and value.endswith(']'):
-                value = json.loads(value)
-                if type(value) == dict:
-                    if not 'expiresAt' in value or value['expiresAt'] >= int(time.time()):
-                        return value
-                    else:
-                        self.delCache(key)
-                        return None
-            return value
-        else:
+        try:
+            value = self.fetch(f'http://127.0.0.1:{Proxy.getPort()}/cache?do=get&key={key}', timeout=5).text
+            if len(value) > 0:
+                if value.startswith('{') and value.endswith('}') or value.startswith('[') and value.endswith(']'):
+                    value = json.loads(value)
+                    if type(value) == dict:
+                        if not 'expiresAt' in value or value['expiresAt'] >= int(time.time()):
+                            return value
+                        else:
+                            self.delCache(key)
+                            return None
+                return value
+            else:
+                return None
+        except Exception as e:
+            self.log(f"[getCache] ERROR key={key} error={str(e)}")
             return None
 
     def setCache(self, key, value):
-        if type(value) in [int, float]:
-            value = str(value)
-        if len(value) > 0:
-            if type(value) == dict or type(value) == list:
-                value = json.dumps(value, ensure_ascii=False)
-        r = self.post(f'http://127.0.0.1:{Proxy.getPort()}/cache?do=set&key={key}', data={"value": value}, timeout=5)
-        return 'succeed' if r.status_code == 200 else 'failed'
+        try:
+            if type(value) in [int, float]:
+                value = str(value)
+            if len(value) > 0:
+                if type(value) == dict or type(value) == list:
+                    value = json.dumps(value, ensure_ascii=False)
+            r = self.post(f'http://127.0.0.1:{Proxy.getPort()}/cache?do=set&key={key}', data={"value": value}, timeout=5)
+            return 'succeed' if r.status_code == 200 else 'failed'
+        except Exception as e:
+            self.log(f"[setCache] ERROR key={key} error={str(e)}")
+            return 'failed'
 
     def delCache(self, key):
-        r = self.fetch(f'http://127.0.0.1:{Proxy.getPort()}/cache?do=del&key={key}', timeout=5)
-        return 'succeed' if r.status_code == 200 else 'failed'
+        try:
+            r = self.fetch(f'http://127.0.0.1:{Proxy.getPort()}/cache?do=del&key={key}', timeout=5)
+            return 'succeed' if r.status_code == 200 else 'failed'
+        except Exception as e:
+            self.log(f"[delCache] ERROR key={key} error={str(e)}")
+            return 'failed'

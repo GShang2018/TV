@@ -4,6 +4,7 @@ import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.server.process.Action;
 import com.fongmi.android.tv.server.process.Cache;
+import com.fongmi.android.tv.server.process.DebugLogs;
 import com.fongmi.android.tv.server.process.Local;
 import com.fongmi.android.tv.server.process.Media;
 import com.fongmi.android.tv.server.process.Parse;
@@ -36,6 +37,7 @@ public class Nano extends NanoHTTPD {
         process = new ArrayList<>();
         process.add(new Action());
         process.add(new Cache());
+        process.add(new DebugLogs());
         process.add(new Local());
         process.add(new Media());
         process.add(new Parse());
@@ -71,7 +73,6 @@ public class Nano extends NanoHTTPD {
         Map<String, String> files = new HashMap<>();
         if (session.getMethod() == Method.POST) parse(session, files);
         if (url.contains("?")) url = url.substring(0, url.indexOf('?'));
-        if (url.startsWith("/log-data")) return success(LogBuffer.poll());
         if (url.startsWith("/go")) return go();
         if (url.startsWith("/tvbus")) return success(LiveConfig.getResp());
         if (url.startsWith("/device")) return success(Device.get().toString());

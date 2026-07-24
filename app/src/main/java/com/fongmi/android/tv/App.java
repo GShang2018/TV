@@ -13,8 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.api.config.LiveConfig;
-import com.fongmi.android.tv.server.LogBuffer;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.github.catvod.crawler.DebugLogStore;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.Init;
@@ -98,7 +98,7 @@ public class App extends Application {
             @Override
             public void log(int priority, String tag, String message) {
                 super.log(priority, tag, message);
-                LogBuffer.append(message);
+                DebugLogStore.add(tag != null && !tag.isEmpty() ? tag : "Logger", message);
             }
         };
     }
