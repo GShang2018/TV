@@ -193,7 +193,7 @@ public class Vod implements Parcelable {
 
     public List<String> getGallery() {
         List<String> items = new ArrayList<>();
-        if (!getVodPic().isEmpty()) items.add(getVodPic());
+        //if (!getVodPic().isEmpty()) items.add(getVodPic());
         if (!getVodPicThumb().isEmpty()) items.add(getVodPicThumb());
         for (String s : getVodPicSlide().split("\\$\\$\\$")) {
             if (!s.trim().isEmpty()) items.add(s.trim());
