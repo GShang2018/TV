@@ -332,6 +332,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void initView(Bundle savedInstanceState) {
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
+        if (isPort()) {
+            mBinding.video.post(() -> {
+                int width = mBinding.video.getWidth();
+                if (width > 0) {
+                    mFrameParams.height = width * 9 / 16;
+                    mBinding.video.setLayoutParams(mFrameParams);
+                }
+            });
+        }
         mDanmakuContext = DanmakuContext.create();
         mBinding.progressLayout.showProgress();
         mBinding.swipeLayout.setEnabled(false);
