@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogDescBinding;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;

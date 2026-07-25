@@ -301,7 +301,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     Style getHomeViewStyle() {
-        return Setting.getHomeViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        return Setting.getHomeViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
     }
 
     private void checkTypeOverflow() {

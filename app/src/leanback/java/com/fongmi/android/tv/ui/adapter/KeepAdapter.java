@@ -29,7 +29,7 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
     private Style mStyle;
 
     public KeepAdapter(OnClickListener listener) {
-        this(listener, Style.rect());
+        this(listener, Style.land());
     }
 
     public KeepAdapter(OnClickListener listener, Style style) {
@@ -124,16 +124,16 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
             binding.name.setSelected(hasFocus);
             if (hasFocus) {
                 AnimatorSet animator = new AnimatorSet();
-                ObjectAnimator scaleX = ObjectAnimator.ofFloat(v, "scaleX", 1.0f, 1.05f);
-                ObjectAnimator scaleY = ObjectAnimator.ofFloat(v, "scaleY", 1.0f, 1.05f);
+                ObjectAnimator scaleX = ObjectAnimator.ofFloat(v, "scaleX", 1.0f, 1.02f);
+                ObjectAnimator scaleY = ObjectAnimator.ofFloat(v, "scaleY", 1.0f, 1.02f);
                 animator.setDuration(200);
                 animator.playTogether(scaleX, scaleY);
                 animator.start();
                 v.bringToFront();
             } else {
                 AnimatorSet animator = new AnimatorSet();
-                ObjectAnimator scaleX = ObjectAnimator.ofFloat(v, "scaleX", 1.05f, 1.0f);
-                ObjectAnimator scaleY = ObjectAnimator.ofFloat(v, "scaleY", 1.05f, 1.0f);
+                ObjectAnimator scaleX = ObjectAnimator.ofFloat(v, "scaleX", 1.02f, 1.0f);
+                ObjectAnimator scaleY = ObjectAnimator.ofFloat(v, "scaleY", 1.02f, 1.0f);
                 animator.setDuration(200);
                 animator.playTogether(scaleX, scaleY);
                 animator.start();

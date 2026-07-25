@@ -22,7 +22,7 @@ public class Product {
     }
 
     public static int[] getSpec(Context context) {
-        return getSpec(context, Style.rect());
+        return getSpec(context, Style.land());
     }
 
     public static int[] getSpec(Context context, Style style) {
@@ -33,7 +33,7 @@ public class Product {
     }
 
     public static int[] getSpec(Context context, int space, int column) {
-        return getSpec(context, space, column, Style.rect());
+        return getSpec(context, space, column, Style.land());
     }
 
     private static int[] getSpec(Context context, int space, int column, Style style) {

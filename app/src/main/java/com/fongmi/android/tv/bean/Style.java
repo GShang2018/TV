@@ -17,6 +17,10 @@ public class Style implements Parcelable {
     private float ratio;
 
     public static Style rect() {
+        return new Style("rect", 0.75f);
+    }
+
+    public static Style land() {
         return new Style("rect", 1.33f);
     }
 
@@ -52,7 +56,7 @@ public class Style implements Parcelable {
     }
 
     public float getRatio() {
-        return ratio <= 0 ? (isOval() ? 1.0f : 1.33f) : ratio;
+        return ratio <= 0 ? (isOval() ? 1.0f : 0.75f) : ratio;
     }
 
     public boolean isRect() {

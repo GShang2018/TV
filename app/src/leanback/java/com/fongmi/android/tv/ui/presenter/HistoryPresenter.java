@@ -47,7 +47,7 @@ public class HistoryPresenter extends Presenter {
     }
 
     private Style getViewStyle() {
-        return Setting.getHomeViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        return Setting.getHomeViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
     }
 
     public void refreshLayout() {

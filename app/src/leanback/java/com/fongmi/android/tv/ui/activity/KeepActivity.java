@@ -55,7 +55,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private Style getViewStyle() {
-        return Setting.getKeepViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        return Setting.getKeepViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
     }
 
     private void toggleView(View view) {

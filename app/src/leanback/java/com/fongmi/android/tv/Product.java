@@ -46,7 +46,7 @@ public class Product {
     }
 
     public static int[] getSpec(Context context, int space, int column) {
-        return getSpec(space, column, Style.rect());
+        return getSpec(space, column, Style.land());
     }
 
     public static int getEms() {

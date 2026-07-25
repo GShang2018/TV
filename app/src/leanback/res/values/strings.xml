@@ -26,6 +26,9 @@
     <!-- Player -->
     <string name="play_share">Share</string>
 
+    <!-- Detail -->
+    <string name="detail_quick">Alternative Sources</string>
+
     <string-array name="select_background" translatable="false">
         <item>Off</item>
         <item>On</item>

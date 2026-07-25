@@ -290,7 +290,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private Style getHomeViewStyle() {
-        return Setting.getHomeViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        return Setting.getHomeViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
     }
 
     private void refreshAllFragments() {
@@ -640,7 +640,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             if (position == 0) return new HomeFragment();
             Class type = (Class) mAdapter.get(position);
             // 始终使用 categoryViewType 设置，与 refreshStyle 保持一致
-            Style style = Setting.getCategoryViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+            Style style = Setting.getCategoryViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
             return VodFragment.newInstance(getHome().getKey(), type.getTypeId(), style, type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 

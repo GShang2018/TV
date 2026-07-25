@@ -155,7 +155,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void setViewType(int viewType) {
         Setting.putViewType(viewType);
-        Style style = viewType == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        Style style = viewType == ViewType.PORTRAIT ? Style.rect() : Style.land();
         int count = Product.getColumn(this, style);
         mSearchAdapter.setViewType(viewType, count);
         int[] spec = Product.getSpec(this, style);

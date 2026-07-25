@@ -24,7 +24,7 @@ public class VodPresenter extends Presenter {
     private final int[] size;
 
     public VodPresenter(OnClickListener listener) {
-        this(listener, Style.rect());
+        this(listener, Style.land());
     }
 
     public VodPresenter(OnClickListener listener, Style style) {

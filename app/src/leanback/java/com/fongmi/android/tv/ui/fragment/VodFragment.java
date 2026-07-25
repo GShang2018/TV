@@ -192,7 +192,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     private void addVideo(Result result) {
         mResult = result;
         // 始终使用用户设置的布局样式，忽略 API 返回数据自带的 style
-        Style style = Setting.getCategoryViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        Style style = Setting.getCategoryViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT ? Style.rect() : Style.land();
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
     }
@@ -289,9 +289,9 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     public void refreshStyle() {
         // 分类页使用独立的布局设置
         if (Setting.getCategoryViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
-            mStyle = new Style("rect", 0.75f);
-        } else {
             mStyle = Style.rect();
+        } else {
+            mStyle = Style.land();
         }
         // 如果没有数据，触发网络加载
         if (mResult == null || mResult.getList().isEmpty()) {

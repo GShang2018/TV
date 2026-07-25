@@ -130,7 +130,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
         Style style = result.getStyle(getHome().getStyle());
         if (Setting.getHomeViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
-            style = new Style("rect", 0.75f);
+            style = Style.rect();
         }
         for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
@@ -143,9 +143,9 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         if (mResult == null || mResult.getList().isEmpty()) return;
         final Style style;
         if (Setting.getHomeViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
-            style = new Style("rect", 0.75f);
-        } else {
             style = Style.rect();
+        } else {
+            style = Style.land();
         }
         // 保存当前滚动位置和子项位置
         int position = mBinding.recycler.getSelectedPosition();

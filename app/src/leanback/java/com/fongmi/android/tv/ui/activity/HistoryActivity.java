@@ -82,7 +82,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private Style getViewStyle() {
-        return Setting.getHistoryViewType() == ViewType.PORTRAIT ? new Style("rect", 0.75f) : Style.rect();
+        return Setting.getHistoryViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
     }
 
     private void setRecyclerView() {
