@@ -38,6 +38,8 @@
         <item name="colorSurfaceContainerHighest">@color/spotify_surface_elevated</item>
         <item name="colorSurfaceBright">@color/spotify_surface_elevated</item>
         <item name="colorSurfaceDim">@color/black</item>
+        <!-- 文本选中高亮色（跟随主题绿） -->
+        <item name="android:textColorHighlight">@color/text_highlight</item>
         <!-- 禁用 elevation overlay，防止绿色滤镜叠加 -->
         <item name="elevationOverlayEnabled">false</item>
         <!-- 圆角设置：Dialog/底部弹出 16dp -->

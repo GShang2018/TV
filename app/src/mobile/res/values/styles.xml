@@ -47,6 +47,8 @@
         <item name="colorSurfaceDim">@color/black</item>
         <!-- 禁用 elevation overlay，防止绿色滤镜叠加到有 elevation 的控件上 -->
         <item name="elevationOverlayEnabled">false</item>
+        <!-- 文本选中高亮色（跟随主题绿） -->
+        <item name="android:textColorHighlight">@color/text_highlight</item>
         <!-- 圆角设置：Dialog/底部弹出 16dp -->
         <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.Mobile.Corner.ExtraLarge</item>
         <!-- 兼容旧属性 -->

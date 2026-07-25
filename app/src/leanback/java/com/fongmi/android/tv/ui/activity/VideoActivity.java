@@ -672,7 +672,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setText(TextView view, int resId, String text) {
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(MDColor.YELLOW_500);
+        view.setLinkTextColor(view.getContext().getColor(R.color.spotify_green));
         CustomMovement.bind(view);
         view.setTag(text);
     }
@@ -1598,6 +1598,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         while (iterator.hasNext()) if (mismatch(iterator.next())) iterator.remove();
         mQuickAdapter.addAll(mQuickAdapter.size(), items);
         mBinding.quick.setVisibility(View.VISIBLE);
+        mBinding.quickTitle.setVisibility(View.VISIBLE);
         if (isInitAuto()) nextSite();
         if (items.isEmpty()) return;
         App.removeCallbacks(mR4);

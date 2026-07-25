@@ -37,12 +37,7 @@ public class VodPortraitHolder extends BaseVodHolder {
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        if (item.isFolder()) {
-            binding.image.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
-            binding.image.setImageResource(com.fongmi.android.tv.R.drawable.ic_folder);
-        } else {
-            ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
-        }
+        ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
         setTagMaxWidth(binding.image, 12, binding.year, binding.site, binding.remark);
     }
 }

@@ -27,6 +27,7 @@ public class Style implements Parcelable {
     public static Style get(int land, int circle, float ratio) {
         if (land == 1) return new Style("rect", ratio == 0 ? 1.33f : ratio);
         if (circle == 1) return new Style("oval", ratio == 0 ? 1.0f : ratio);
+        if (ratio > 0) return new Style("rect", ratio);
         return null;
     }
 
@@ -47,7 +48,7 @@ public class Style implements Parcelable {
     }
 
     public float getRatio() {
-        return ratio <= 0 ? (isOval() ? 1.0f : 1.33f) : Math.min(4, ratio);
+        return ratio <= 0 ? (isOval() ? 1.0f : 1.33f) : ratio;
     }
 
     public boolean isRect() {

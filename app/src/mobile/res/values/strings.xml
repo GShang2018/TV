@@ -31,6 +31,7 @@
     <string name="gallery_saved">Saved to gallery</string>
     <string name="gallery_save_fail">Save failed</string>
     <string name="detail_content">Summary</string>
+    <string name="detail_quick">Alternative Sources</string>
     <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
 
     <!-- Device -->

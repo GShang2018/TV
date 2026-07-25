@@ -16,4 +16,7 @@
     <color name="accent">@color/spotify_green</color>
     <color name="indicator">@color/white_80</color>
 
+    <!-- Text Selection Highlight -->
+    <color name="text_highlight">#401DB954</color>
+
 </resources>

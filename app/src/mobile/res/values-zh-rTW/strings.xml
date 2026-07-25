@@ -27,6 +27,7 @@
     <string name="gallery_saved">已儲存到相簿</string>
     <string name="gallery_save_fail">儲存失敗</string>
     <string name="detail_content">簡介</string>
+    <string name="detail_quick">可選站源</string>
     <string name="detail_search">快搜「<xliff:g name="name">%s</xliff:g>」</string>
 
     <!-- Device -->
