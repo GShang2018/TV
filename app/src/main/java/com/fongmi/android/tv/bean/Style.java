@@ -47,6 +47,10 @@ public class Style implements Parcelable {
         return TextUtils.isEmpty(type) ? "rect" : type;
     }
 
+    public float getRawRatio() {
+        return ratio;
+    }
+
     public float getRatio() {
         return ratio <= 0 ? (isOval() ? 1.0f : 1.33f) : ratio;
     }

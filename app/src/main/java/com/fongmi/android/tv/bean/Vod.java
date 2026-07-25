@@ -217,7 +217,13 @@ public class Vod implements Parcelable {
     }
 
     public Style getStyle() {
-        return style != null ? style : Style.get(getLand(), getCircle(), getRatio());
+        if (style != null) {
+            if (style.getRawRatio() <= 0 && getRatio() > 0) {
+                return new Style(style.getType(), getRatio());
+            }
+            return style;
+        }
+        return Style.get(getLand(), getCircle(), getRatio());
     }
 
     public int getLand() {

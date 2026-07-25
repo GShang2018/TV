@@ -66,12 +66,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private Style getStyle() {
-		if (isFolder()) return Style.list();
-		Style style = getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
-		if (style != null && style.isList()) return style;
-		VodFragment parent = getParent();
-		return parent != null ? parent.getHomeViewStyle() : Style.rect();
-	}
+        if (isFolder()) return Style.list();
+        Style style = getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
+        if (style != null) return style;
+        VodFragment parent = getParent();
+        return parent != null ? parent.getHomeViewStyle() : Style.rect();
+    }
 
     private boolean isIndexs() {
         return getSite().isIndexs();
@@ -214,7 +214,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     public void refreshStyle() {
         int position = findPosition();
         List<Vod> items = new ArrayList<>(mAdapter.getItems());
-        setStyle(getStyle());
+        VodFragment parent = getParent();
+        setStyle(parent != null ? parent.getHomeViewStyle() : Style.rect());
         mAdapter.addAll(items);
         mBinding.recycler.scrollToPosition(position);
     }
