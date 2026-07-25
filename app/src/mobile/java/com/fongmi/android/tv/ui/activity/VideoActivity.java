@@ -308,7 +308,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     protected boolean transparent() {
-        return false;
+        return true;
     }
 
     @Override
@@ -328,10 +328,19 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         checkId();
     }
 
+    private int getStatusBarHeight() {
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            return getResources().getDimensionPixelSize(resourceId);
+        }
+        return 0;
+    }
+
     @Override
     protected void initView(Bundle savedInstanceState) {
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
+        mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
         if (isPort()) {
             mBinding.video.post(() -> {
                 int width = mBinding.video.getWidth();
@@ -1087,6 +1096,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void enterFullscreen() {
         if (isFullscreen()) return;
         mBinding.video.setClipToOutline(false);
+        mBinding.getRoot().setPadding(0, 0, 0, 0);
         App.post(() -> mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)), 50);
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.full.setVisibility(View.GONE);
@@ -1100,12 +1110,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void exitFullscreen() {
         if (!isFullscreen()) return;
         mBinding.video.setClipToOutline(true);
+        mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
         mBinding.control.full.setVisibility(View.VISIBLE);
         mBinding.video.setLayoutParams(mFrameParams);
         mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
         setRotate(false, false);
+        Util.showSystemUI(this);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         App.post(mR3, 2000);
         hideControl();
     }
