@@ -17,9 +17,9 @@
         android:background="@drawable/selector_item_round"
         android:gravity="center"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp"
-        tools:text="電影" />
+        tools:text="闆诲奖" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/container"

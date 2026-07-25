@@ -43,10 +43,10 @@
         android:layout_marginTop="4dp"
         android:background="@drawable/shape_vod_tag"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="11sp"
         android:visibility="gone"
-        tools:text="泥巴"
+        tools:text="娉ュ反"
         tools:visibility="visible" />
 
     <TextView
@@ -59,9 +59,9 @@
         android:layout_marginBottom="2dp"
         android:background="@drawable/shape_vod_tag"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="11sp"
-        tools:text="更新至第10集" />
+        tools:text="Sample" />
 
     <ProgressBar
         android:id="@+id/progress"
@@ -90,6 +90,6 @@
         android:maxLines="1"
         android:textColor="@color/text"
         android:textSize="13sp"
-        tools:text="蜘蛛人：英雄归来" />
+        tools:text="铚樿洓浜猴細鑻遍泟褰掓潵" />
 
 </RelativeLayout>

@@ -27,8 +27,8 @@
             android:letterSpacing="0.02"
             android:maxLength="255"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?android:attr/textColorHint"
             android:textCursorDrawable="@drawable/shape_cursor"
             android:textSize="20sp" />
 
@@ -50,7 +50,7 @@
 
     </LinearLayout>
 
-    <!-- 站点横向标签栏 -->
+    <!-- 绔欑偣妯悜鏍囩鏍?-->
     <LinearLayout
         android:id="@+id/siteLayout"
         android:layout_width="match_parent"
@@ -110,7 +110,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/search_record"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -136,7 +136,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/search_hot"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -157,7 +157,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 搜索结果区域 - 全宽视频网格 -->
+    <!-- 鎼滅储缁撴灉鍖哄煙 - 鍏ㄥ瑙嗛缃戞牸 -->
     <RelativeLayout
         android:id="@+id/result"
         android:layout_width="match_parent"

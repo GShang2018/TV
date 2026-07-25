@@ -650,4 +650,12 @@ public class Setting {
         Prefers.put("tracker_list", list);
     }
 
+    public static String getThemeColor() {
+        return Prefers.getString("theme_color", "green");
+    }
+
+    public static void putThemeColor(String color) {
+        Prefers.put("theme_color", color);
+    }
+
 }

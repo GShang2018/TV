@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.02"
                 android:singleLine="true"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="14sp"
                 tools:text="CCTV-1" />
 
@@ -35,7 +35,7 @@
                 android:id="@+id/size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="12sp"
                 tools:text="1920 x 1080" />
 

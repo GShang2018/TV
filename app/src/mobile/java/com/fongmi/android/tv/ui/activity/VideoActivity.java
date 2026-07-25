@@ -589,7 +589,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setText(TextView view, int resId, String text) {
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(view.getContext().getColor(R.color.spotify_green));
+        view.setLinkTextColor(ResUtil.getColorAttr(view.getContext(), com.google.android.material.R.attr.colorPrimary));
         CustomMovement.bind(view);
         view.setTag(text);
     }

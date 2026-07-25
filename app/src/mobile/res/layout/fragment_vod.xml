@@ -49,11 +49,11 @@
                     android:layout_marginEnd="4dp"
                     android:layout_weight="1"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     android:gravity="left"
                     tools:ignore="NestedWeights"
-                    tools:text="狂飆" />
+                    tools:text="鐙傞" />
 
             </LinearLayout>
 
@@ -76,10 +76,10 @@
                     android:layout_marginEnd="4dp"
                     android:layout_weight="1"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     tools:ignore="NestedWeights"
-                    tools:text="狂飆" />
+                    tools:text="鐙傞" />
 
                 <ImageView
                     android:id="@+id/search"
@@ -188,7 +188,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:visibility="gone"
-        app:backgroundTint="@color/spotify_green"
+        app:backgroundTint="?attr/colorPrimary"
         app:layout_anchor="@id/pager"
         app:layout_anchorGravity="end|bottom"
         app:layout_behavior="com.fongmi.android.tv.ui.custom.CustomFabBehavior"
@@ -201,7 +201,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:backgroundTint="@color/spotify_green"
+        app:backgroundTint="?attr/colorPrimary"
         app:layout_anchor="@id/pager"
         app:layout_anchorGravity="end|bottom"
         app:layout_behavior="com.fongmi.android.tv.ui.custom.CustomFabBehavior"
@@ -216,7 +216,7 @@
         android:layout_margin="16dp"
         android:tag="top"
         android:visibility="invisible"
-        app:backgroundTint="@color/spotify_green"
+        app:backgroundTint="?attr/colorPrimary"
         app:layout_anchor="@id/pager"
         app:layout_anchorGravity="end|bottom"
         app:layout_behavior="com.fongmi.android.tv.ui.custom.CustomFabBehavior"

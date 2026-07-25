@@ -20,7 +20,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:text="@string/setting_player"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_scrollFlags="scroll|enterAlways" />
@@ -55,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -65,7 +65,7 @@
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="EXO" />
 
@@ -84,7 +84,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_decode"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -94,7 +94,7 @@
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="Hard" />
 
@@ -113,7 +113,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_render"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -121,7 +121,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="Surface" />
 
@@ -140,7 +140,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_scale"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -148,7 +148,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="Fill" />
 
@@ -167,7 +167,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_caption"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -177,9 +177,9 @@
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
-                    tools:text="開" />
+                    tools:text="Sample" />
 
             </LinearLayout>
 
@@ -196,7 +196,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_danmu_load"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -204,9 +204,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
-                    tools:text="開" />
+                    tools:text="Sample" />
 
             </LinearLayout>
 
@@ -223,7 +223,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_play_with_others"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -231,9 +231,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
-                    tools:text="開" />
+                    tools:text="Sample" />
 
             </LinearLayout>
 
@@ -250,7 +250,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_background"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -258,9 +258,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
-                    tools:text="畫中畫" />
+                    tools:text="Sample" />
 
             </LinearLayout>
 
@@ -277,7 +277,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_rtsp"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -285,7 +285,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="UDP" />
 
@@ -304,7 +304,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_flag"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -314,9 +314,9 @@
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
-                    tools:text="自動" />
+                    tools:text="鑷嫊" />
 
             </LinearLayout>
 
@@ -333,7 +333,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_exo_tunnel"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -341,9 +341,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
-                    tools:text="關" />
+                    tools:text="Sample" />
 
             </LinearLayout>
 
@@ -360,7 +360,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_exo_http"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -368,7 +368,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="OkHttp" />
 
@@ -387,7 +387,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_cache_time"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -396,7 +396,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="30" />
 
@@ -405,7 +405,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:text="@string/second"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
             </LinearLayout>
@@ -423,7 +423,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/player_ua"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -433,7 +433,7 @@
                     android:ellipsize="middle"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="okhttp/4.11.0" />
 
@@ -452,7 +452,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/setting_bt_engine"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -460,7 +460,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="Off" />
 
@@ -479,7 +479,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
                     android:text="@string/setting_tracker"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
                 <TextView
@@ -488,7 +488,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     tools:text="0 trackers" />
 

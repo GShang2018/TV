@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
             tools:text="@string/error_play_url" />
 
@@ -49,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
             android:visibility="gone"
             tools:text="120KB/s"
@@ -80,7 +80,7 @@
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
             tools:text="00:00:00" />
 
@@ -118,7 +118,7 @@
             android:id="@+id/brightProgress"
             android:layout_width="120dp"
             android:layout_height="wrap_content"
-            app:indicatorColor="@color/white"
+            app:indicatorColor="?attr/colorPrimary"
             app:trackColor="@color/grey_500" />
 
     </LinearLayout>
@@ -146,7 +146,7 @@
             android:id="@+id/volumeProgress"
             android:layout_width="120dp"
             android:layout_height="wrap_content"
-            app:indicatorColor="@color/white"
+            app:indicatorColor="?attr/colorPrimary"
             app:trackColor="@color/grey_500" />
 
     </LinearLayout>
@@ -169,7 +169,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
             tools:text="005" />
 
@@ -187,9 +187,9 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:singleLine="true"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
-            tools:text="民視" />
+            tools:text="姘戣" />
 
         <TextView
             android:id="@+id/play"
@@ -198,24 +198,24 @@
             android:layout_marginEnd="12dp"
             android:layout_weight="1"
             android:singleLine="true"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
-            tools:text="正在播放：食神" />
+            tools:text="Sample" />
 
         <TextView
             android:id="@+id/line"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
-            tools:text="來源 1" />
+            tools:text="渚嗘簮 1" />
 
         <TextView
             android:id="@+id/clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
             tools:text="16:50" />
 
@@ -263,7 +263,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
             tools:text="005" />
 
@@ -272,9 +272,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:singleLine="true"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
-            tools:text="民視" />
+            tools:text="姘戣" />
 
     </LinearLayout>
 </FrameLayout>

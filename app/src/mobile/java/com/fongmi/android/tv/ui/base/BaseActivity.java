@@ -32,6 +32,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        applyTheme();
         super.onCreate(savedInstanceState);
         if (transparent()) setTransparent(this);
         setContentView(getBinding().getRoot());
@@ -39,6 +40,29 @@ public abstract class BaseActivity extends AppCompatActivity {
         initView(savedInstanceState);
         setBackCallback();
         initEvent();
+    }
+
+    private void applyTheme() {
+        String themeColor = Setting.getThemeColor();
+        if (themeColor.startsWith("#")) {
+            // 自定义十六进制颜色 -> 使用默认主题
+            setTheme(R.style.AppTheme);
+        } else {
+            int themeResId = getThemeStyleResId(themeColor);
+            setTheme(themeResId);
+        }
+    }
+
+    private int getThemeStyleResId(String color) {
+        switch (color) {
+            case "blue":    return R.style.AppTheme_Blue;
+            case "red":     return R.style.AppTheme_Red;
+            case "purple":  return R.style.AppTheme_Purple;
+            case "orange":  return R.style.AppTheme_Orange;
+            case "teal":    return R.style.AppTheme_Teal;
+            case "pink":    return R.style.AppTheme_Pink;
+            default:        return R.style.AppTheme_Green;
+        }
     }
 
     @Override

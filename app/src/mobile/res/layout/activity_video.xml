@@ -95,10 +95,10 @@
                         android:layout_marginEnd="16dp"
                         android:ellipsize="end"
                         android:maxLines="2"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        tools:text="慶餘年第二季" />
+                        tools:text="鎱堕骞寸浜屽" />
 
                     <TextView
                         android:id="@+id/remark"
@@ -108,9 +108,9 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginEnd="16dp"
                         android:singleLine="true"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        tools:text="更新到第二季" />
+                        tools:text="鏇存柊鍒扮浜屽" />
 
                     <TextView
                         android:id="@+id/site"
@@ -120,9 +120,9 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginEnd="16dp"
                         android:singleLine="true"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        tools:text="站源：泥巴" />
+                        tools:text="Sample" />
 
                     <TextView
                         android:id="@+id/other"
@@ -132,9 +132,9 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginEnd="16dp"
                         android:singleLine="true"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        tools:text="年份：2022 地區：台灣 類型：科幻" />
+                        tools:text="Sample" />
 
                     <TextView
                         android:id="@+id/director"
@@ -144,9 +144,9 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginEnd="16dp"
                         android:singleLine="true"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        tools:text="導演：FongMi" />
+                        tools:text="灏庢紨锛欶ongMi" />
 
                     <TextView
                         android:id="@+id/actor"
@@ -157,9 +157,9 @@
                         android:layout_marginEnd="16dp"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        tools:text="演員：FongMi" />
+                        tools:text="婕斿摗锛欶ongMi" />
 
                     <LinearLayout
                         android:id="@+id/gallery_layout"
@@ -181,7 +181,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/detail_gallery"
-                                android:textColor="@color/white"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -195,12 +195,12 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="center"
-                                android:textColor="@color/white"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="14sp"
                                 android:visibility="gone"
                                 app:drawableEndCompat="@drawable/ic_detail_more"
-                                app:drawableTint="@color/white"
-                                tools:text="全部 12"
+                                app:drawableTint="?attr/colorOnSurface"
+                                tools:text="鍏ㄩ儴 12"
                                 tools:visibility="visible" />
 
                         </LinearLayout>
@@ -234,7 +234,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/detail_flag"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -249,7 +249,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="@string/detail_download"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="14sp"
                             app:drawableEndCompat="@drawable/ic_detail_more"
                             tools:visibility="visible" />
@@ -276,7 +276,7 @@
                         android:layout_marginTop="16dp"
                         android:layout_marginEnd="16dp"
                         android:text="@string/detail_quality"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:visibility="gone"
@@ -308,7 +308,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/detail_episode"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -333,7 +333,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:text="@string/detail_more"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="14sp"
                             android:visibility="gone"
                             app:drawableEndCompat="@drawable/ic_detail_more"
@@ -367,7 +367,7 @@
                             android:layout_marginTop="8dp"
                             android:layout_marginEnd="16dp"
                             android:text="@string/detail_content"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -382,9 +382,9 @@
                             android:ellipsize="end"
                             android:lineSpacingExtra="4dp"
                             android:maxLines="2"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="14sp"
-                            tools:text="一個身世神秘的少年范閒（張若昀飾），因對自身身世的好奇而離開故鄉澹州，前赴南慶京都。范閒在京中各大勢力之間遊走，以探查自己屢遭刺殺的原因。其間結識靖王世子、二皇子，與太子、長公主等人對抗，並遊歷四方、闖蕩江湖，卻意外發現這世界隱藏著的秘密。本劇第一季上半部主要描述范閒在南慶京都追查刺殺的幕後黑手，京中各式人等對范閒繼承內庫的態度和應對，以及監察院院長陳萍萍希望范閒接掌監察院所做的一切舉動。下半部劇情發生在北齊上京。南慶駐北齊上京諜報首領言冰雲被北齊官方抓獲，慶帝與陳萍萍同意用已被關在監察院大牢多年的前北魏諜報首領肖恩交換言冰雲，並派范閒親率南慶使團負責此事。" />
+                            tools:text="Sample" />
 
                     </LinearLayout>
 
@@ -396,7 +396,7 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginEnd="16dp"
                         android:text="@string/detail_quick"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:visibility="gone" />

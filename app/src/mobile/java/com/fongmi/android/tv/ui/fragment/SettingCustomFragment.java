@@ -3,12 +3,18 @@ package com.fongmi.android.tv.ui.fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
+import androidx.appcompat.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -18,6 +24,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.FragmentSettingCustomBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -33,6 +40,7 @@ public class SettingCustomFragment extends BaseFragment {
     private String[] size;
     private String[] lang;
     private String[] configCache;
+    private String[] themeColors;
 
     public static SettingCustomFragment newInstance() {
         return new SettingCustomFragment();
@@ -59,6 +67,13 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.debugText.setText(getSwitch(Setting.isDebug()));
         mBinding.languageText.setText((lang = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
+        String currentColor = Setting.getThemeColor();
+        themeColors = ResUtil.getStringArray(R.array.select_theme_color);
+        if (currentColor.startsWith("#")) {
+            mBinding.themeColorText.setText(currentColor.toUpperCase());
+        } else {
+            mBinding.themeColorText.setText(themeColors[getThemeColorIndex()]);
+        }
     }
 
 
@@ -75,7 +90,17 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.debug.setOnClickListener(this::setDebug);
         mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
+        mBinding.themeColor.setOnClickListener(this::setThemeColor);
         mBinding.reset.setOnClickListener(this::onReset);
+    }
+
+    private int getThemeColorIndex() {
+        String[] all = {"green", "blue", "red", "purple", "orange", "teal", "pink"};
+        String current = Setting.getThemeColor();
+        for (int i = 0; i < all.length; i++) {
+            if (all[i].equals(current)) return i;
+        }
+        return 0;
     }
 
     private void setSize(View view) {
@@ -158,6 +183,98 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.configCacheText.setText(configCache[index]);
     }
 
+    private final String[] THEME_COLOR_VALUES = {"green", "blue", "red", "purple", "orange", "teal", "pink"};
+    private final String[] THEME_COLOR_HEX = {"#1DB954", "#2196F3", "#F44336", "#9C27B0", "#FF9800", "#009688", "#E91E63"};
+
+    private void setThemeColor(View view) {
+        AlertDialog dialog = (AlertDialog) new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_theme_color)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .create();
+
+        View contentView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_theme_color, null);
+        dialog.setView(contentView);
+
+        ListView colorList = contentView.findViewById(R.id.colorList);
+        View customRow = contentView.findViewById(R.id.customColorRow);
+
+        // Build color item data
+        int checkedIndex = getThemeColorIndex();
+        String[] items = new String[themeColors.length];
+        int[] colors = new int[themeColors.length];
+        for (int i = 0; i < themeColors.length; i++) {
+            items[i] = themeColors[i];
+            colors[i] = Color.parseColor(THEME_COLOR_HEX[i]);
+        }
+
+        colorList.setAdapter(new android.widget.ArrayAdapter<String>(getActivity(), R.layout.item_theme_color, R.id.colorText, items) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View row = super.getView(position, convertView, parent);
+                View dot = row.findViewById(R.id.colorDot);
+                GradientDrawable bg = (GradientDrawable) dot.getBackground();
+                bg.setColor(colors[position]);
+                dot.setBackground(bg);
+                if (position == checkedIndex) {
+                    row.setBackgroundColor(0x0FFFFFFF);
+                }
+                return row;
+            }
+        });
+        colorList.setItemChecked(checkedIndex, true);
+
+        colorList.setOnItemClickListener((parent, v, position, id) -> {
+            mBinding.themeColorText.setText(themeColors[position]);
+            Setting.putThemeColor(THEME_COLOR_VALUES[position]);
+            dialog.dismiss();
+            App.post(() -> Util.restartApp(getActivity()), 500);
+        });
+
+        customRow.setOnClickListener(v -> {
+            dialog.dismiss();
+            showCustomColorDialog();
+        });
+
+        dialog.show();
+    }
+
+    private void showCustomColorDialog() {
+        EditText input = new EditText(getActivity());
+        input.setHint(R.string.setting_theme_hex_hint);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        input.setSingleLine();
+
+        String current = Setting.getThemeColor();
+        if (current.startsWith("#")) {
+            input.setText(current);
+            input.setSelection(current.length());
+        }
+
+        new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_theme_hex_input)
+                .setView(input)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    String hex = input.getText().toString().trim();
+                    if (TextUtils.isEmpty(hex)) return;
+                    if (!hex.startsWith("#")) hex = "#" + hex;
+                    try {
+                        int color = Color.parseColor(hex);
+                        String hex6 = String.format("#%06X", color & 0xFFFFFF);
+                        Setting.putThemeColor(hex6);
+                        mBinding.themeColorText.setText(hex6);
+                        App.post(() -> Util.restartApp(getActivity()), 500);
+                    } catch (IllegalArgumentException e) {
+                        new MaterialAlertDialogBuilder(getActivity())
+                                .setTitle(R.string.setting_theme_color)
+                                .setMessage(R.string.setting_theme_hex_error)
+                                .setPositiveButton(R.string.dialog_positive, null)
+                                .show();
+                    }
+                })
+                .show();
+    }
 
     private void onReset(View view) {
         new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.dialog_reset_app).setMessage(R.string.dialog_reset_app_data).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> reset()).show();

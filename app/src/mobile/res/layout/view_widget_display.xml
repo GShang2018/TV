@@ -19,15 +19,15 @@
             android:layout_marginEnd="100dp"
             android:letterSpacing="0.02"
             android:singleLine="true"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
-            tools:text="慶餘年第一季：第一集" />
+            tools:text="Sample" />
 
         <TextView
             android:id="@+id/size"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
             tools:text="1920 x 1080" />
 
@@ -39,7 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:shadowColor="@color/grey_900"
         android:shadowDx="2"
         android:shadowDy="2"
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:shadowColor="@color/grey_900"
         android:shadowDx="2"
         android:shadowDy="2"
@@ -70,7 +70,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:shadowColor="@color/grey_900"
         android:shadowDx="2"
         android:shadowDy="2"

@@ -19,4 +19,22 @@
     <!-- Text Selection Highlight -->
     <color name="text_highlight">#401DB954</color>
 
+    <!-- ====== 主题色预设 ====== -->
+    <color name="theme_green">#1DB954</color>
+    <color name="theme_blue">#2196F3</color>
+    <color name="theme_red">#F44336</color>
+    <color name="theme_purple">#9C27B0</color>
+    <color name="theme_orange">#FF9800</color>
+    <color name="theme_teal">#009688</color>
+    <color name="theme_pink">#E91E63</color>
+
+    <!-- 各主题色文本高亮色（25% alpha） -->
+    <color name="text_highlight_green">#401DB954</color>
+    <color name="text_highlight_blue">#402196F3</color>
+    <color name="text_highlight_red">#40F44336</color>
+    <color name="text_highlight_purple">#409C27B0</color>
+    <color name="text_highlight_orange">#40FF9800</color>
+    <color name="text_highlight_teal">#40009688</color>
+    <color name="text_highlight_pink">#40E91E63</color>
+
 </resources>

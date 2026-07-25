@@ -104,7 +104,7 @@
             android:layout_marginBottom="8dp"
             android:singleLine="true"
             android:text="@string/timer_delay"
-            android:textColor="@color/white" />
+            android:textColor="?attr/colorOnSurface" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/reset"

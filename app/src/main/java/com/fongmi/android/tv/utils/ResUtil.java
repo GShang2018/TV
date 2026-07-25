@@ -141,6 +141,16 @@ public class ResUtil {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? activity.getDisplay() : activity.getWindowManager().getDefaultDisplay();
     }
 
+    public static int getColorAttr(Context context, int attrRes) {
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(attrRes, typedValue, true);
+        return typedValue.data;
+    }
+
+    public static int getColorAttr(int attrRes) {
+        return getColorAttr(App.get(), attrRes);
+    }
+
     public static int getTextWidth(String content, int size) {
         Paint paint = new Paint();
         paint.setTextSize(sp2px(size));
