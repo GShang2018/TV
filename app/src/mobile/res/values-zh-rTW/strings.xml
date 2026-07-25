@@ -21,7 +21,7 @@
     <string name="detail_download">下載</string>
     <string name="detail_episode">選集</string>
     <string name="detail_quality">畫質</string>
-    <string name="detail_gallery">圖片</string>
+    <string name="detail_gallery">劇照</string>
     <string name="detail_gallery_all">全部 %d \u00A0</string>
     <string name="gallery_counter">%d / %d</string>
     <string name="gallery_saved">已儲存到相簿</string>

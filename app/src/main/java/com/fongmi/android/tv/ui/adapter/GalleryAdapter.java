@@ -36,18 +36,17 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ViewHolder holder = new ViewHolder(AdapterVodGalleryBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        AdapterVodGalleryBinding binding = AdapterVodGalleryBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         int height = ResUtil.dp2px(120);
         int width = height * 4 / 3;
-        holder.binding.image.getLayoutParams().width = width;
-        holder.binding.image.getLayoutParams().height = height;
-        return holder;
+        binding.image.getLayoutParams().width = width;
+        binding.image.getLayoutParams().height = height;
+        return new ViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String url = mItems.get(position);
-        ImgUtil.loadVod("", url, holder.binding.image);
+        ImgUtil.loadVod("", mItems.get(position), holder.binding.image);
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(position));
     }
 

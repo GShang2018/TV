@@ -25,7 +25,7 @@
     <string name="detail_download">Download</string>
     <string name="detail_episode">Episode</string>
     <string name="detail_quality">Quality</string>
-    <string name="detail_gallery">Gallery</string>
+    <string name="detail_gallery">Stills</string>
     <string name="detail_gallery_all">All %d \u00A0</string>
     <string name="gallery_counter">%d / %d</string>
     <string name="gallery_saved">Saved to gallery</string>

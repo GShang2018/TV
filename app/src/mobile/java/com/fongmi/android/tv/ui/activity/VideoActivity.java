@@ -638,8 +638,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             mBinding.galleryLayout.setVisibility(View.GONE);
         } else {
             mBinding.galleryLayout.setVisibility(View.VISIBLE);
-			mBinding.galleryAll.setVisibility(View.VISIBLE);
-			mBinding.galleryAll.setText(getString(R.string.detail_gallery_all, items.size()));
+            mBinding.galleryAll.setVisibility(View.VISIBLE);
+            mBinding.galleryAll.setText(getString(R.string.detail_gallery_all, items.size()));
             ArrayList<String> urls = new ArrayList<>(items);
             mBinding.galleryAll.setOnClickListener(v -> GalleryGridActivity.start(this, urls));
             mGalleryAdapter.addAll(items);
