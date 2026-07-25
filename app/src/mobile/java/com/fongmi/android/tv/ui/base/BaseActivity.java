@@ -44,13 +44,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private void applyTheme() {
         String themeColor = Setting.getThemeColor();
-        if (themeColor.startsWith("#")) {
-            // 自定义十六进制颜色 -> 使用默认主题
-            setTheme(R.style.AppTheme);
-        } else {
-            int themeResId = getThemeStyleResId(themeColor);
-            setTheme(themeResId);
-        }
+        if (themeColor == null) themeColor = "green";
+        int themeResId = getThemeStyleResId(themeColor);
+        setTheme(themeResId);
     }
 
     private int getThemeStyleResId(String color) {

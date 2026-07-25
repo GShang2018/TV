@@ -76,10 +76,6 @@
     </string-array>
 
     <string name="setting_theme_color">主题色</string>
-    <string name="setting_theme_custom_color">自定义颜色</string>
-    <string name="setting_theme_hex_input">输入十六进制颜色值</string>
-    <string name="setting_theme_hex_hint">例如: #FF5722</string>
-    <string name="setting_theme_hex_error">无效的颜色值，请使用 #RRGGBB 格式</string>
 
     <string-array name="select_theme_color">
         <item>绿色</item>
