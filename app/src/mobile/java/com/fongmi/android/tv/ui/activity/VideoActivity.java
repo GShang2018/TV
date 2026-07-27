@@ -1872,11 +1872,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
         if (!isFullscreen()) setVideoView(isInPictureInPictureMode);
         if (isInPictureInPictureMode) {
+            mBinding.getRoot().setPadding(0, 0, 0, 0);
             PlaybackService.start(mPlayers);
             mBinding.danmaku.hide();
             hideControl();
             hideSheet();
         } else {
+            mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
             showDanmu();
             App.post(mR0, 1000);
             setForeground(true);
