@@ -852,7 +852,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             String title = mBinding.control.title.getText().toString();
             String shareUrl = mPlayers.getOriginalUrl() != null ? mPlayers.getOriginalUrl() : mPlayers.getUrl();
-            String shareText = "我正在看" + title + "，观看链接: " + shareUrl;
+            boolean isM3u8 = shareUrl != null && shareUrl.toLowerCase().endsWith(".m3u8");
+            String prefix = isM3u8 ?  "https://m3u8-player.cc/player?url=" : "";
+            String shareText = "我正在看" + title + "，观看链接: " + prefix+ shareUrl;
             intent.putExtra(Intent.EXTRA_TEXT, shareText);
             intent.putExtra("extra_headers", mPlayers.getHeaderBundle());
             intent.putExtra("title", title);

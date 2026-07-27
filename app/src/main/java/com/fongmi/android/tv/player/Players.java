@@ -680,7 +680,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             // 如果是磁力链接，使用原始磁力链接；否则使用视频信息弹窗中的链接 (getUrl())
             String shareUrl = originalUrl != null ? originalUrl : getUrl();
-            String shareText = "我正在看" + title + "，观看链接: " + shareUrl;
+            boolean isM3u8 = shareUrl != null && shareUrl.toLowerCase().endsWith(".m3u8");
+            String prefix = isM3u8 ?  "https://m3u8-player.cc/player?url=" : "";
+            String shareText = "我正在看" + title + "，观看链接: " + prefix+ shareUrl;
             intent.putExtra(Intent.EXTRA_TEXT, shareText);
             intent.putExtra("extra_headers", getHeaderBundle());
             intent.putExtra("title", title);
