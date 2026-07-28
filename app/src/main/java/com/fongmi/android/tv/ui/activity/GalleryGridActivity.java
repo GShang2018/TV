@@ -49,7 +49,7 @@ public class GalleryGridActivity extends AppCompatActivity {
 
     private void initGrid() {
         int spanCount = 3;
-        int spacing = ResUtil.dp2px(8);
+        int spacing = ResUtil.dp2px(12);
         int screenWidth = ResUtil.getScreenWidth(this);
         int imageSize = (screenWidth - spacing * (spanCount + 1)) / spanCount;
         GridLayoutManager glm = new GridLayoutManager(this, spanCount);
@@ -107,12 +107,12 @@ public class GalleryGridActivity extends AppCompatActivity {
 
         @Override
         public void getItemOffsets(@NonNull Rect outRect, @NonNull View view, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-            int position = parent.getChildAdapterPosition(view);
             int spanCount = ((GridLayoutManager) parent.getLayoutManager()).getSpanCount();
-            int column = position % spanCount;
-            outRect.left = spacing - column * spacing / spanCount;
-            outRect.right = (column + 1) * spacing / spanCount;
-            outRect.top = spacing;
+            int halfSpacing = spacing / 2;
+            outRect.left = halfSpacing;
+            outRect.right = halfSpacing;
+            outRect.top = halfSpacing;
+            outRect.bottom = halfSpacing;
         }
     }
 }

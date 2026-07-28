@@ -1,8 +1,18 @@
 package com.fongmi.android.tv.ui.base;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.DisplayCutout;
@@ -11,7 +21,10 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.palette.graphics.Palette;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -140,10 +153,96 @@ public abstract class BaseActivity extends AppCompatActivity {
         try {
             if (!customWall()) return;
             File file = FileUtil.getWall(Setting.getWall());
-            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(Drawable.createFromPath(file.getAbsolutePath()));
-            else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+            if (file.exists() && file.length() > 0) {
+                applyWallpaperWithOverlay(file);
+            } else {
+                getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+            }
         } catch (Exception e) {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
+        }
+    }
+
+    private void applyWallpaperWithOverlay(File file) {
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+        if (bitmap == null) {
+            getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_4);
+            return;
+        }
+        // 先用壁纸作为背景（确保立即显示）
+        getWindow().setBackgroundDrawable(new CenterCropDrawable(bitmap));
+        // 异步提取深色并叠加
+        Palette.from(bitmap).generate(palette -> {
+            int darkColor = 0xFF222222;
+            if (palette.getDarkVibrantSwatch() != null) {
+                darkColor = palette.getDarkVibrantSwatch().getRgb();
+            } else if (palette.getDarkMutedSwatch() != null) {
+                darkColor = palette.getDarkMutedSwatch().getRgb();
+            } else if (palette.getDominantSwatch() != null) {
+                darkColor = palette.getDominantSwatch().getRgb();
+            }
+            int overlayColor = Color.argb(230, Color.red(darkColor), Color.green(darkColor), Color.blue(darkColor));
+            Drawable[] layers = new Drawable[]{
+                    new CenterCropDrawable(bitmap),
+                    new ColorDrawable(overlayColor)
+            };
+            getWindow().setBackgroundDrawable(new LayerDrawable(layers));
+        });
+    }
+
+    /**
+     * 保持宽高比的 center-crop 背景 Drawable，横屏竖屏都不会拉伸变形
+     */
+    private static class CenterCropDrawable extends Drawable {
+
+        private final Bitmap bitmap;
+        private final Paint paint;
+
+        CenterCropDrawable(Bitmap bitmap) {
+            this.bitmap = bitmap;
+            this.paint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            Rect bounds = getBounds();
+            if (bounds.isEmpty() || bitmap == null) return;
+
+            float bitmapRatio = (float) bitmap.getWidth() / bitmap.getHeight();
+            float boundsRatio = (float) bounds.width() / bounds.height();
+
+            float scale, dx, dy;
+            if (bitmapRatio > boundsRatio) {
+                // 图片更宽：以高度为基准，宽度裁剪
+                scale = (float) bounds.height() / bitmap.getHeight();
+                float scaledWidth = bitmap.getWidth() * scale;
+                dx = (bounds.width() - scaledWidth) / 2f;
+                dy = 0;
+            } else {
+                // 图片更高：以宽度为基准，高度裁剪
+                scale = (float) bounds.width() / bitmap.getWidth();
+                float scaledHeight = bitmap.getHeight() * scale;
+                dx = 0;
+                dy = (bounds.height() - scaledHeight) / 2f;
+            }
+
+            RectF srcRect = new RectF(dx, dy, dx + bitmap.getWidth() * scale, dy + bitmap.getHeight() * scale);
+            canvas.drawBitmap(bitmap, null, srcRect, paint);
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
         }
     }
 

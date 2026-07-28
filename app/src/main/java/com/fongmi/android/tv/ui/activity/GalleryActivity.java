@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -147,6 +148,7 @@ public class GalleryActivity extends AppCompatActivity {
         @Override
         public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             TouchImageView image = new TouchImageView(parent.getContext());
+            image.setBackgroundResource(R.color.black_20);
             image.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             return new Holder(image);
         }
@@ -206,7 +208,8 @@ public class GalleryActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             String url = mUrls.get(position);
-            ImgUtil.loadVod("", url, holder.binding.thumb);
+            holder.binding.thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Glide.with(GalleryActivity.this).asBitmap().load(ImgUtil.getUrl(url)).placeholder(R.drawable.ic_img_loading).into(holder.binding.thumb);
             holder.binding.border.setVisibility(position == selected ? View.VISIBLE : View.GONE);
             holder.itemView.setOnClickListener(v -> {
                 mBinding.pager.setCurrentItem(position, false);
