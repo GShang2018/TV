@@ -2,17 +2,24 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.text.TextPaint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.animation.ValueAnimator;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
+import android.text.Selection;
+import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -30,6 +37,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.palette.graphics.Palette;
 import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
@@ -38,6 +46,8 @@ import androidx.media3.ui.SubtitleView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
@@ -638,6 +648,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 ((TextView) view).setMaxLines(Integer.MAX_VALUE);
                 setRedirect(true);
             }
+            @Override
+            public void updateDrawState(@NonNull TextPaint ds) {
+                ds.setUnderlineText(false);
+            }
         };
     }
 
@@ -814,11 +828,29 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onActor() {
-        mBinding.actor.setMaxLines(mBinding.actor.getMaxLines() == 1 ? Integer.MAX_VALUE : 1);
+        if (mBinding.actor.getMaxLines() == 1) {
+            // 展开：不限行数，容器自适应高度
+            mBinding.actor.setMaxLines(Integer.MAX_VALUE);
+            mBinding.actor.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        } else {
+            // 折叠：限制1行，容器高度固定为1行高度，多出文本被物理裁剪
+            mBinding.actor.setMaxLines(1);
+            mBinding.actor.getLayoutParams().height = mBinding.actor.getLineHeight();
+        }
+        mBinding.actor.requestLayout();
     }
 
     private void onContent() {
-        mBinding.content.setMaxLines(mBinding.content.getMaxLines() == 2 ? Integer.MAX_VALUE : 2);
+        if (mBinding.content.getMaxLines() == 2) {
+            // 展开：不限行数，TextView 自适应高度
+            mBinding.content.setMaxLines(Integer.MAX_VALUE);
+            mBinding.content.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        } else {
+            // 折叠：限制2行，TextView 高度固定为2行高度，多出文本被物理裁剪
+            mBinding.content.setMaxLines(2);
+            mBinding.content.getLayoutParams().height = mBinding.content.getLineHeight() * 2;
+        }
+        mBinding.content.requestLayout();
     }
 
     private void onReverse() {
@@ -1229,6 +1261,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 getExo().setDefaultArtwork(resource);
                 getIjk().setDefaultArtwork(resource);
                 showPreview(resource);
+                setCoverBackground(url);
             }
 
             @Override
@@ -1240,6 +1273,72 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
             @Override
             public void onLoadCleared(@Nullable Drawable placeholder) {
+            }
+        });
+    }
+
+    private void setCoverBackground(String url) {
+        App.execute(() -> {
+            try {
+                Bitmap bitmap = Glide.with(VideoActivity.this)
+                        .asBitmap()
+                        .load(ImgUtil.getUrl(url))
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .submit(ResUtil.getScreenWidth(), ResUtil.getScreenHeight())
+                        .get();
+                if (bitmap == null) return;
+                Palette.from(bitmap).generate(palette -> {
+                    int darkColor = 0xFF222222;
+                    // 优先使用 Muted（柔和），其次其它色调
+                    if (palette.getMutedSwatch() != null) {
+                        darkColor = palette.getMutedSwatch().getRgb();
+                    } else if (palette.getDarkVibrantSwatch() != null) {
+                        darkColor = palette.getDarkVibrantSwatch().getRgb();
+                    } else if (palette.getDarkMutedSwatch() != null) {
+                        darkColor = palette.getDarkMutedSwatch().getRgb();
+                    } else if (palette.getDominantSwatch() != null) {
+                        darkColor = palette.getDominantSwatch().getRgb();
+                    } else if (palette.getVibrantSwatch() != null) {
+                        darkColor = palette.getVibrantSwatch().getRgb();
+                    }
+                    int r = Color.red(darkColor);
+                    int g = Color.green(darkColor);
+                    int b = Color.blue(darkColor);
+                    int darkenAmount = 60;
+                    int dr = Math.max(0, r - darkenAmount);
+                    int dg = Math.max(0, g - darkenAmount);
+                    int db = Math.max(0, b - darkenAmount);
+                    // 降低饱和度使颜色更中性
+                    int avg = (dr + dg + db) / 3;
+                    dr = (dr + avg) / 2;
+                    dg = (dg + avg) / 2;
+                    db = (db + avg) / 2;
+                    // 多阶颜色插值，消除色带
+                    int steps = 8;
+                    int[] colors = new int[steps];
+                    for (int i = 0; i < steps; i++) {
+                        float t = (float) i / (steps - 1);
+                        int cr = (int) (r * (1 - t) + dr * t);
+                        int cg = (int) (g * (1 - t) + dg * t);
+                        int cb = (int) (b * (1 - t) + db * t);
+                        int alpha = (int) (200 + t * 55);
+                        colors[i] = Color.argb(alpha, cr, cg, cb);
+                    }
+                    GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
+                    gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+                    gradient.setDither(true);
+                    runOnUiThread(() -> {
+                        gradient.setAlpha(0);
+                        getWindow().setBackgroundDrawable(gradient);
+                        ValueAnimator animator = ValueAnimator.ofInt(0, 255);
+                        animator.setDuration(300);
+                        animator.addUpdateListener(animation -> gradient.setAlpha((int) animation.getAnimatedValue()));
+                        animator.start();
+                    });
+                    bitmap.recycle();
+                });
+            } catch (Exception ignored) {
             }
         });
     }
