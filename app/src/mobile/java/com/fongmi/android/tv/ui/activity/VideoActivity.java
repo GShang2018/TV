@@ -828,29 +828,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onActor() {
-        if (mBinding.actor.getMaxLines() == 1) {
-            // 展开：不限行数，容器自适应高度
-            mBinding.actor.setMaxLines(Integer.MAX_VALUE);
-            mBinding.actor.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        } else {
-            // 折叠：限制1行，容器高度固定为1行高度，多出文本被物理裁剪
-            mBinding.actor.setMaxLines(1);
-            mBinding.actor.getLayoutParams().height = mBinding.actor.getLineHeight();
-        }
-        mBinding.actor.requestLayout();
+        mBinding.actor.setMaxLines(mBinding.actor.getMaxLines() == 1 ? Integer.MAX_VALUE : 1);
     }
 
     private void onContent() {
-        if (mBinding.content.getMaxLines() == 2) {
-            // 展开：不限行数，TextView 自适应高度
-            mBinding.content.setMaxLines(Integer.MAX_VALUE);
-            mBinding.content.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        } else {
-            // 折叠：限制2行，TextView 高度固定为2行高度，多出文本被物理裁剪
-            mBinding.content.setMaxLines(2);
-            mBinding.content.getLayoutParams().height = mBinding.content.getLineHeight() * 2;
-        }
-        mBinding.content.requestLayout();
+        mBinding.content.setMaxLines(mBinding.content.getMaxLines() == 2 ? Integer.MAX_VALUE : 2);
     }
 
     private void onReverse() {
@@ -1322,8 +1304,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                         int cr = (int) (r * (1 - t) + dr * t);
                         int cg = (int) (g * (1 - t) + dg * t);
                         int cb = (int) (b * (1 - t) + db * t);
-                        int alpha = (int) (200 + t * 55);
-                        colors[i] = Color.argb(alpha, cr, cg, cb);
+                        colors[i] = Color.rgb(cr, cg, cb);
                     }
                     GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
                     gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);

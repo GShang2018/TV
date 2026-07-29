@@ -1338,8 +1338,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                         int cr = (int) (r * (1 - t) + dr * t);
                         int cg = (int) (g * (1 - t) + dg * t);
                         int cb = (int) (b * (1 - t) + db * t);
-                        int alpha = (int) (200 + t * 55);
-                        colors[i] = Color.argb(alpha, cr, cg, cb);
+                        colors[i] = Color.rgb(cr, cg, cb);
                     }
                     GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
                     gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);
