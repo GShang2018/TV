@@ -27,6 +27,9 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
     private int mColorOnSurface = -1;
     private int mColorOnSurfaceVariant = -1;
     private int mColorOnSurfaceVariantDim = -1;
+    // 选中状态下白色背景上的文字颜色（固定值，避免反色逻辑导致颜色混淆）
+    private final int mSelectedNameColor = 0xFF212121;
+    private final int mSelectedVariantColor = 0xFF999999;
 
     public QuickAdapter(OnClickListener listener) {
         this.mListener = listener;
@@ -104,10 +107,10 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
             drawable.setCornerRadius(4 * density);
             holder.itemView.setBackground(drawable);
             holder.itemView.setPadding((int)(12 * density), (int)(8 * density), (int)(12 * density), (int)(8 * density));
-            // 白色背景上使用非选中文字颜色的反色
-            holder.binding.name.setTextColor(~mColorOnSurface | 0xFF000000);
-            holder.binding.site.setTextColor(~mColorOnSurfaceVariantDim | 0xFF000000);
-            holder.binding.remark.setTextColor(~mColorOnSurfaceVariantDim | 0xFF000000);
+            // 白色背景上使用固定颜色，标题深色醒目，二级信息浅灰色
+            holder.binding.name.setTextColor(mSelectedNameColor);
+            holder.binding.site.setTextColor(mSelectedVariantColor);
+            holder.binding.remark.setTextColor(mSelectedVariantColor);
         } else {
             holder.itemView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.selector_item_bg));
             holder.itemView.setPadding((int)(12 * density), (int)(8 * density), (int)(12 * density), (int)(8 * density));
