@@ -19,6 +19,7 @@
         android:strokeColor="@color/site_stroke_video"
         android:textColor="@color/control_video"
         android:textSize="14sp"
+        app:cornerRadius="8dp"
         tools:text="泥巴" />
 
     <ImageView
