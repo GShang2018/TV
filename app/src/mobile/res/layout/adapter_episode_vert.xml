@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:background="@drawable/shape_item"
+    android:background="@drawable/selector_item_bg_video"
     android:ellipsize="marquee"
-    android:textColor="@color/text"
+    android:textColor="@color/text_video"
     android:textSize="14sp"
     tools:text="20" />
