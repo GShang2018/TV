@@ -157,6 +157,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
+        // 帧率匹配：让系统显示刷新率贴合视频帧率（如 24/25fps 电影），仅在无缝切换时生效，
+        // 参考同源项目 webtv 的 FRAME_RATE_SEAMLESS 策略，可明显减少画面抖动(judder)。
+        exoPlayer.setVideoChangeFrameRateStrategy(C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_ONLY_IF_SEAMLESS);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
         view.setPlayer(exoPlayer);

@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.ui.custom;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.PointF;
@@ -9,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.OverScroller;
 
 import androidx.appcompat.widget.AppCompatImageView;
@@ -22,6 +26,7 @@ public class TouchImageView extends AppCompatImageView {
     private final GestureDetector gestureDetector;
     private VelocityTracker velocityTracker;
     private OverScroller scroller;
+    private ValueAnimator zoomAnimator;
     private float minScale = 1f;
     private float maxScale = 5f;
     private float saveScale = 1f;
@@ -57,12 +62,15 @@ public class TouchImageView extends AppCompatImageView {
         fitCenter();
     }
 
+    private float fitScale() {
+        if (origWidth <= 0 || origHeight <= 0 || viewWidth <= 0 || viewHeight <= 0) return 1f;
+        return Math.min((float) viewWidth / origWidth, (float) viewHeight / origHeight);
+    }
+
     private void fitCenter() {
         if (origWidth <= 0 || origHeight <= 0 || viewWidth <= 0 || viewHeight <= 0) return;
-        float scaleW = (float) viewWidth / origWidth;
-        float scaleH = (float) viewHeight / origHeight;
-        minScale = Math.min(scaleW, scaleH);
-        float fitScale = Math.min(scaleW, scaleH);
+        float fitScale = fitScale();
+        minScale = fitScale;
         maxScale = Math.max(fitScale * 3f, fitScale + 2f);
         matrix.setScale(fitScale, fitScale);
         matrix.postTranslate((viewWidth - origWidth * fitScale) / 2f, (viewHeight - origHeight * fitScale) / 2f);
@@ -197,12 +205,53 @@ public class TouchImageView extends AppCompatImageView {
         }
     }
 
+    private float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    /**
+     * 以焦点为中心，从当前比例平滑缩放至 targetScale（参照安卓相册经典操作）。
+     */
+    private void animateZoom(float targetScale, float focusX, float focusY) {
+        if (origWidth <= 0 || origHeight <= 0 || viewWidth <= 0 || viewHeight <= 0) return;
+        if (zoomAnimator != null) zoomAnimator.cancel();
+        matrix.getValues(matrixValues);
+        float s0 = matrixValues[Matrix.MSCALE_X];
+        float t0x = matrixValues[Matrix.MTRANS_X];
+        float t0y = matrixValues[Matrix.MTRANS_Y];
+        // 焦点在图像坐标系中对应的点（缩放前后保持该点固定于焦点处）
+        float px = (focusX - t0x) / s0;
+        float py = (focusY - t0y) / s0;
+        zoomAnimator = ValueAnimator.ofFloat(0f, 1f);
+        zoomAnimator.setDuration(250);
+        zoomAnimator.setInterpolator(new DecelerateInterpolator());
+        zoomAnimator.addUpdateListener(animation -> {
+            float t = (float) animation.getAnimatedValue();
+            float s = s0 + (targetScale - s0) * t;
+            matrix.setScale(s, s);
+            matrix.postTranslate(focusX - px * s, focusY - py * s);
+            checkBound();
+            setImageMatrix(matrix);
+        });
+        zoomAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                saveScale = matrixValues[Matrix.MSCALE_X];
+            }
+        });
+        zoomAnimator.start();
+    }
+
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+
+        private float startScale;
+
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            float factor = detector.getScaleFactor();
-            float newScale = saveScale * factor;
-            if (newScale < minScale || newScale > maxScale) return true;
+            // 以本次手势开始时的比例作为基准，乘以当前累计因子，并 clamp 到 [minScale, maxScale]
+            float target = clamp(startScale * detector.getScaleFactor(), minScale, maxScale);
+            float current = matrixValues[Matrix.MSCALE_X];
+            float factor = target / current;
             matrix.postScale(factor, factor, detector.getFocusX(), detector.getFocusY());
             checkBound();
             setImageMatrix(matrix);
@@ -211,6 +260,8 @@ public class TouchImageView extends AppCompatImageView {
 
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
+            if (zoomAnimator != null) zoomAnimator.cancel();
+            startScale = matrixValues[Matrix.MSCALE_X];
             mode = ZOOM;
             return true;
         }
@@ -218,22 +269,22 @@ public class TouchImageView extends AppCompatImageView {
         @Override
         public void onScaleEnd(ScaleGestureDetector detector) {
             saveScale = matrixValues[Matrix.MSCALE_X];
+            mode = NONE;
         }
     }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             float scale = matrixValues[Matrix.MSCALE_X];
-            float fitScale = Math.min((float) viewWidth / origWidth, (float) viewHeight / origHeight);
-            if (scale > fitScale * 1.05f) {
-                fitCenter();
+            float fitScale = fitScale();
+            if (scale > fitScale * 1.5f) {
+                // 已放大，双击恢复原图
+                animateZoom(fitScale, e.getX(), e.getY());
             } else {
-                float target = fitScale * 1.3f;
-                matrix.postScale(target / scale, target / scale, e.getX(), e.getY());
-                checkBound();
-                setImageMatrix(matrix);
-                saveScale = target;
+                // 双击放大到 2 倍（不超出最大缩放），参照安卓相册经典操作
+                animateZoom(Math.min(fitScale * 2f, maxScale), e.getX(), e.getY());
             }
             return true;
         }

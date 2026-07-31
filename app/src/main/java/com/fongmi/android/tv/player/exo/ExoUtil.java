@@ -37,16 +37,19 @@ public class ExoUtil {
     public static LoadControl buildLoadControl() {
         // 根据用户设置的缓存时长（秒）计算缓冲参数
         int cacheTimeSec = Setting.getCacheTime();
-        // bufferForPlaybackMs: 开始播放前需要缓冲的最小时长
-        // bufferForPlaybackAfterRebufferMs: 重新缓冲后需要的最小时长
         // 将秒转换为毫秒，并确保最小值，setBufferDurationsMs 参数类型为 int
         int bufferMs = (int) Math.max(cacheTimeSec * 1000L, 2500L);
+        // bufferForPlaybackMs / AfterRebufferMs 决定"缓冲够多少才起播"，
+        // 起播前等待过多缓冲会明显拖慢加载动画与 seek 响应。
+        // 参考同源项目 webtv 的体验优化：起始缓冲保持小而合理，大缓存只作用于持续缓冲水位。
+        final int defaultPlaybackMs = 500;
+        final int defaultRebufferMs = 1500;
         return new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
                         /* minBufferMs */ bufferMs,
                         /* maxBufferMs */ bufferMs * 2,
-                        /* bufferForPlaybackMs */ Math.min(bufferMs, 5000),
-                        /* bufferForPlaybackAfterRebufferMs */ Math.min(bufferMs / 2, 5000))
+                        /* bufferForPlaybackMs */ Math.max(Math.min(bufferMs / 2, 1500), defaultPlaybackMs),
+                        /* bufferForPlaybackAfterRebufferMs */ Math.max(Math.min(bufferMs / 3, 3000), defaultRebufferMs))
                 .build();
     }
 

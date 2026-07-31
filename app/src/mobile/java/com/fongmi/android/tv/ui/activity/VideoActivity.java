@@ -15,6 +15,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.animation.ValueAnimator;
 import android.os.Build;
+import android.view.animation.DecelerateInterpolator;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Html;
@@ -146,6 +147,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
+    private ValueAnimator mAnimator;
     private Observer<Result> mObserveDetail;
     private Observer<Result> mObservePlayer;
     private Observer<Result> mObserveSearch;
@@ -362,6 +364,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 }
             });
         }
+        setAnimator();
         mDanmakuContext = DanmakuContext.create();
         mBinding.progressLayout.showProgress();
         mBinding.swipeLayout.setEnabled(false);
@@ -412,7 +415,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.prev.setOnClickListener(view -> checkPrev());
         mBinding.control.setting.setOnClickListener(view -> onSetting());
         mBinding.control.title.setOnLongClickListener(view -> onChange());
-        mBinding.control.backTop.setOnClickListener(view -> onFull());
+        mBinding.control.backTop.setOnClickListener(view -> onBack());
         mBinding.control.right.lock.setOnClickListener(view -> onLock());
         mBinding.control.right.rotate.setOnClickListener(view -> onRotate());
         mBinding.control.action.text.setOnClickListener(this::onTrack);
@@ -690,6 +693,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
         mBinding.control.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
+        mBinding.control.title.setSelected(true);
         mBinding.display.title.setText(mBinding.control.title.getText());
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -885,6 +889,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void onFull() {
         setR1Callback();
         toggleFullscreen();
+    }
+
+    private void onBack() {
+        if (isFullscreen()) exitFullscreen();
+        else finish();
     }
 
     private void onKeep() {
@@ -1111,11 +1120,33 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return enter;
     }
 
+    private void setAnimator() {
+        mAnimator = new ValueAnimator();
+        mAnimator.setInterpolator(new DecelerateInterpolator());
+        mAnimator.addUpdateListener(animation -> {
+            if (isFullscreen() || isInPictureInPictureMode()) return;
+            mFrameParams.height = (int) animation.getAnimatedValue();
+            mBinding.video.setLayoutParams(mFrameParams);
+        });
+    }
+
+    // 平滑过渡视频框高度：参考同源项目 webtv 的 ValueAnimator 动画，避免全屏切换时高度跳变
+    private void animateFrame(int from, int to) {
+        if (mAnimator == null) setAnimator();
+        mAnimator.cancel();
+        mAnimator.setIntValues(from, to);
+        mAnimator.setDuration(200);
+        mAnimator.start();
+    }
+
     private void enterFullscreen() {
         if (isFullscreen()) return;
         mBinding.video.setClipToOutline(false);
         mBinding.getRoot().setPadding(0, 0, 0, 0);
-        App.post(() -> mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)), 50);
+        App.post(() -> {
+            if (mAnimator != null) mAnimator.cancel();
+            mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+        }, 50);
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.full.setVisibility(View.GONE);
         mDanmakuContext.setScaleTextSize(1.0f * Setting.getDanmuSize());
@@ -1132,7 +1163,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
         mBinding.control.full.setVisibility(View.VISIBLE);
-        mBinding.video.setLayoutParams(mFrameParams);
+        // 从当前高度平滑过渡回 16:9 播放框
+        animateFrame(mBinding.video.getHeight(), mFrameParams.height);
         mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
         setRotate(false, false);
         Util.showSystemUI(this);
@@ -1185,7 +1217,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.right.rotate.setVisibility(isFullscreen() && !isLock() ? View.VISIBLE : View.GONE);
         mBinding.control.keep.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.right.back.setVisibility(View.GONE);
-        mBinding.control.backTop.setVisibility(isFullscreen() && !isLock() ? View.VISIBLE : View.GONE);
+        mBinding.control.backTop.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.parse.setVisibility(isFullscreen() && isUseParse() ? View.VISIBLE : View.GONE);
         mBinding.control.action.getRoot().setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.right.lock.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);

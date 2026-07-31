@@ -4,10 +4,10 @@
     android:id="@+id/text"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_item"
+    android:background="@drawable/selector_item_bg_video"
     android:ellipsize="marquee"
     android:gravity="center"
     android:singleLine="true"
-    android:textColor="@color/text"
+    android:textColor="@color/text_video"
     android:textSize="14sp"
     tools:text="1080P" />
