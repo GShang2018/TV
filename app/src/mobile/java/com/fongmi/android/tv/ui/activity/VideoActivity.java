@@ -351,6 +351,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void initView(Bundle savedInstanceState) {
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
+        getWindow().setStatusBarColor(Color.BLACK);
         mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
         if (isPort()) {
             mBinding.video.post(() -> {
