@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="24dp"
@@ -21,7 +22,8 @@
             android:singleLine="true"
             android:textColor="@color/control"
             android:textSize="14sp"
-            android:text="@string/transmit_apk" />
+            android:text="@string/transmit_apk"
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
 
@@ -41,7 +43,8 @@
             android:singleLine="true"
             android:textColor="@color/control"
             android:textSize="14sp"
-            android:text="@string/transmit_vod_config" />
+            android:text="@string/transmit_vod_config"
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
 
@@ -61,7 +64,8 @@
             android:singleLine="true"
             android:textColor="@color/control"
             android:textSize="14sp"
-            android:text="@string/transmit_wall_config" />
+            android:text="@string/transmit_wall_config"
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
 
@@ -80,7 +84,8 @@
             android:singleLine="true"
             android:textColor="@color/control"
             android:textSize="14sp"
-            android:text="@string/transmit_push_restore" />
+            android:text="@string/transmit_push_restore"
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
 

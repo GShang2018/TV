@@ -198,6 +198,17 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
                 Notify.dismiss();
                 RefreshEvent.video();
                 RefreshEvent.config();
+                // 若 JSON 配置中配置了 wallpaper 字段，则自动下载并应用该壁纸
+                WallConfig.get().loadIfNeeded(new Callback() {
+                    @Override
+                    public void success() {
+                        RefreshEvent.wall();
+                    }
+
+                    @Override
+                    public void error(String msg) {
+                    }
+                });
                 break;
             case 1:
                 Notify.dismiss();

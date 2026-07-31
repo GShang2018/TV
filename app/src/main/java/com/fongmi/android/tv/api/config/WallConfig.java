@@ -108,6 +108,16 @@ public class WallConfig {
         return sync || TextUtils.isEmpty(config.getUrl()) || url.equals(config.getUrl());
     }
 
+    /**
+     * 当 Vod 配置中配置了 wallpaper 字段且需要同步时，自动下载并应用该壁纸。
+     * 仅在 JSON 配置成功加载后调用。
+     */
+    public void loadIfNeeded(Callback callback) {
+        String wall = VodConfig.get().getWall();
+        if (TextUtils.isEmpty(wall) || !needSync(wall)) return;
+        load(callback);
+    }
+
     public static void refresh(int index) {
         Setting.putWall(index);
         RefreshEvent.wall();
