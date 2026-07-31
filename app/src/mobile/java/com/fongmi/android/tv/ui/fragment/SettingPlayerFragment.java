@@ -18,6 +18,7 @@ import com.fongmi.android.tv.impl.CacheTimeCallback;
 import com.fongmi.android.tv.impl.UaCallback;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.extractor.BtEngine;
+import com.fongmi.android.tv.setting.ExoPerformanceSetting;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.CacheTimeDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
@@ -57,6 +58,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, C
         mBinding.tunnelText.setText(getSwitch(Setting.isTunnel()));
         mBinding.captionText.setText(getSwitch(Setting.isCaption()));
         mBinding.cacheTimeText.setText(String.valueOf(Setting.getCacheTime()));
+        mBinding.bufferText.setText(ExoPerformanceSetting.getBufferText());
+        mBinding.startBufferText.setText(ExoPerformanceSetting.getStartBufferText());
+        mBinding.rebufferText.setText(ExoPerformanceSetting.getRebufferText());
         mBinding.btEngineText.setText(getSwitch(Setting.isBtEngineEnabled()));
         mBinding.trackerText.setText(getTrackerSummary());
         mBinding.playWithOthersText.setText(getSwitch(Setting.isPlayWithOthers()));
@@ -80,6 +84,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, C
         mBinding.flag.setOnClickListener(this::setFlag);
         mBinding.scale.setOnClickListener(this::onScale);
         mBinding.cacheTime.setOnClickListener(this::onCacheTime);
+        mBinding.buffer.setOnClickListener(this::setBuffer);
+        mBinding.startBuffer.setOnClickListener(this::setStartBuffer);
+        mBinding.rebuffer.setOnClickListener(this::setRebuffer);
         mBinding.player.setOnClickListener(this::setPlayer);
         mBinding.decode.setOnClickListener(this::setDecode);
         mBinding.render.setOnClickListener(this::setRender);
@@ -96,7 +103,10 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, C
     private void setVisible() {
         mBinding.caption.setVisibility(Setting.hasCaption() ? View.VISIBLE : View.GONE);
         mBinding.http.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
-        mBinding.cacheTime.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
+        mBinding.cacheTime.setVisibility(Players.isExo(Setting.getPlayer()) ? View.GONE : View.VISIBLE);
+        mBinding.buffer.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
+        mBinding.startBuffer.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
+        mBinding.rebuffer.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
         mBinding.tunnel.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
         mBinding.playWithOthers.setVisibility(Players.isExo(Setting.getPlayer()) ? View.VISIBLE : View.GONE);
     }
@@ -145,6 +155,21 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, C
     public void setCacheTime(int seconds) {
         mBinding.cacheTimeText.setText(String.valueOf(seconds));
         Setting.putCacheTime(seconds);
+    }
+
+    private void setBuffer(View view) {
+        ExoPerformanceSetting.nextBuffer();
+        mBinding.bufferText.setText(ExoPerformanceSetting.getBufferText());
+    }
+
+    private void setStartBuffer(View view) {
+        ExoPerformanceSetting.nextStartBuffer();
+        mBinding.startBufferText.setText(ExoPerformanceSetting.getStartBufferText());
+    }
+
+    private void setRebuffer(View view) {
+        ExoPerformanceSetting.nextRebuffer();
+        mBinding.rebufferText.setText(ExoPerformanceSetting.getRebufferText());
     }
 
     private void setPlayer(View view) {

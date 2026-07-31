@@ -25,5 +25,8 @@
     <!-- Player Cache -->
     <string name="player_cache_time">緩存時間</string>
     <string name="second">秒</string>
+    <string name="player_buffer">緩衝檔位</string>
+    <string name="player_start_buffer">起播門檻</string>
+    <string name="player_rebuffer">重緩衝恢復</string>
 
 </resources>

@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -16,6 +17,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
@@ -38,6 +40,7 @@ import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.setting.ExoPerformanceSetting;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -97,6 +100,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private int player;
     private int retry;
 
+    private boolean autoReady;
+    private int rebufferCount;
+    private long rebufferTotalMs;
+    private long rebufferStartMs;
+
     public static Players create(Activity activity) {
         Players player = new Players(activity);
         Server.get().setPlayer(player);
@@ -153,6 +161,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void initExo(PlayerView view) {
+        // AUTO 自适应基线须在构建 LoadControl 前就位（DefaultLoadControl 阈值在构建时固定）
+        ExoPerformanceSetting.beginAutoSession();
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
         exoPlayer.addAnalyticsListener(new EventLogger());
@@ -446,6 +456,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void stop() {
+        if (exoPlayer != null) recordAutoSession();
         if (isExo()) stopExo();
         if (isIjk()) stopIjk();
         session.setActive(false);
@@ -455,6 +466,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public void release() {
         stopParse();
+        if (exoPlayer != null) recordAutoSession();
         session.release();
         if (isExo()) releaseExo();
         if (isIjk()) releaseIjk();
@@ -532,6 +544,22 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         ijkPlayer = null;
     }
 
+    /** 会话结束/切换媒体时，将本会话的缓冲表现上报给自适应策略 */
+    @SuppressWarnings("deprecation")
+    private void recordAutoSession() {
+        if (exoPlayer == null) return;
+        if (!ExoPerformanceSetting.isAutoRebuffer()) return;
+        long mediaBitrate = 0;
+        Format format = exoPlayer.getVideoFormat();
+        if (format != null) mediaBitrate = format.bitrate;
+        // media3 1.3.1 的 ExoPlayer 无 getBandwidthEstimate()，带宽未知传 0（ratio 返回 0，仅依赖重缓冲统计）
+        ExoPerformanceSetting.recordAutoSession(rebufferCount, rebufferTotalMs, getPosition(), mediaBitrate, 0);
+        rebufferCount = 0;
+        rebufferTotalMs = 0;
+        rebufferStartMs = 0;
+        autoReady = false;
+    }
+
     private void startParse(Result result, boolean useParse) {
         stopParse();
         parseJob = ParseJob.create(this).start(result, useParse);
@@ -567,7 +595,12 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             ijkPlayer.setCacheOptions(Setting.getCacheTime());
             ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
         }
-        if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
+        if (isExo() && exoPlayer != null) {
+            // 结束上一会话并开始新会话：上报上一段播放表现，读取本次自适应缓冲基线
+            recordAutoSession();
+            ExoPerformanceSetting.beginAutoSession();
+            exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
+        }
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
         // 本地代理 (Thunder/BtEngine 磁力鏈接) 需要更長的超時時間等待緩衝
         if (timeout > 0 && isLocalProxyUrl(url)) {
@@ -769,6 +802,19 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     @Override
     public void onPlaybackStateChanged(int state) {
+        // 统计 EXO 会话内的重缓冲次数/时长，供 AUTO 自适应策略调整缓冲水位
+        if (isExo() && exoPlayer != null) {
+            if (state == Player.STATE_READY) {
+                autoReady = true;
+                if (rebufferStartMs > 0) {
+                    rebufferTotalMs += SystemClock.elapsedRealtime() - rebufferStartMs;
+                    rebufferCount++;
+                    rebufferStartMs = 0;
+                }
+            } else if (state == Player.STATE_BUFFERING && autoReady && rebufferStartMs == 0) {
+                rebufferStartMs = SystemClock.elapsedRealtime();
+            }
+        }
         PlayerEvent.state(state);
     }
 

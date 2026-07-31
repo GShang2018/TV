@@ -196,7 +196,7 @@ public class Setting {
 
     /**
      * 获取预加载缓存时长（秒），范围 5-300 秒，默认 30 秒
-     * 用于 ExoPlayer 和 IJKPlayer 的缓冲预加载，减少播放卡顿
+     * 用于 IJKPlayer 的缓冲预加载，减少播放卡顿（EXO 已改用档位乘数机制）
      */
     public static int getCacheTime() {
         return Math.min(Math.max(Prefers.getInt("exo_cache_time"), 5), 300);
@@ -204,6 +204,22 @@ public class Setting {
 
     public static void putCacheTime(int seconds) {
         Prefers.put("exo_cache_time", seconds);
+    }
+
+    /**
+     * 缓冲时间档位乘数（1-10，移植自 webtv），默认 5
+     * 作用于 ExoPlayer DefaultLoadControl 的 min/maxBufferMs 水位
+     */
+    public static int getBuffer() {
+        return Math.min(Math.max(Prefers.getInt("exo_buffer", 5), 1), 10);
+    }
+
+    public static void putBuffer(int buffer) {
+        Prefers.put("exo_buffer", Math.min(Math.max(buffer, 1), 10));
+    }
+
+    public static String getBufferText() {
+        return getBuffer() + "/10";
     }
 
     public static int getFlag() {

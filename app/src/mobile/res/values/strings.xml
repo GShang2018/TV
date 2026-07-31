@@ -68,6 +68,9 @@
     <!-- Player Cache -->
     <string name="player_cache_time">Cache Time</string>
     <string name="second">s</string>
+    <string name="player_buffer">Buffer Level</string>
+    <string name="player_start_buffer">Start Buffer</string>
+    <string name="player_rebuffer">Rebuffer</string>
 
     <string-array name="select_background">
         <item>Off</item>

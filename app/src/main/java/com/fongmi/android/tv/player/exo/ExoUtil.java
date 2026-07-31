@@ -26,6 +26,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Sub;
+import com.fongmi.android.tv.setting.ExoPerformanceSetting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,21 +36,20 @@ import java.util.Map;
 public class ExoUtil {
 
     public static LoadControl buildLoadControl() {
-        // 根据用户设置的缓存时长（秒）计算缓冲参数
-        int cacheTimeSec = Setting.getCacheTime();
-        // 将秒转换为毫秒，并确保最小值，setBufferDurationsMs 参数类型为 int
-        int bufferMs = (int) Math.max(cacheTimeSec * 1000L, 2500L);
-        // bufferForPlaybackMs / AfterRebufferMs 决定"缓冲够多少才起播"，
-        // 起播前等待过多缓冲会明显拖慢加载动画与 seek 响应。
-        // 参考同源项目 webtv 的体验优化：起始缓冲保持小而合理，大缓存只作用于持续缓冲水位。
-        final int defaultPlaybackMs = 500;
-        final int defaultRebufferMs = 1500;
+        // 移植自同源项目 webtv 的缓冲设计：
+        // 1) 持续缓冲水位 = media3 默认值 × 缓冲档位乘数（1-10，支持 AUTO 自适应）
+        // 2) 起播阈值 bufferForPlaybackMs = 独立细调（500-3000ms，支持 AUTO 自适应）
+        // 3) 重缓冲恢复 bufferForPlaybackAfterRebufferMs = 独立细调（1000-15000ms，支持 AUTO 自适应）
+        int buffer = ExoPerformanceSetting.getEffectiveBuffer();
+        // AUTO 模式下起播阈值/重缓冲恢复由自适应策略决定（会话内基线），手动模式使用用户细调值
+        int startBufferMs = ExoPerformanceSetting.getEffectiveStartBufferMs();
+        int rebufferMs = ExoPerformanceSetting.getRebufferMs();
         return new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
-                        /* minBufferMs */ bufferMs,
-                        /* maxBufferMs */ bufferMs * 2,
-                        /* bufferForPlaybackMs */ Math.max(Math.min(bufferMs / 2, 1500), defaultPlaybackMs),
-                        /* bufferForPlaybackAfterRebufferMs */ Math.max(Math.min(bufferMs / 3, 3000), defaultRebufferMs))
+                        /* minBufferMs */ DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * buffer,
+                        /* maxBufferMs */ DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * buffer,
+                        /* bufferForPlaybackMs */ startBufferMs,
+                        /* bufferForPlaybackAfterRebufferMs */ rebufferMs)
                 .build();
     }
 

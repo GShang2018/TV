@@ -67,4 +67,9 @@
         <item>子母畫面</item>
     </string-array>
 
+    <!-- Player Cache -->
+    <string name="player_buffer">緩衝檔位</string>
+    <string name="player_start_buffer">起播門檻</string>
+    <string name="player_rebuffer">重緩衝恢復</string>
+
 </resources>
