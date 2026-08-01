@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -58,6 +59,14 @@ public class ImgUtil {
         else view.setImageResource(R.drawable.ic_img_error);
     }
 
+    // 海报加载：加载中显示固有尺寸的 loading 图标（居中），完成后按方向自动调整显示框（竖图 3:4 / 横图 4:3）
+    public static void loadPoster(String text, String url, ImageView view) {
+        view.setScaleType(ImageView.ScaleType.CENTER);
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform()).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().listener(getPosterListener(view)).into(view);
+        else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
+        else view.setImageResource(R.drawable.ic_img_error);
+    }
+
     public static void loadVod(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).listener(getListener(view)).into(view);
@@ -93,6 +102,37 @@ public class ImgUtil {
     private static void addHeader(LazyHeaders.Builder builder, String header) {
         Map<String, String> map = Json.toMap(Json.parse(header));
         for (Map.Entry<String, String> entry : map.entrySet()) builder.addHeader(UrlUtil.fixHeader(entry.getKey()), entry.getValue());
+    }
+
+    // 海报加载监听：加载完成后根据原图方向（横图 4:3 / 竖图 3:4）调整显示框，再铺满显示
+    private static RequestListener<Bitmap> getPosterListener(ImageView view) {
+        return new RequestListener<>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
+                setPosterFrame(view, false);
+                view.setImageResource(R.drawable.ic_img_error);
+                view.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                return true;
+            }
+
+            @Override
+            public boolean onResourceReady(@NonNull Bitmap resource, @NonNull Object model, Target<Bitmap> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                setPosterFrame(view, resource.getWidth() >= resource.getHeight());
+                view.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                return false;
+            }
+        };
+    }
+
+    // 依据方向切换海报显示框比例：横图 4:3（宽高对调），竖图 3:4（保持竖版），面积不变
+    private static void setPosterFrame(ImageView view, boolean horizontal) {
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        int w = params.width;
+        int h = params.height;
+        if ((w > h) == horizontal) return;
+        params.width = h;
+        params.height = w;
+        view.setLayoutParams(params);
     }
 
     private static RequestListener<Bitmap> getListener(ImageView view) {

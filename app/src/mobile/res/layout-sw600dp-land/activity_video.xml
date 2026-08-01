@@ -16,12 +16,12 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <!-- 视频播放器：宽度 70%，高度铺满，居左 -->
+            <!-- 视频播放器：宽度 60%，高度铺满，居左 -->
             <FrameLayout
                 android:id="@+id/video"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="7"
+                android:layout_weight="3"
                 android:background="@drawable/video_player_bg"
                 android:clickable="true"
                 android:focusable="true">
@@ -67,12 +67,12 @@
 
             </FrameLayout>
 
-            <!-- 右侧信息容器：宽度 30%，可滚动，显示效果与竖屏保持一致 -->
+            <!-- 右侧信息容器：宽度 40%，可滚动，显示效果与竖屏保持一致 -->
             <LinearLayout
                 android:id="@+id/infoContainer"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="3"
+                android:layout_weight="2"
                 android:orientation="vertical">
 
                 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
