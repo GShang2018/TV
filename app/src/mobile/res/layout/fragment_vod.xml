@@ -24,12 +24,14 @@
             android:paddingBottom="4dp"
             app:layout_scrollFlags="scroll|enterAlways">
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/logo"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_logo" />
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_logo"
+                app:shapeAppearanceOverlay="@style/Vod.Circle" />
 
             <LinearLayout
                 android:id="@+id/siteView"

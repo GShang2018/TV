@@ -59,7 +59,7 @@ public class ImgUtil {
         else view.setImageResource(R.drawable.ic_img_error);
     }
 
-    // 海报加载：加载中显示 loading 图标（居中），完成后按方向自动调整显示框（竖图 3:4 / 横图 4:3）
+    // 海报加载：加载中显示 loading 图标（居中），完成后按 3:4 竖版固定显示
     public static void loadPoster(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform()).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().listener(getPosterListener(view)).into(view);
@@ -104,7 +104,7 @@ public class ImgUtil {
         for (Map.Entry<String, String> entry : map.entrySet()) builder.addHeader(UrlUtil.fixHeader(entry.getKey()), entry.getValue());
     }
 
-    // 海报加载监听：加载完成后根据原图方向（横图 4:3 / 竖图 3:4）调整显示框，再铺满显示
+    // 海报加载监听：加载完成后按 3:4 竖版固定显示框，再铺满显示
     private static RequestListener<Bitmap> getPosterListener(ImageView view) {
         return new RequestListener<>() {
             @Override
@@ -124,15 +124,17 @@ public class ImgUtil {
         };
     }
 
-    // 依据方向切换海报显示框比例：横图 4:3（宽高对调），竖图 3:4（保持竖版），面积不变
+    // 海报显示框统一保持 3:4 竖版比例（原 4:3 启用逻辑已注释）
     private static void setPosterFrame(ImageView view, boolean horizontal) {
         ViewGroup.LayoutParams params = view.getLayoutParams();
         int w = params.width;
         int h = params.height;
-        if ((w > h) == horizontal) return;
-        params.width = h;
-        params.height = w;
-        view.setLayoutParams(params);
+        if (w < h) return; // 已是竖版 3:4，无需调整
+        // 旧逻辑：横图 4:3（宽高对调），竖图 3:4（保持竖版），面积不变
+        // if ((w > h) == horizontal) return;
+        // params.width = h;
+        // params.height = w;
+        // view.setLayoutParams(params);
     }
 
     private static RequestListener<Bitmap> getListener(ImageView view) {

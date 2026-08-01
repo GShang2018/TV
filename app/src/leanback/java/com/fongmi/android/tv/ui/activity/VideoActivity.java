@@ -2,16 +2,10 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.text.TextPaint;
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
-import android.os.Bundle;
-import android.animation.ValueAnimator;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -39,11 +33,8 @@ import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.palette.graphics.Palette;
 import androidx.viewbinding.ViewBinding;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
@@ -164,7 +155,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private boolean useParse;
     private int toggleCount;
     private int errorCount;
-    private long mSavedPosition;
     private int groupSize;
     private Runnable mR1;
     private Runnable mR2;
@@ -338,13 +328,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityVideoBinding.inflate(getLayoutInflater());
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // 旋转重建后，恢复销毁前同步保存的播放位置（onTimeChanged 落库是异步的，销毁瞬间可能尚未写入）
-        mSavedPosition = savedInstanceState == null ? 0 : savedInstanceState.getLong("video_position", 0);
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -717,10 +700,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             @Override
             public void onClick(@NonNull View view) {
                 VodActivity.start(getActivity(), getKey(), result);
-            }
-            @Override
-            public void updateDrawState(@NonNull TextPaint ds) {
-                ds.setUnderlineText(false);
             }
         };
     }
@@ -1286,7 +1265,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 getExo().setDefaultArtwork(resource);
                 getIjk().setDefaultArtwork(resource);
                 showPreview(resource);
-                setCoverBackground(url);
             }
 
             @Override
@@ -1298,78 +1276,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
             @Override
             public void onLoadCleared(@Nullable Drawable placeholder) {
-            }
-        });
-    }
-
-    private void setCoverBackground(String url) {
-        App.execute(() -> {
-            try {
-                Bitmap bitmap = Glide.with(VideoActivity.this)
-                        .asBitmap()
-                        .load(ImgUtil.getUrl(url))
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .submit(ResUtil.getScreenWidth(), ResUtil.getScreenHeight())
-                        .get();
-                if (bitmap == null) return;
-                Palette.from(bitmap).generate(palette -> {
-                    // 旋转/销毁后 Activity 已重建，Palette 的 AsyncTask 无法取消，直接忽略避免 NPE
-                    if (isDestroyed() || isFinishing()) return;
-                    int darkColor = 0xFF222222;
-                    // 优先使用 Muted（柔和），其次其它色调
-                    if (palette.getMutedSwatch() != null) {
-                        darkColor = palette.getMutedSwatch().getRgb();
-                    } else if (palette.getDarkVibrantSwatch() != null) {
-                        darkColor = palette.getDarkVibrantSwatch().getRgb();
-                    } else if (palette.getDarkMutedSwatch() != null) {
-                        darkColor = palette.getDarkMutedSwatch().getRgb();
-                    } else if (palette.getDominantSwatch() != null) {
-                        darkColor = palette.getDominantSwatch().getRgb();
-                    } else if (palette.getVibrantSwatch() != null) {
-                        darkColor = palette.getVibrantSwatch().getRgb();
-                    }
-                    int r = Color.red(darkColor);
-                    int g = Color.green(darkColor);
-                    int b = Color.blue(darkColor);
-                    int darkenAmount = 60;
-                    int dr = Math.max(0, r - darkenAmount);
-                    int dg = Math.max(0, g - darkenAmount);
-                    int db = Math.max(0, b - darkenAmount);
-                    // 降低饱和度使颜色更中性
-                    int avg = (dr + dg + db) / 3;
-                    dr = (dr + avg) / 2;
-                    dg = (dg + avg) / 2;
-                    db = (db + avg) / 2;
-                    // 多阶颜色插值，消除色带
-                    int steps = 8;
-                    int[] colors = new int[steps];
-                    for (int i = 0; i < steps; i++) {
-                        float t = (float) i / (steps - 1);
-                        int cr = (int) (r * (1 - t) + dr * t);
-                        int cg = (int) (g * (1 - t) + dg * t);
-                        int cb = (int) (b * (1 - t) + db * t);
-                        colors[i] = Color.rgb(cr, cg, cb);
-                    }
-                    GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
-                    gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);
-                    gradient.setDither(true);
-                    runOnUiThread(() -> {
-                        // 进入主线程后仍需再次校验，防止回调入队后 Activity 已被销毁
-                        if (isDestroyed() || isFinishing()) {
-                            bitmap.recycle();
-                            return;
-                        }
-                        gradient.setAlpha(0);
-                        getWindow().setBackgroundDrawable(gradient);
-                        ValueAnimator animator = ValueAnimator.ofInt(0, 255);
-                        animator.setDuration(300);
-                        animator.addUpdateListener(animation -> gradient.setAlpha((int) animation.getAnimatedValue()));
-                        animator.start();
-                        bitmap.recycle();
-                    });
-                });
-            } catch (Exception ignored) {
             }
         });
     }
@@ -1412,11 +1318,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mHistory = History.find(getHistoryKey());
         mHistory = mHistory == null ? createHistory(item) : mHistory;
         if (!TextUtils.isEmpty(getMark())) mHistory.setVodRemarks(getMark());
-        // 用销毁瞬间同步保存的位置覆盖 DB 中异步落库的陈旧位置，实现精确断点续播
-        if (mSavedPosition > 0) {
-            mHistory.setPosition(mSavedPosition);
-            mSavedPosition = 0;
-        }
         if (Setting.isIncognito() && mHistory.getKey().equals(getHistoryKey())) mHistory.delete();
         mBinding.control.opening.setText(mHistory.getOpening() == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
         mBinding.control.ending.setText(mHistory.getEnding() == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
@@ -2002,18 +1903,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             stopSearch();
             super.onBackPressed();
         }
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        // 旋转/杀进程前同步保存当前播放位置，避免 onTimeChanged 的异步落库来不及写入
-        long position = mPlayers != null ? mPlayers.getPosition() : 0L;
-        long duration = mPlayers != null ? mPlayers.getDuration() : 0L;
-        // 位置有效且未近片尾（近片尾不恢复，避免恢复后立即结束跳到下一集）才保存
-        if (position > 0 && (duration <= 0 || position < duration - 10_000)) {
-            outState.putLong("video_position", position);
-        }
-        super.onSaveInstanceState(outState);
     }
 
     @Override
