@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.ui.adapter;
 
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -17,7 +15,7 @@ import com.fongmi.android.tv.databinding.AdapterQuickBinding;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> {
+public class SourceChooseAdapter extends RecyclerView.Adapter<SourceChooseAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
     private final List<Vod> mItems;
@@ -27,11 +25,8 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
     private int mColorOnSurface = -1;
     private int mColorOnSurfaceVariant = -1;
     private int mColorOnSurfaceVariantDim = -1;
-    // 选中状态下白色背景上的文字颜色（固定值，避免反色逻辑导致颜色混淆）
-    private final int mSelectedNameColor = 0xFF212121;
-    private final int mSelectedVariantColor = 0xFF999999;
 
-    public QuickAdapter(OnClickListener listener) {
+    public SourceChooseAdapter(OnClickListener listener) {
         this.mListener = listener;
         this.mItems = new ArrayList<>();
     }
@@ -41,33 +36,15 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
         void onItemClick(Vod item);
     }
 
-    public void clear() {
+    public void addAll(List<Vod> items) {
         mItems.clear();
-        mSelectedPosition = -1;
+        mItems.addAll(items);
         notifyDataSetChanged();
     }
 
-    public void addAll(List<Vod> items) {
-        int position = mItems.size() + 1;
-        mItems.addAll(items);
-        notifyItemRangeInserted(position, items.size());
-    }
-
-    public Vod get(int position) {
-        return mItems.get(position);
-    }
-
-    public void remove(int position) {
-        mItems.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    public boolean isEmpty() {
-        return getItemCount() == 0;
-    }
-
-    public List<Vod> getItems() {
-        return mItems;
+    public void setActivated(int position) {
+        mSelectedPosition = position;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -89,7 +66,7 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
         holder.itemView.getContext().getTheme().resolveAttribute(R.attr.colorOnSurfaceVariant, tv, true);
         mColorOnSurfaceVariant = tv.data;
         // 二级字体色：在 colorOnSurfaceVariant 基础上进一步降低透明度
-        int alpha = Color.alpha(mColorOnSurfaceVariant);
+        int alpha = android.graphics.Color.alpha(mColorOnSurfaceVariant);
         int dimmedAlpha = (int) (alpha * 0.6f);
         mColorOnSurfaceVariantDim = (mColorOnSurfaceVariant & 0x00FFFFFF) | (dimmedAlpha << 24);
     }
@@ -101,25 +78,16 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
         holder.binding.site.setText(item.getSiteName());
         holder.binding.remark.setText(item.getVodRemarks());
         boolean isSelected = position == mSelectedPosition;
+        // 背景交给 selector_item_bg 的 state_selected 自动切换：
+        // 选中 = shape_item_selected（主题色 + padding 12/8/12/8 + 圆角），未选中 = shape_item
         holder.itemView.setSelected(isSelected);
-        float density = holder.itemView.getContext().getResources().getDisplayMetrics().density;
+        resolveThemeColors(holder);
         if (isSelected) {
-            resolveThemeColors(holder);
-            GradientDrawable drawable = new GradientDrawable();
-            drawable.setShape(GradientDrawable.RECTANGLE);
-            drawable.setColor(Color.WHITE);
-            drawable.setCornerRadius(4 * density);
-            holder.itemView.setBackground(drawable);
-            holder.itemView.setPadding((int)(12 * density), (int)(8 * density), (int)(12 * density), (int)(8 * density));
-            // 白色背景上使用固定颜色，标题深色醒目，二级信息浅灰色
-            holder.binding.name.setTextColor(mSelectedNameColor);
-            holder.binding.site.setTextColor(mSelectedVariantColor);
-            holder.binding.remark.setTextColor(mSelectedVariantColor);
+            // 选中：主题色背景（由 selector 提供）+ 白色标题 + 淡白二级（参考视频播放页 white_70）
+            holder.binding.name.setTextColor(android.graphics.Color.WHITE);
+            holder.binding.site.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white_70));
+            holder.binding.remark.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white_70));
         } else {
-            holder.itemView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.selector_item_bg));
-            holder.itemView.setPadding((int)(12 * density), (int)(8 * density), (int)(12 * density), (int)(8 * density));
-            // 恢复原始文字颜色（主题属性）
-            resolveThemeColors(holder);
             holder.binding.name.setTextColor(mColorOnSurface);
             holder.binding.site.setTextColor(mColorOnSurfaceVariantDim);
             holder.binding.remark.setTextColor(mColorOnSurfaceVariantDim);

@@ -32,8 +32,10 @@
     <string name="gallery_saved">Saved to gallery</string>
     <string name="gallery_save_fail">Save failed</string>
     <string name="detail_content">Summary</string>
-    <string name="detail_quick">Alternative Sources</string>
+    <string name="detail_source">Play Source</string>
+    <string name="dialog_source_choose">Choose Source</string>
     <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_na">N/A</string>
 
     <!-- Device -->
     <string name="device_select">Select devices</string>

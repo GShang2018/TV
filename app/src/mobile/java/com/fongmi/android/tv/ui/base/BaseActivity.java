@@ -173,6 +173,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         getWindow().setBackgroundDrawable(new CenterCropDrawable(bitmap));
         // 异步提取深色并叠加
         Palette.from(bitmap).generate(palette -> {
+            // 旋转/销毁后 Activity 已重建，Palette 的 AsyncTask 无法取消，直接忽略避免 NPE
+            if (isDestroyed() || isFinishing()) return;
             int darkColor = 0xFF222222;
             if (palette.getDarkVibrantSwatch() != null) {
                 darkColor = palette.getDarkVibrantSwatch().getRgb();

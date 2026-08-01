@@ -59,7 +59,7 @@ public class ImgUtil {
         else view.setImageResource(R.drawable.ic_img_error);
     }
 
-    // 海报加载：加载中显示固有尺寸的 loading 图标（居中），完成后按方向自动调整显示框（竖图 3:4 / 横图 4:3）
+    // 海报加载：加载中显示 loading 图标（居中），完成后按方向自动调整显示框（竖图 3:4 / 横图 4:3）
     public static void loadPoster(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform()).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().listener(getPosterListener(view)).into(view);
@@ -111,7 +111,7 @@ public class ImgUtil {
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
                 setPosterFrame(view, false);
                 view.setImageResource(R.drawable.ic_img_error);
-                view.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                view.setScaleType(ImageView.ScaleType.CENTER);
                 return true;
             }
 

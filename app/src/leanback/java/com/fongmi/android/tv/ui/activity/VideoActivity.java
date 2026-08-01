@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.animation.ValueAnimator;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
@@ -163,6 +164,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private boolean useParse;
     private int toggleCount;
     private int errorCount;
+    private long mSavedPosition;
     private int groupSize;
     private Runnable mR1;
     private Runnable mR2;
@@ -336,6 +338,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityVideoBinding.inflate(getLayoutInflater());
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // 旋转重建后，恢复销毁前同步保存的播放位置（onTimeChanged 落库是异步的，销毁瞬间可能尚未写入）
+        mSavedPosition = savedInstanceState == null ? 0 : savedInstanceState.getLong("video_position", 0);
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -1305,6 +1314,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                         .get();
                 if (bitmap == null) return;
                 Palette.from(bitmap).generate(palette -> {
+                    // 旋转/销毁后 Activity 已重建，Palette 的 AsyncTask 无法取消，直接忽略避免 NPE
+                    if (isDestroyed() || isFinishing()) return;
                     int darkColor = 0xFF222222;
                     // 优先使用 Muted（柔和），其次其它色调
                     if (palette.getMutedSwatch() != null) {
@@ -1344,14 +1355,19 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                     gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);
                     gradient.setDither(true);
                     runOnUiThread(() -> {
+                        // 进入主线程后仍需再次校验，防止回调入队后 Activity 已被销毁
+                        if (isDestroyed() || isFinishing()) {
+                            bitmap.recycle();
+                            return;
+                        }
                         gradient.setAlpha(0);
                         getWindow().setBackgroundDrawable(gradient);
                         ValueAnimator animator = ValueAnimator.ofInt(0, 255);
                         animator.setDuration(300);
                         animator.addUpdateListener(animation -> gradient.setAlpha((int) animation.getAnimatedValue()));
                         animator.start();
+                        bitmap.recycle();
                     });
-                    bitmap.recycle();
                 });
             } catch (Exception ignored) {
             }
@@ -1396,6 +1412,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mHistory = History.find(getHistoryKey());
         mHistory = mHistory == null ? createHistory(item) : mHistory;
         if (!TextUtils.isEmpty(getMark())) mHistory.setVodRemarks(getMark());
+        // 用销毁瞬间同步保存的位置覆盖 DB 中异步落库的陈旧位置，实现精确断点续播
+        if (mSavedPosition > 0) {
+            mHistory.setPosition(mSavedPosition);
+            mSavedPosition = 0;
+        }
         if (Setting.isIncognito() && mHistory.getKey().equals(getHistoryKey())) mHistory.delete();
         mBinding.control.opening.setText(mHistory.getOpening() == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
         mBinding.control.ending.setText(mHistory.getEnding() == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
@@ -1981,6 +2002,18 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             stopSearch();
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        // 旋转/杀进程前同步保存当前播放位置，避免 onTimeChanged 的异步落库来不及写入
+        long position = mPlayers != null ? mPlayers.getPosition() : 0L;
+        long duration = mPlayers != null ? mPlayers.getDuration() : 0L;
+        // 位置有效且未近片尾（近片尾不恢复，避免恢复后立即结束跳到下一集）才保存
+        if (position > 0 && (duration <= 0 || position < duration - 10_000)) {
+            outState.putLong("video_position", position);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override

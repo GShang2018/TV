@@ -31,8 +31,10 @@
     <string name="gallery_saved">已保存到相册</string>
     <string name="gallery_save_fail">保存失败</string>
     <string name="detail_content">简介</string>
-    <string name="detail_quick">可选站源</string>
+    <string name="detail_source">播放源</string>
+    <string name="dialog_source_choose">选择播放源</string>
     <string name="detail_search">快搜"<xliff:g name="name">%s</xliff:g>"</string>
+    <string name="detail_na">暂无</string>
 
     <!-- Device -->
     <string name="device_select">选择装置</string>

@@ -103,16 +103,21 @@
                                 android:paddingStart="16dp"
                                 android:paddingEnd="16dp">
 
-                                <ImageView
-                                    android:id="@+id/poster"
-                                    android:layout_width="108dp"
-                                    android:layout_height="144dp"
-                                    android:background="@drawable/poster_shadow_bg"
-                                    android:clickable="true"
-                                    android:focusable="true"
-                                    android:scaleType="centerCrop"
-                                    android:contentDescription="@string/detail_poster"
-                                    tools:ignore="ContentDescription" />
+                                <FrameLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content">
+
+                                    <ImageView
+                                        android:id="@+id/poster"
+                                        android:layout_width="108dp"
+                                        android:layout_height="144dp"
+                                        android:background="@drawable/poster_shadow_bg"
+                                        android:clickable="true"
+                                        android:focusable="true"
+                                        android:scaleType="centerCrop"
+                                        android:contentDescription="@string/detail_poster"
+                                        tools:ignore="ContentDescription" />
+                                </FrameLayout>
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -143,24 +148,34 @@
                                         tools:text="更新到第二季" />
 
                                     <TextView
-                                        android:id="@+id/site"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="8dp"
-                                        android:singleLine="true"
-                                        android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
-                                        tools:text="站源：Sample" />
-
-                                    <TextView
-                                        android:id="@+id/other"
+                                        android:id="@+id/otherYear"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="8dp"
                                         android:singleLine="true"
                                         android:textColor="?attr/colorOnSurface"
                                         android:textSize="14sp"
-                                        tools:text="年份：2022 地區：台灣 類型：科幻" />
+                                        tools:text="年份：2022" />
+
+                                    <TextView
+                                        android:id="@+id/otherArea"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="8dp"
+                                        android:singleLine="true"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="14sp"
+                                        tools:text="地区：台湾" />
+
+                                    <TextView
+                                        android:id="@+id/otherType"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="8dp"
+                                        android:singleLine="true"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="14sp"
+                                        tools:text="类型：科幻" />
 
                                     <TextView
                                         android:id="@+id/director"
@@ -244,6 +259,40 @@
                                     android:paddingEnd="16dp"
                                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                                     tools:visibility="visible" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginEnd="12dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/detail_source"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1" />
+
+                                <TextView
+                                    android:id="@+id/currentSite"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:singleLine="true"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp"
+                                    app:drawableEndCompat="@drawable/ic_detail_more"
+                                    tools:text="泥巴" />
 
                             </LinearLayout>
 
@@ -412,34 +461,6 @@
                                     tools:text="Sample" />
 
                             </LinearLayout>
-
-                            <TextView
-                                android:id="@+id/quickTitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:layout_marginTop="8dp"
-                                android:layout_marginEnd="16dp"
-                                android:text="@string/detail_quick"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:visibility="gone" />
-
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/quick"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:clipChildren="false"
-                                android:clipToPadding="false"
-                                android:nestedScrollingEnabled="false"
-                                android:paddingStart="8dp"
-                                android:paddingEnd="8dp"
-                                android:visibility="gone"
-                                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                                app:spanCount="2"
-                                tools:listitem="@layout/adapter_quick"
-                                tools:visibility="visible" />
 
                         </LinearLayout>
                     </androidx.core.widget.NestedScrollView>

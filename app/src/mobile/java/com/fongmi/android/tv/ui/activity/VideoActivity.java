@@ -10,6 +10,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -28,6 +29,7 @@ import android.text.style.ClickableSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -106,6 +108,7 @@ import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.ImageDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
+import com.fongmi.android.tv.ui.dialog.SourceChooseDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -174,6 +177,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private boolean initTrack;
     private boolean initAuto;
     private boolean autoMode;
+    private boolean sourcePending;
     private boolean useParse;
     private boolean redirect;
     private boolean rotate;
@@ -181,6 +185,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private boolean lock;
     private int toggleCount;
     private int errorCount;
+    private long mSavedPosition;
     private Runnable mR0;
     private Runnable mR1;
     private Runnable mR2;
@@ -339,6 +344,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.swipeLayout.setRefreshing(true);
         getIntent().putExtras(intent);
         stopSearch();
+        sourcePending = false;
         setOrient();
         checkId();
     }
@@ -351,12 +357,26 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return 0;
     }
 
+    private void setPosterOutline() {
+        mBinding.poster.setClipToOutline(true);
+        mBinding.poster.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int radius = ResUtil.dp2px(8);
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+            }
+        });
+    }
+
     @Override
     protected void initView(Bundle savedInstanceState) {
+        // 旋转重建后，恢复销毁前同步保存的播放位置（onTimeChanged 落库是异步的，销毁瞬间可能尚未写入）
+        mSavedPosition = savedInstanceState == null ? 0 : savedInstanceState.getLong("video_position", 0);
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
         getWindow().setStatusBarColor(Color.BLACK);
         mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
+        setPosterOutline();
         if (isPort()) {
             mBinding.video.post(() -> {
                 int width = mBinding.video.getWidth();
@@ -397,13 +417,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
-        mBinding.name.setOnClickListener(view -> onName());
         mBinding.poster.setOnClickListener(view -> showPoster());
         mBinding.more.setOnClickListener(view -> onMore());
         mBinding.actor.setOnClickListener(view -> onActor());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.download.setOnClickListener(view -> onDownload());
+        mBinding.currentSite.setOnClickListener(view -> onSource());
         mBinding.name.setOnLongClickListener(view -> onChange());
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.control.cast.setOnClickListener(view -> onCast());
@@ -450,7 +470,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.flag.setItemAnimator(null);
         mBinding.flag.addItemDecoration(new SpaceItemDecoration(8));
         mBinding.flag.setAdapter(mFlagAdapter = new FlagAdapter(this));
-        mBinding.quick.setAdapter(mQuickAdapter = new QuickAdapter(this));
+        mQuickAdapter = new QuickAdapter(this);
         mBinding.episode.setHasFixedSize(true);
         mBinding.episode.setItemAnimator(null);
         mBinding.episode.addItemDecoration(new SpaceItemDecoration(8));
@@ -611,6 +631,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.swipeLayout.setEnabled(true);
         mBinding.progressLayout.showEmpty();
         stopSearch();
+        sourcePending = false;
     }
 
     private void setDetail(Vod item) {
@@ -622,13 +643,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         Downloader.get().image(item.getVodPic());
         setPoster(item.getVodPic());
         setText(mBinding.remark, 0, item.getVodRemarks());
-        setText(mBinding.site, R.string.detail_site, getSite().getName());
+        mBinding.currentSite.setText(getSite().getName());
         setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
         setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
-        setOther(mBinding.other, item);
+        setOther(item);
         setArtwork(item.getVodPic());
         setGallery(item);
         App.removeCallbacks(mR4);
@@ -638,8 +659,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setText(TextView view, int resId, String text) {
+        if (text.isEmpty()) text = getString(R.string.detail_na);
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
-        view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
+        view.setVisibility(View.VISIBLE);
         view.setLinkTextColor(ResUtil.getColorAttr(view.getContext(), com.google.android.material.R.attr.colorPrimary));
         CustomMovement.bind(view);
         view.setTag(text);
@@ -678,13 +700,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         };
     }
 
-    private void setOther(TextView view, Vod item) {
-        StringBuilder sb = new StringBuilder();
-        if (!item.getVodYear().isEmpty()) sb.append(getString(R.string.detail_year, item.getVodYear())).append("  ");
-        if (!item.getVodArea().isEmpty()) sb.append(getString(R.string.detail_area, item.getVodArea())).append("  ");
-        if (!item.getTypeName().isEmpty()) sb.append(getString(R.string.detail_type, item.getTypeName())).append("  ");
-        view.setVisibility(sb.length() == 0 ? View.GONE : View.VISIBLE);
-        view.setText(Util.substring(sb.toString(), 2));
+    private void setOther(Vod item) {
+        setText(mBinding.otherYear, R.string.detail_year, item.getVodYear());
+        setText(mBinding.otherArea, R.string.detail_area, item.getVodArea());
+        setText(mBinding.otherType, R.string.detail_type, item.getTypeName());
     }
 
     private void setGallery(Vod item) {
@@ -799,6 +818,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onItemClick(Vod item) {
+        // 切换播放源：停止后台检索避免继续回填/浪费流量，保留已检索到的候选结果
+        stopSearch();
+        sourcePending = false;
         setAutoMode(false);
         getDetail(item);
     }
@@ -850,14 +872,28 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (scroll) mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
     }
 
-    private void onName() {
-        String name = mBinding.name.getText().toString();
-        Notify.show(getString(R.string.detail_search, name));
-        initSearch(name, false);
-    }
-
     private void onMore() {
         EpisodeGridDialog.create().reverse(mHistory.isRevSort()).episodes(mEpisodeAdapter.getItems()).show(this);
+    }
+
+    private void onSource() {
+        // 检索进行中：直接返回，避免重复触发检索，检索完成后会自动弹出选择弹窗
+        if (sourcePending) return;
+        if (mQuickAdapter.isEmpty()) {
+            // 尚无检索结果：触发播放源检索，检索完成后自动弹出选择弹窗
+            sourcePending = true;
+            initSearch(mBinding.name.getText().toString(), false);
+            return;
+        }
+        showSourceDialog();
+    }
+
+    private void showSourceDialog() {
+        int selected = -1;
+        List<Vod> items = mQuickAdapter.getItems();
+        String key = getSite().getKey();
+        for (int i = 0; i < items.size(); i++) if (key.equals(items.get(i).getSiteKey())) selected = i;
+        SourceChooseDialog.create().items(items).selected(selected).listener(item -> onItemClick(item)).show(this);
     }
 
     private void onDownload() {
@@ -1344,6 +1380,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                         .get();
                 if (bitmap == null) return;
                 Palette.from(bitmap).generate(palette -> {
+                    // 旋转/销毁后 Activity 已重建，Palette 的 AsyncTask 无法取消，直接忽略避免 NPE
+                    if (isDestroyed() || isFinishing()) return;
                     int darkColor = 0xFF222222;
                     // 优先使用 Muted（柔和），其次其它色调
                     if (palette.getMutedSwatch() != null) {
@@ -1383,14 +1421,19 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                     gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);
                     gradient.setDither(true);
                     runOnUiThread(() -> {
+                        // 进入主线程后仍需再次校验，防止回调入队后 Activity 已被销毁
+                        if (isDestroyed() || isFinishing()) {
+                            bitmap.recycle();
+                            return;
+                        }
                         gradient.setAlpha(0);
                         getWindow().setBackgroundDrawable(gradient);
                         ValueAnimator animator = ValueAnimator.ofInt(0, 255);
                         animator.setDuration(300);
                         animator.addUpdateListener(animation -> gradient.setAlpha((int) animation.getAnimatedValue()));
                         animator.start();
+                        bitmap.recycle();
                     });
-                    bitmap.recycle();
                 });
             } catch (Exception ignored) {
             }
@@ -1412,6 +1455,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mHistory = History.find(getHistoryKey());
         mHistory = mHistory == null ? createHistory(item) : mHistory;
         if (!TextUtils.isEmpty(getMark())) mHistory.setVodRemarks(getMark());
+        // 用销毁瞬间同步保存的位置覆盖 DB 中异步落库的陈旧位置，实现精确断点续播
+        if (mSavedPosition > 0) {
+            mHistory.setPosition(mSavedPosition);
+            mSavedPosition = 0;
+        }
         if (Setting.isIncognito() && mHistory.getKey().equals(getHistoryKey())) mHistory.delete();
         mBinding.control.action.opening.setText(mHistory.getOpening() == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
         mBinding.control.action.ending.setText(mHistory.getEnding() == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
@@ -1553,6 +1601,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 break;
             case Player.STATE_READY:
                 stopSearch();
+                sourcePending = false;
                 checkRotate();
                 setMetadata();
                 resetToggle();
@@ -1731,12 +1780,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         List<Vod> items = result.getList();
         Iterator<Vod> iterator = items.iterator();
         while (iterator.hasNext()) if (mismatch(iterator.next())) iterator.remove();
-        mBinding.quick.setVisibility(View.VISIBLE);
-        mBinding.quickTitle.setVisibility(View.VISIBLE);
         mQuickAdapter.addAll(items);
         if (isInitAuto()) nextSite();
         if (items.isEmpty()) return;
         App.removeCallbacks(mR4);
+        if (sourcePending) {
+            sourcePending = false;
+            showSourceDialog();
+        }
     }
 
     private boolean mismatch(Vod item) {
@@ -2100,6 +2151,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             stopSearch();
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        // 旋转/杀进程前同步保存当前播放位置，避免 onTimeChanged 的异步落库来不及写入
+        long position = mPlayers != null ? mPlayers.getPosition() : 0L;
+        long duration = mPlayers != null ? mPlayers.getDuration() : 0L;
+        // 位置有效且未近片尾（近片尾不恢复，避免恢复后立即结束跳到下一集）才保存
+        if (position > 0 && (duration <= 0 || position < duration - 10_000)) {
+            outState.putLong("video_position", position);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
