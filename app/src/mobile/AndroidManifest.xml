@@ -111,7 +111,7 @@
 
         <activity
             android:name=".ui.activity.VideoActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:screenOrientation="fullUser"

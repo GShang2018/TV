@@ -186,6 +186,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private int toggleCount;
     private int errorCount;
     private long mSavedPosition;
+    // 旋转重建前保存的全屏状态：平板竖屏点全屏会旋转重建为横屏分栏布局，需据此自动恢复全屏
+    private boolean mSavedFullscreen;
     private Runnable mR0;
     private Runnable mR1;
     private Runnable mR2;
@@ -374,6 +376,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void initView(Bundle savedInstanceState) {
         // 旋转重建后，恢复销毁前同步保存的播放位置（onTimeChanged 落库是异步的，销毁瞬间可能尚未写入）
         mSavedPosition = savedInstanceState == null ? 0 : savedInstanceState.getLong("video_position", 0);
+        mSavedFullscreen = savedInstanceState != null && savedInstanceState.getBoolean("video_fullscreen", false);
         mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
         mFrameParams = mBinding.video.getLayoutParams();
         getWindow().setStatusBarColor(Color.BLACK);
@@ -516,7 +519,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mPlayers.init(getExo(), getIjk());
         ExoUtil.setSubtitleView(mBinding.exo);
         IjkUtil.setSubtitleView(mBinding.ijk);
-        if (isPort() && ResUtil.isLand(this)) enterFullscreen();
+        if (isPort() && ResUtil.isLand(this)) {
+            enterFullscreen();
+        } else if (mSavedFullscreen && !isFullscreen()) {
+            // 平板竖屏点全屏旋转重建后，自动进入全屏（横屏全屏时隐藏右侧分栏，video 铺满），避免停留在横屏分栏布局
+            enterFullscreen();
+        }
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
     }
@@ -2113,9 +2121,20 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (isAutoRotate() && isPort() && newConfig.orientation == 1 && !isRotate()) exitFullscreen();
-        if (isAutoRotate() && isPort() && newConfig.orientation == 2) enterFullscreen();
-        if (isFullscreen()) Util.hideSystemUI(this);
+        // 全屏状态下旋转：保持不重建，保住播放器与视频流，仅维持沉浸式
+        if (isFullscreen()) {
+            Util.hideSystemUI(this);
+            return;
+        }
+        // 非全屏：竖屏单列布局在自动旋转开启时转为横屏 → 直接进入全屏（不重建，保视频流）
+        if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            enterFullscreen();
+            return;
+        }
+        // 非全屏：布局 tag 与实际方向不匹配（横屏分栏转竖屏等）→ 重建以切换 port 单列 / land 分栏布局
+        boolean match = (isPort() && newConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
+                || (isLand() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
+        if (!match) recreate();
     }
 
     @Override
@@ -2180,6 +2199,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (position > 0 && (duration <= 0 || position < duration - 10_000)) {
             outState.putLong("video_position", position);
         }
+        if (isFullscreen()) outState.putBoolean("video_fullscreen", true);
         super.onSaveInstanceState(outState);
     }
 
