@@ -2140,7 +2140,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (isFullscreen() && hasFocus) Util.hideSystemUI(this);
+        // 弹窗（BottomSheetDialogFragment / Dialog）关闭后 Activity 重新获得焦点，
+        // 若此时直接 hideSystemUI 会把状态栏隐藏/透明，故需先判断是否有弹窗正在显示
+        if (isFullscreen() && hasFocus && !hasDialog()) Util.hideSystemUI(this);
+    }
+
+    private boolean hasDialog() {
+        for (Dialog dialog : mDialogs) if (dialog.isShowing()) return true;
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if (fragment instanceof BottomSheetDialogFragment && ((BottomSheetDialogFragment) fragment).isVisible()) return true;
+        }
+        return false;
     }
 
     @Override
