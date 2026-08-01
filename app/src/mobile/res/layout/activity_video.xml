@@ -87,79 +87,96 @@
                     android:paddingTop="16dp"
                     android:paddingBottom="8dp">
 
-                    <TextView
-                        android:id="@+id/name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        tools:text="鎱堕骞寸浜屽" />
-
-                    <TextView
-                        android:id="@+id/remark"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="16dp"
-                        android:singleLine="true"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        tools:text="鏇存柊鍒扮浜屽" />
-
-                    <TextView
-                        android:id="@+id/site"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="16dp"
-                        android:singleLine="true"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        tools:text="Sample" />
-
-                    <TextView
-                        android:id="@+id/other"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="16dp"
-                        android:singleLine="true"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        tools:text="Sample" />
+                        android:gravity="top"
+                        android:orientation="horizontal"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
 
-                    <TextView
-                        android:id="@+id/director"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="16dp"
-                        android:singleLine="true"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        tools:text="灏庢紨锛欶ongMi" />
+                        <ImageView
+                            android:id="@+id/poster"
+                            android:layout_width="108dp"
+                            android:layout_height="144dp"
+                            android:background="@drawable/poster_shadow_bg"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="@string/detail_poster"
+                            tools:ignore="ContentDescription" />
 
-                    <TextView
-                        android:id="@+id/actor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="16dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        tools:text="婕斿摗锛欶ongMi" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="2"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                tools:text="慶餘年第二季" />
+
+                            <TextView
+                                android:id="@+id/remark"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:singleLine="true"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
+                                tools:text="更新到第二季" />
+
+                            <TextView
+                                android:id="@+id/site"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:singleLine="true"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
+                                tools:text="站源：Sample" />
+
+                            <TextView
+                                android:id="@+id/other"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:singleLine="true"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
+                                tools:text="年份：2022 地區：台灣 類型：科幻" />
+
+                            <TextView
+                                android:id="@+id/director"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:singleLine="true"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
+                                tools:text="導演：FongMi" />
+
+                            <TextView
+                                android:id="@+id/actor"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
+                                tools:text="演員：FongMi" />
+
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/gallery_layout"
@@ -200,7 +217,7 @@
                                 android:visibility="gone"
                                 app:drawableEndCompat="@drawable/ic_detail_more"
                                 app:drawableTint="?attr/colorOnSurface"
-                                tools:text="鍏ㄩ儴 12"
+                                tools:text="全部 12"
                                 tools:visibility="visible" />
 
                         </LinearLayout>

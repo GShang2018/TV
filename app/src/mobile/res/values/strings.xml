@@ -21,6 +21,7 @@
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>
+    <string name="detail_poster">Poster</string>
     <string name="detail_more">More</string>
     <string name="detail_download">Download</string>
     <string name="detail_episode">Episode</string>

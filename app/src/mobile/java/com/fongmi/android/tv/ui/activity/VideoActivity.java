@@ -29,6 +29,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -396,6 +399,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.name.setOnClickListener(view -> onName());
+        mBinding.poster.setOnClickListener(view -> showPoster());
         mBinding.more.setOnClickListener(view -> onMore());
         mBinding.actor.setOnClickListener(view -> onActor());
         mBinding.content.setOnClickListener(view -> onContent());
@@ -492,9 +496,23 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setVideoView(boolean isInPictureInPictureMode) {
         if (isInPictureInPictureMode) {
-            mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+            mBinding.video.setLayoutParams(getFullscreenParams());
         } else {
             mBinding.video.setLayoutParams(mFrameParams);
+        }
+    }
+
+    // 生成铺满屏幕的 LayoutParams：根据 video 父容器类型（竖屏 RelativeLayout / 横屏 LinearLayout）生成匹配参数，避免 ClassCastException
+    private ViewGroup.LayoutParams getFullscreenParams() {
+        ViewGroup parent = (ViewGroup) mBinding.video.getParent();
+        if (parent instanceof LinearLayout) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            params.weight = 0;
+            return params;
+        } else if (parent instanceof RelativeLayout) {
+            return new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        } else {
+            return new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         }
     }
 
@@ -603,6 +621,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.video.setTag(item.getVodPic(getPic()));
         mBinding.name.setText(item.getVodName(getName()));
         Downloader.get().image(item.getVodPic());
+        setPoster(item.getVodPic());
         setText(mBinding.remark, 0, item.getVodRemarks());
         setText(mBinding.site, R.string.detail_site, getSite().getName());
         setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
@@ -685,6 +704,19 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void openGallery(List<String> items, int position) {
         GalleryActivity.start(this, new ArrayList<>(items), position);
+    }
+
+    private void setPoster(String url) {
+        ImgUtil.load("", url, mBinding.poster, ImageView.ScaleType.CENTER, true);
+    }
+
+    private void showPoster() {
+        String url = Objects.toString(mBinding.video.getTag(), "");
+        if (!TextUtils.isEmpty(url)) {
+            ArrayList<String> urls = new ArrayList<>();
+            urls.add(url);
+            GalleryActivity.start(this, urls, 0, mBinding.name.getText().toString());
+        }
     }
 
     private void showImage(String url) {
@@ -1143,9 +1175,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (isFullscreen()) return;
         mBinding.video.setClipToOutline(false);
         mBinding.getRoot().setPadding(0, 0, 0, 0);
+        if (mBinding.infoContainer != null) mBinding.infoContainer.setVisibility(View.GONE);
         App.post(() -> {
             if (mAnimator != null) mAnimator.cancel();
-            mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+            mBinding.video.setLayoutParams(getFullscreenParams());
         }, 50);
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.full.setVisibility(View.GONE);
@@ -1163,8 +1196,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
         mBinding.control.full.setVisibility(View.VISIBLE);
-        // 从当前高度平滑过渡回 16:9 播放框
-        animateFrame(mBinding.video.getHeight(), mFrameParams.height);
+        if (mBinding.infoContainer != null) mBinding.infoContainer.setVisibility(View.VISIBLE);
+        if (isLand()) {
+            // 横屏：video 高度本就铺满，直接恢复 weight 布局参数
+            mBinding.video.setLayoutParams(mFrameParams);
+        } else {
+            // 竖屏：从当前高度平滑过渡回 16:9 播放框
+            animateFrame(mBinding.video.getHeight(), mFrameParams.height);
+        }
         mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
         setRotate(false, false);
         Util.showSystemUI(this);

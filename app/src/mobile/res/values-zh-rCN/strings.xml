@@ -20,6 +20,7 @@
 
     <!-- Detail -->
     <string name="detail_flag">线路</string>
+    <string name="detail_poster">海报</string>
     <string name="detail_more">更多</string>
     <string name="detail_download">下载</string>
     <string name="detail_episode">选集</string>

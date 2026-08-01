@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,12 +46,18 @@ public class GalleryActivity extends AppCompatActivity {
     private ThumbAdapter mThumbAdapter;
     private List<String> mUrls;
     private int mPosition;
+    private String mTitle = "";
     private ExecutorService mExecutor;
 
     public static void start(Context context, ArrayList<String> urls, int position) {
+        start(context, urls, position, "");
+    }
+
+    public static void start(Context context, ArrayList<String> urls, int position, String title) {
         Intent intent = new Intent(context, GalleryActivity.class);
         intent.putStringArrayListExtra("urls", urls);
         intent.putExtra("position", position);
+        intent.putExtra("title", title);
         context.startActivity(intent);
     }
 
@@ -61,6 +68,8 @@ public class GalleryActivity extends AppCompatActivity {
         setContentView(mBinding.getRoot());
         mUrls = getIntent().getStringArrayListExtra("urls");
         mPosition = getIntent().getIntExtra("position", 0);
+        mTitle = getIntent().getStringExtra("title");
+        if (mTitle == null) mTitle = "";
         if (mUrls == null || mUrls.isEmpty()) {
             finish();
             return;
@@ -69,6 +78,8 @@ public class GalleryActivity extends AppCompatActivity {
         setPager();
         setThumbs();
         updateCounter(mPosition);
+        mBinding.counter.setSingleLine(true);
+        mBinding.counter.setEllipsize(TextUtils.TruncateAt.END);
         mBinding.pager.setCurrentItem(mPosition, false);
         mBinding.back.setOnClickListener(v -> finish());
         mBinding.download.setOnClickListener(v -> downloadCurrent());
@@ -96,7 +107,8 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void updateCounter(int position) {
-        mBinding.counter.setText(getString(R.string.gallery_counter, position + 1, mUrls.size()));
+        if (!TextUtils.isEmpty(mTitle)) mBinding.counter.setText(mTitle);
+        else mBinding.counter.setText(getString(R.string.gallery_counter, position + 1, mUrls.size()));
     }
 
     private void downloadCurrent() {
