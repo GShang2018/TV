@@ -191,6 +191,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Runnable mR2;
     private Runnable mR3;
     private Runnable mR4;
+    private SourceChooseDialog mSourceDialog;
+    private Runnable mSourceFinishRunnable;
     private Clock mClock;
     private PiP mPiP;
 
@@ -403,6 +405,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mR2 = this::setTraffic;
         mR3 = this::setOrient;
         mR4 = this::showEmpty;
+        // 播放源弹窗检索结束：关闭加载动画（结果已全部回填，或兜底超时）
+        mSourceDialog = null;
+        mSourceFinishRunnable = () -> {
+            sourcePending = false;
+            if (mSourceDialog != null) mSourceDialog.finish();
+        };
         mPiP = new PiP();
         setForeground(true);
         setRecyclerView();
@@ -819,6 +827,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onItemClick(Vod item) {
         // 切换播放源：停止后台检索避免继续回填/浪费流量，保留已检索到的候选结果
+        mSourceDialog = null;
         stopSearch();
         sourcePending = false;
         setAutoMode(false);
@@ -877,23 +886,29 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onSource() {
-        // 检索进行中：直接返回，避免重复触发检索，检索完成后会自动弹出选择弹窗
-        if (sourcePending) return;
-        if (mQuickAdapter.isEmpty()) {
-            // 尚无检索结果：触发播放源检索，检索完成后自动弹出选择弹窗
+        // 点击立即打开弹窗（无结果时显示加载动画），结果实时回填，避免静默等待让人以为无法弹窗
+        openSourceDialog();
+        if (mQuickAdapter.isEmpty() && !sourcePending) {
+            // 尚无检索结果：触发播放源检索，检索结果实时回填弹窗
             sourcePending = true;
             initSearch(mBinding.name.getText().toString(), false);
-            return;
         }
-        showSourceDialog();
     }
 
-    private void showSourceDialog() {
+    private void openSourceDialog() {
+        if (mSourceDialog != null && mSourceDialog.isVisible()) {
+            mSourceDialog.refresh(mQuickAdapter.getItems(), getSelected());
+            return;
+        }
+        mSourceDialog = SourceChooseDialog.create().items(mQuickAdapter.getItems()).selected(getSelected()).listener(item -> onItemClick(item)).show(this);
+    }
+
+    private int getSelected() {
         int selected = -1;
         List<Vod> items = mQuickAdapter.getItems();
         String key = getSite().getKey();
         for (int i = 0; i < items.size(); i++) if (key.equals(items.get(i).getSiteKey())) selected = i;
-        SourceChooseDialog.create().items(items).selected(selected).listener(item -> onItemClick(item)).show(this);
+        return selected;
     }
 
     private void onDownload() {
@@ -1761,9 +1776,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mExecutor = Executors.newFixedThreadPool(Constant.THREAD_POOL * 2);
         for (Site item : VodConfig.get().getSites()) if (isPass(item)) sites.add(item);
         for (Site site : sites) mExecutor.execute(() -> search(site, keyword));
+        // 兜底：即使所有站点均无结果，也在 3 秒后结束加载动画，避免弹窗一直转圈
+        if (sourcePending) App.post(mSourceFinishRunnable, 3000);
     }
 
     private void stopSearch() {
+        App.removeCallbacks(mSourceFinishRunnable);
         if (mExecutor == null) return;
         mExecutor.shutdownNow();
         mExecutor = null;
@@ -1782,12 +1800,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         while (iterator.hasNext()) if (mismatch(iterator.next())) iterator.remove();
         mQuickAdapter.addAll(items);
         if (isInitAuto()) nextSite();
+        // 弹窗打开时：结果实时回填（含空结果时更新加载态）
+        if (mSourceDialog != null && mSourceDialog.isVisible()) mSourceDialog.refresh(mQuickAdapter.getItems(), getSelected());
         if (items.isEmpty()) return;
         App.removeCallbacks(mR4);
-        if (sourcePending) {
-            sourcePending = false;
-            showSourceDialog();
-        }
+        // 重置结束计时：600ms 内无新结果到达才结束加载，期间持续回填多个播放源
+        if (sourcePending) App.post(mSourceFinishRunnable, 600);
     }
 
     private boolean mismatch(Vod item) {
@@ -2175,7 +2193,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         App.post(mR0, 1000);
         Source.get().stop();
         RefreshEvent.history();
-        App.removeCallbacks(mR1, mR2, mR3, mR4);
+        App.removeCallbacks(mR1, mR2, mR3, mR4, mSourceFinishRunnable);
+        mSourceDialog = null;
         mViewModel.result.removeObserver(mObserveDetail);
         mViewModel.player.removeObserver(mObservePlayer);
         mViewModel.search.removeObserver(mObserveSearch);

@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -41,8 +42,9 @@ public class SourceChooseDialog extends BaseDialog implements SourceChooseAdapte
         return this;
     }
 
-    public void show(FragmentActivity activity) {
+    public SourceChooseDialog show(FragmentActivity activity) {
         show(activity.getSupportFragmentManager(), null);
+        return this;
     }
 
     @Override
@@ -53,20 +55,52 @@ public class SourceChooseDialog extends BaseDialog implements SourceChooseAdapte
     @Override
     protected void initView() {
         setRecyclerView();
+        // 初始无结果时展示加载动画，结果实时回填后由 refresh 切换
+        setLoading(items == null || items.isEmpty());
         setActivated();
+    }
+
+    /**
+     * 检索结果实时回填：更新列表数据与选中项。
+     * 有数据时关闭加载动画；空结果保持当前加载态，由 finish() 在检索结束时统一关闭。
+     */
+    public void refresh(List<Vod> items, int selected) {
+        if (adapter == null) return;
+        this.items = items;
+        this.selected = selected;
+        adapter.addAll(items);
+        setActivated();
+        if (items != null && !items.isEmpty()) setLoading(false);
+    }
+
+    /**
+     * 检索结束：关闭加载动画（空态提示由布局展示）。
+     * 由 VideoActivity 在静默期结束 / 兜底超时时调用。
+     */
+    public void finish() {
+        if (!isVisible()) return;
+        setLoading(false);
     }
 
     private void setRecyclerView() {
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setItemAnimator(null);
         binding.recycler.setAdapter(adapter = new SourceChooseAdapter(this));
-        adapter.addAll(items);
+        if (items != null) adapter.addAll(items);
     }
 
     private void setActivated() {
-        if (selected == -1 || selected >= items.size()) return;
+        if (selected == -1 || items == null || selected >= items.size()) return;
         adapter.setActivated(selected);
         binding.recycler.scrollToPosition(selected);
+    }
+
+    private void setLoading(boolean loading) {
+        if (binding == null) return;
+        boolean empty = !loading && (items == null || items.isEmpty());
+        binding.progress.setVisibility(loading ? View.VISIBLE : View.GONE);
+        binding.empty.setVisibility(empty ? View.VISIBLE : View.GONE);
+        binding.recycler.setVisibility(loading || empty ? View.GONE : View.VISIBLE);
     }
 
     @Override
