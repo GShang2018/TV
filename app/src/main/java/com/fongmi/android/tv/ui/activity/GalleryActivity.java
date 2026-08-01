@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -152,6 +154,47 @@ public class GalleryActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (mExecutor != null) mExecutor.shutdown();
+    }
+
+    /**
+     * 在 Activity 层面拦截 Ctrl + 鼠标滚轮事件并转发给当前显示的 TouchImageView。
+     * 因为 ViewPager2 内部的 RecyclerView 会拦截滚轮事件用于翻页，导致 TouchImageView
+     * 的 dispatchGenericMotionEvent 收不到，所以必须在更上层处理。
+     */
+    @Override
+    public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_SCROLL
+                && (event.getMetaState() & KeyEvent.META_CTRL_ON) != 0
+                && event.getAxisValue(MotionEvent.AXIS_VSCROLL) != 0f) {
+            TouchImageView image = getCurrentImage();
+            if (image != null) {
+                float scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+                // 与 PiliPlus 一致：scaleChange = exp(-scrollDelta / scaleFactor)，scaleFactor = 200
+                float scaleChange = (float) Math.exp(-scroll / 200f);
+                // 将 Activity 窗口坐标转换为 TouchImageView 局部坐标
+                int[] loc = new int[2];
+                image.getLocationOnScreen(loc);
+                float localX = event.getRawX() - loc[0];
+                float localY = event.getRawY() - loc[1];
+                image.zoomByScroll(scaleChange, localX, localY);
+                return true;
+            }
+        }
+        return super.dispatchGenericMotionEvent(event);
+    }
+
+    /**
+     * 获取 ViewPager2 当前显示页的 TouchImageView。
+     */
+    private TouchImageView getCurrentImage() {
+        if (mBinding.pager.getChildCount() == 0) return null;
+        View child = mBinding.pager.getChildAt(0);
+        if (!(child instanceof RecyclerView)) return null;
+        RecyclerView.ViewHolder holder = ((RecyclerView) child).findViewHolderForAdapterPosition(mPosition);
+        if (holder instanceof PagerAdapter.Holder) {
+            return ((PagerAdapter.Holder) holder).image;
+        }
+        return null;
     }
 
     private class PagerAdapter extends RecyclerView.Adapter<PagerAdapter.Holder> {

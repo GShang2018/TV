@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.VelocityTracker;
@@ -125,6 +126,45 @@ public class TouchImageView extends AppCompatImageView {
         }
     }
 
+    /**
+     * 支持模拟器/桌面端 Ctrl + 鼠标滚轮缩放（参考 PiliPlus mouse_interactive_viewer）。
+     * 以鼠标位置为焦点，使用指数缩放因子实现平滑缩放。
+     */
+    @Override
+    public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_SCROLL
+                && (event.getMetaState() & KeyEvent.META_CTRL_ON) != 0
+                && event.getAxisValue(MotionEvent.AXIS_VSCROLL) != 0f) {
+            if (zoomAnimator != null) zoomAnimator.cancel();
+            float scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+            // 与 PiliPlus 一致：scaleChange = exp(-scrollDelta / scaleFactor)
+            // Flutter 的 kDefaultMouseScrollToScaleFactor = 200，PiliPlus 直接使用该默认值
+            float scaleChange = (float) Math.exp(-scroll / 200f);
+            zoomByScroll(scaleChange, event.getX(), event.getY());
+            return true;
+        }
+        return super.dispatchGenericMotionEvent(event);
+    }
+
+    /**
+     * 供外部（GalleryActivity）调用的滚轮缩放入口。
+     * 以焦点为中心缩放，并平移使焦点在缩放前后保持同一图像位置（参照 PiliPlus 实现）。
+     * 边界约束与 PiliPlus _clampPosition 一致：图像小于视口时居中，超出时 clamp。
+     */
+    public void zoomByScroll(float scaleChange, float focusX, float focusY) {
+        if (origWidth <= 0 || origHeight <= 0 || viewWidth <= 0 || viewHeight <= 0) return;
+        if (zoomAnimator != null) zoomAnimator.cancel();
+        matrix.getValues(matrixValues);
+        float current = matrixValues[Matrix.MSCALE_X];
+        float target = clamp(current * scaleChange, minScale, maxScale);
+        float factor = target / current;
+        // 以焦点为中心缩放（保持焦点固定于屏幕位置）
+        matrix.postScale(factor, factor, focusX, focusY);
+        checkBound();
+        setImageMatrix(matrix);
+        saveScale = matrixValues[Matrix.MSCALE_X];
+    }
+
     private void onTouch(MotionEvent event) {
         initVelocityTracker(event);
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
@@ -135,6 +175,11 @@ public class TouchImageView extends AppCompatImageView {
                 last.set(event.getX(), event.getY());
                 mode = DRAG;
                 isDragging = false;
+                // 图片已放大时，阻止父容器（ViewPager2）拦截拖动，以便平移图片；
+                // 未放大时让父容器处理翻页。
+                if (isZoomed()) {
+                    if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
+                }
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (mode == DRAG) {
@@ -148,7 +193,7 @@ public class TouchImageView extends AppCompatImageView {
                     if (!isDragging) {
                         isDragging = Math.abs(dx) > touchSlop || Math.abs(dy) > touchSlop;
                     }
-                    if (isDragging) {
+                    if (isDragging && isZoomed()) {
                         matrix.postTranslate(dx, dy);
                         checkBound();
                         last.set(event.getX(), event.getY());
@@ -170,6 +215,7 @@ public class TouchImageView extends AppCompatImageView {
                         postInvalidateOnAnimation();
                     }
                 }
+                if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
                 mode = NONE;
                 isDragging = false;
                 recycleVelocityTracker();
@@ -178,6 +224,16 @@ public class TouchImageView extends AppCompatImageView {
                 mode = NONE;
                 break;
         }
+    }
+
+    /**
+     * 判断图片是否已放大（超出原始适配比例）。
+     */
+    private boolean isZoomed() {
+        if (origWidth <= 0 || origHeight <= 0) return false;
+        matrix.getValues(matrixValues);
+        float scale = matrixValues[Matrix.MSCALE_X];
+        return scale > minScale * 1.01f;
     }
 
     private void checkBound() {
