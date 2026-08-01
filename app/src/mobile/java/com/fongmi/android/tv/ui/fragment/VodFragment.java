@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.widget.ImageView;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -63,6 +64,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
+import com.google.android.material.shape.ShapeAppearanceModel;
 import com.google.common.net.HttpHeaders;
 import com.permissionx.guolindev.PermissionX;
 
@@ -345,6 +347,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
                 mBinding.logo.getLayoutParams().width = ResUtil.dp2px(24);
                 mBinding.logo.getLayoutParams().height = ResUtil.dp2px(24);
+                // 站点无 logo 图像时，默认图标为方形，若继续圆形裁剪会被截断，故改为方形显示
+                mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(0).build());
+                // 默认图标缩小并完整显示（fitCenter 不裁剪，padding 缩小图标）
+                mBinding.logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                mBinding.logo.setPadding(ResUtil.dp2px(4), ResUtil.dp2px(4), ResUtil.dp2px(4), ResUtil.dp2px(4));
                 return false;
             }
 
@@ -352,6 +359,10 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
             public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
                 mBinding.logo.getLayoutParams().width = ResUtil.dp2px(32);
                 mBinding.logo.getLayoutParams().height = ResUtil.dp2px(32);
+                // 站点有 logo 图像时恢复圆形裁剪
+                mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build());
+                mBinding.logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                mBinding.logo.setPadding(0, 0, 0, 0);
                 return false;
             }
         };
