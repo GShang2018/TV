@@ -31,10 +31,10 @@ public class TouchImageView extends AppCompatImageView {
     private float minScale = 1f;
     private float maxScale = 5f;
     private float saveScale = 1f;
-    private int mode = NONE;
     private static final int NONE = 0;
     private static final int DRAG = 1;
     private static final int ZOOM = 2;
+    private int mode = NONE;
     private float origWidth, origHeight;
     private int viewWidth, viewHeight;
     private int touchSlop;
@@ -73,6 +73,7 @@ public class TouchImageView extends AppCompatImageView {
         float fitScale = fitScale();
         minScale = fitScale;
         maxScale = Math.max(fitScale * 3f, fitScale + 2f);
+        matrix.reset();
         matrix.setScale(fitScale, fitScale);
         matrix.postTranslate((viewWidth - origWidth * fitScale) / 2f, (viewHeight - origHeight * fitScale) / 2f);
         saveScale = fitScale;
@@ -84,7 +85,10 @@ public class TouchImageView extends AppCompatImageView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         viewWidth = MeasureSpec.getSize(widthMeasureSpec);
         viewHeight = MeasureSpec.getSize(heightMeasureSpec);
-        if (origWidth > 0 && origHeight > 0) fitCenter();
+        // 仅首次尺寸有效时执行，避免频繁闪烁
+        if (origWidth > 0 && origHeight > 0 && matrix.isIdentity()) {
+            fitCenter();
+        }
     }
 
     @Override
@@ -99,13 +103,17 @@ public class TouchImageView extends AppCompatImageView {
         if (viewWidth > 0 && viewHeight > 0) fitCenter();
     }
 
+    // ==========【修复核心BUG：惯性滑动实现】==========
     @Override
     public void computeScroll() {
         super.computeScroll();
         if (scroller.computeScrollOffset()) {
-            float dx = scroller.getCurrX();
-            float dy = scroller.getCurrY();
-            matrix.postTranslate(dx, dy);
+            matrix.getValues(matrixValues);
+            float currX = scroller.getCurrX();
+            float currY = scroller.getCurrY();
+            // 先重置缩放，再设置绝对偏移，杜绝持续叠加漂移
+            matrix.setScale(matrixValues[Matrix.MSCALE_X], matrixValues[Matrix.MSCALE_X]);
+            matrix.postTranslate(currX, currY);
             checkBound();
             setImageMatrix(matrix);
             postInvalidateOnAnimation();
@@ -137,8 +145,6 @@ public class TouchImageView extends AppCompatImageView {
                 && event.getAxisValue(MotionEvent.AXIS_VSCROLL) != 0f) {
             if (zoomAnimator != null) zoomAnimator.cancel();
             float scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
-            // 与 PiliPlus 一致：scaleChange = exp(-scrollDelta / scaleFactor)
-            // Flutter 的 kDefaultMouseScrollToScaleFactor = 200，PiliPlus 直接使用该默认值
             float scaleChange = (float) Math.exp(-scroll / 200f);
             zoomByScroll(scaleChange, event.getX(), event.getY());
             return true;
@@ -148,8 +154,6 @@ public class TouchImageView extends AppCompatImageView {
 
     /**
      * 供外部（GalleryActivity）调用的滚轮缩放入口。
-     * 以焦点为中心缩放，并平移使焦点在缩放前后保持同一图像位置（参照 PiliPlus 实现）。
-     * 边界约束与 PiliPlus _clampPosition 一致：图像小于视口时居中，超出时 clamp。
      */
     public void zoomByScroll(float scaleChange, float focusX, float focusY) {
         if (origWidth <= 0 || origHeight <= 0 || viewWidth <= 0 || viewHeight <= 0) return;
@@ -158,7 +162,6 @@ public class TouchImageView extends AppCompatImageView {
         float current = matrixValues[Matrix.MSCALE_X];
         float target = clamp(current * scaleChange, minScale, maxScale);
         float factor = target / current;
-        // 以焦点为中心缩放（保持焦点固定于屏幕位置）
         matrix.postScale(factor, factor, focusX, focusY);
         checkBound();
         setImageMatrix(matrix);
@@ -175,8 +178,6 @@ public class TouchImageView extends AppCompatImageView {
                 last.set(event.getX(), event.getY());
                 mode = DRAG;
                 isDragging = false;
-                // 图片已放大时，阻止父容器（ViewPager2）拦截拖动，以便平移图片；
-                // 未放大时让父容器处理翻页。
                 if (isZoomed()) {
                     if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
                 }
@@ -184,6 +185,8 @@ public class TouchImageView extends AppCompatImageView {
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (mode == DRAG) {
                     mode = ZOOM;
+                    // 开始双指，终止惯性
+                    if (!scroller.isFinished()) scroller.abortAnimation();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -205,15 +208,32 @@ public class TouchImageView extends AppCompatImageView {
                     velocityTracker.computeCurrentVelocity(1000);
                     float vx = velocityTracker.getXVelocity();
                     float vy = velocityTracker.getYVelocity();
+                    matrix.getValues(matrixValues);
+                    float transX = matrixValues[Matrix.MTRANS_X];
+                    float transY = matrixValues[Matrix.MTRANS_Y];
                     float scale = matrixValues[Matrix.MSCALE_X];
                     float width = origWidth * scale;
                     float height = origHeight * scale;
-                    int maxX = width > viewWidth ? (int) ((width - viewWidth) / 2f) : 0;
-                    int maxY = height > viewHeight ? (int) ((height - viewHeight) / 2f) : 0;
-                    if (maxX > 0 || maxY > 0) {
-                        scroller.fling(0, 0, (int) -vx, (int) -vy, -maxX, maxX, -maxY, maxY);
-                        postInvalidateOnAnimation();
+
+                    // 计算允许滑动范围
+                    float minX, maxX, minY, maxY;
+                    if (width <= viewWidth) {
+                        minX = maxX = (viewWidth - width) / 2f;
+                    } else {
+                        minX = viewWidth - width;
+                        maxX = 0;
                     }
+                    if (height <= viewHeight) {
+                        minY = maxY = (viewHeight - height) / 2f;
+                    } else {
+                        minY = viewHeight - height;
+                        maxY = 0;
+                    }
+
+                    // =========修复fling起点：使用当前图片偏移transX,transY=========
+                    scroller.fling((int) transX, (int) transY, (int) vx, (int) vy,
+                            (int) minX, (int) maxX, (int) minY, (int) maxY);
+                    postInvalidateOnAnimation();
                 }
                 if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(false);
                 mode = NONE;
@@ -226,9 +246,6 @@ public class TouchImageView extends AppCompatImageView {
         }
     }
 
-    /**
-     * 判断图片是否已放大（超出原始适配比例）。
-     */
     private boolean isZoomed() {
         if (origWidth <= 0 || origHeight <= 0) return false;
         matrix.getValues(matrixValues);
@@ -244,6 +261,7 @@ public class TouchImageView extends AppCompatImageView {
         float width = origWidth * scale;
         float height = origHeight * scale;
         float dx = 0, dy = 0;
+
         if (width <= viewWidth) {
             dx = (viewWidth - width) / 2f - transX;
         } else {
@@ -265,9 +283,6 @@ public class TouchImageView extends AppCompatImageView {
         return Math.max(min, Math.min(max, value));
     }
 
-    /**
-     * 以焦点为中心，从当前比例平滑缩放至 targetScale（参照安卓相册经典操作）。
-     */
     private void animateZoom(float targetScale, float focusX, float focusY) {
         if (origWidth <= 0 || origHeight <= 0 || viewWidth <= 0 || viewHeight <= 0) return;
         if (zoomAnimator != null) zoomAnimator.cancel();
@@ -275,9 +290,9 @@ public class TouchImageView extends AppCompatImageView {
         float s0 = matrixValues[Matrix.MSCALE_X];
         float t0x = matrixValues[Matrix.MTRANS_X];
         float t0y = matrixValues[Matrix.MTRANS_Y];
-        // 焦点在图像坐标系中对应的点（缩放前后保持该点固定于焦点处）
         float px = (focusX - t0x) / s0;
         float py = (focusY - t0y) / s0;
+
         zoomAnimator = ValueAnimator.ofFloat(0f, 1f);
         zoomAnimator.setDuration(250);
         zoomAnimator.setInterpolator(new DecelerateInterpolator());
@@ -299,14 +314,10 @@ public class TouchImageView extends AppCompatImageView {
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-
-        private float startScale;
-
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            // 以本次手势开始时的比例作为基准，乘以当前累计因子，并 clamp 到 [minScale, maxScale]
-            float target = clamp(startScale * detector.getScaleFactor(), minScale, maxScale);
             float current = matrixValues[Matrix.MSCALE_X];
+            float target = clamp(current * detector.getScaleFactor(), minScale, maxScale);
             float factor = target / current;
             matrix.postScale(factor, factor, detector.getFocusX(), detector.getFocusY());
             checkBound();
@@ -317,7 +328,7 @@ public class TouchImageView extends AppCompatImageView {
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
             if (zoomAnimator != null) zoomAnimator.cancel();
-            startScale = matrixValues[Matrix.MSCALE_X];
+            if (!scroller.isFinished()) scroller.abortAnimation();
             mode = ZOOM;
             return true;
         }
@@ -330,19 +341,45 @@ public class TouchImageView extends AppCompatImageView {
     }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
-
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             float scale = matrixValues[Matrix.MSCALE_X];
             float fitScale = fitScale();
             if (scale > fitScale * 1.5f) {
-                // 已放大，双击恢复原图
                 animateZoom(fitScale, e.getX(), e.getY());
             } else {
-                // 双击放大到 2 倍（不超出最大缩放），参照安卓相册经典操作
                 animateZoom(Math.min(fitScale * 2f, maxScale), e.getX(), e.getY());
             }
             return true;
         }
     }
+
+    // ==========新增：防止动画内存泄漏==========
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (zoomAnimator != null) {
+            zoomAnimator.cancel();
+            zoomAnimator = null;
+        }
+        if (!scroller.isFinished()) {
+            scroller.abortAnimation();
+        }
+        recycleVelocityTracker();
+    }
+
+    // =========可选对外接口=========
+    public float getMinScale() {
+        return minScale;
+    }
+
+    public float getMaxScale() {
+        return maxScale;
+    }
+
+    public float getCurrentScale() {
+        matrix.getValues(matrixValues);
+        return matrixValues[Matrix.MSCALE_X];
+    }
 }
+

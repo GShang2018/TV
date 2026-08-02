@@ -1,12 +1,21 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogImageBinding;
+import com.fongmi.android.tv.ui.custom.TouchImageView;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -44,6 +53,17 @@ public class ImageDialog {
     }
 
     private void initView() {
-        ImgUtil.loadVod("", url, binding.image);
+        TouchImageView image = binding.image;
+        Glide.with(App.get()).asBitmap().load(ImgUtil.getUrl(url)).placeholder(R.drawable.ic_img_loading).into(new CustomTarget<Bitmap>() {
+            @Override
+            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                image.setOrigSize(resource.getWidth(), resource.getHeight());
+                image.setImageBitmap(resource);
+            }
+
+            @Override
+            public void onLoadCleared(@Nullable android.graphics.drawable.Drawable placeholder) {
+            }
+        });
     }
 }
