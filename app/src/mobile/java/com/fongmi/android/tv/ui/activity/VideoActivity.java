@@ -1439,11 +1439,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                     int dr = Math.max(0, r - darkenAmount);
                     int dg = Math.max(0, g - darkenAmount);
                     int db = Math.max(0, b - darkenAmount);
-                    // 降低饱和度使颜色更中性
-                    int avg = (dr + dg + db) / 3;
-                    dr = (dr + avg) / 2;
-                    dg = (dg + avg) / 2;
-                    db = (db + avg) / 2;
                     // 多阶颜色插值，消除色带
                     int steps = 8;
                     int[] colors = new int[steps];

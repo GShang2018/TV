@@ -24,7 +24,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.palette.graphics.Palette;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -169,27 +168,12 @@ public abstract class BaseActivity extends AppCompatActivity {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_4);
             return;
         }
-        // 先用壁纸作为背景（确保立即显示）
-        getWindow().setBackgroundDrawable(new CenterCropDrawable(bitmap));
-        // 异步提取深色并叠加
-        Palette.from(bitmap).generate(palette -> {
-            // 旋转/销毁后 Activity 已重建，Palette 的 AsyncTask 无法取消，直接忽略避免 NPE
-            if (isDestroyed() || isFinishing()) return;
-            int darkColor = 0xFF222222;
-            if (palette.getDarkVibrantSwatch() != null) {
-                darkColor = palette.getDarkVibrantSwatch().getRgb();
-            } else if (palette.getDarkMutedSwatch() != null) {
-                darkColor = palette.getDarkMutedSwatch().getRgb();
-            } else if (palette.getDominantSwatch() != null) {
-                darkColor = palette.getDominantSwatch().getRgb();
-            }
-            int overlayColor = Color.argb(230, Color.red(darkColor), Color.green(darkColor), Color.blue(darkColor));
-            Drawable[] layers = new Drawable[]{
-                    new CenterCropDrawable(bitmap),
-                    new ColorDrawable(overlayColor)
-            };
-            getWindow().setBackgroundDrawable(new LayerDrawable(layers));
-        });
+        // 使用原图作为背景，并叠加一层半透明黑色，保证前景文字清晰可读
+        Drawable[] layers = new Drawable[]{
+                new CenterCropDrawable(bitmap),
+                new ColorDrawable(0x66000000)
+        };
+        getWindow().setBackgroundDrawable(new LayerDrawable(layers));
     }
 
     /**
