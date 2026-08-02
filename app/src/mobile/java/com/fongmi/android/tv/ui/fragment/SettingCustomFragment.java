@@ -208,6 +208,8 @@ public class SettingCustomFragment extends BaseFragment {
                 dot.setBackground(bg);
                 if (position == checkedIndex) {
                     row.setBackgroundColor(0x0FFFFFFF);
+                } else {
+                    row.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                 }
                 return row;
             }
