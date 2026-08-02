@@ -44,8 +44,10 @@ public class Source {
         extractors.add(new JianPian());
         extractors.add(new Proxy());
         extractors.add(new Push());
-        extractors.add(new BtEngine());
+        // Thunder 优先：迅雷 SDK 通过本地 HTTP 代理 (Range 206) 实现真正的边下边播，
+        // 无需等文件下载完即可开始播放。BtEngine (libtorrent4j) 作为备选引擎。
         extractors.add(new Thunder());
+        extractors.add(new BtEngine());
         extractors.add(new TVBus());
         extractors.add(new Video());
         extractors.add(new Youtube());
@@ -99,20 +101,20 @@ public class Source {
                 }
                 return fetchedUrl;
             } catch (Exception e) {
-                if (extractor instanceof BtEngine) {
-                    for (Extractor ex : extractors) {
-                        if (ex instanceof Thunder) {
-                            try {
-                                String thunderUrl = ex.fetch(url);
-                                if (thunderUrl != null && !thunderUrl.equals(url)) {
-                                    result.setParse(0);
-                                    return thunderUrl;
-                                }
-                            } catch (Exception e2) {
-                                // ignore
+                // 首选引擎失败时，尝试另一个磁力引擎 (Thunder <-> BtEngine 互为备选)
+                for (Extractor ex : extractors) {
+                    if (ex == extractor) continue;
+                    if (ex instanceof Thunder || ex instanceof BtEngine) {
+                        try {
+                            String altUrl = ex.fetch(url);
+                            if (altUrl != null && !altUrl.equals(url)) {
+                                result.setParse(0);
+                                return altUrl;
                             }
-                            break;
+                        } catch (Exception e2) {
+                            // ignore
                         }
+                        break;
                     }
                 }
                 result.setParse(1);

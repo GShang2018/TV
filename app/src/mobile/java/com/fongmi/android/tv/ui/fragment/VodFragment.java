@@ -345,13 +345,12 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         return new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(24);
-                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(24);
-                // 站点无 logo 图像时，默认图标为方形，若继续圆形裁剪会被截断，故改为方形显示
-                mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(0).build());
-                // 默认图标缩小并完整显示（fitCenter 不裁剪，padding 缩小图标）
-                mBinding.logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                mBinding.logo.setPadding(ResUtil.dp2px(4), ResUtil.dp2px(4), ResUtil.dp2px(4), ResUtil.dp2px(4));
+                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(32);
+                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(32);
+                // 默认图标保持圆形裁剪（Vod.Circle），CENTER_CROP 不缩放图标本身、仅裁剪超出圆形区域的部分，避免方形边缘锯齿
+                mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build());
+                mBinding.logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                mBinding.logo.setPadding(0, 0, 0, 0);
                 return false;
             }
 

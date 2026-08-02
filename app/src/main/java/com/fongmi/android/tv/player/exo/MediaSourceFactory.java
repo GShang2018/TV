@@ -63,9 +63,18 @@ public class MediaSourceFactory implements MediaSource.Factory {
         } else if (mediaItem.mediaId.startsWith("file://")) {
             // file:// 协议直接使用 FileDataSource，绕过 CacheDataSource 避免缓存干扰
             return new DefaultMediaSourceFactory(new DefaultDataSource.Factory(App.get())).createMediaSource(setHeader(mediaItem));
+        } else if (isLocalProxyUrl(mediaItem.mediaId)) {
+            // 本地代理 (Thunder/BtEngine 磁力链接) 地址：迅雷 SDK 内部已管理磁盘缓存并实现边下边播，
+            // 若再套一层 CacheDataSource 会与 SDK 的写入冲突且造成双份缓存。
+            // 因此直接使用 HTTP 数据源，让播放器通过 Range 请求 (206) 从本地代理拉流。
+            return new DefaultMediaSourceFactory(new DefaultDataSource.Factory(App.get(), getHttpDataSourceFactory())).createMediaSource(setHeader(mediaItem));
         } else {
             return defaultMediaSourceFactory.createMediaSource(setHeader(mediaItem));
         }
+    }
+
+    private boolean isLocalProxyUrl(String url) {
+        return url != null && (url.startsWith("http://127.0.0.1") || url.startsWith("http://localhost"));
     }
 
     private MediaItem setHeader(MediaItem mediaItem) {

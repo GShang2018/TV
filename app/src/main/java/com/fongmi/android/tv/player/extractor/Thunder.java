@@ -83,11 +83,20 @@ public class Thunder implements Source.Extractor {
 
     private String addMagnetTask(String url) throws Exception {
         GetTaskId taskId = XLTaskHelper.get().parse(appendTrackers(url), Path.thunder(Util.md5(url)));
-        while (XLTaskHelper.get().getTaskInfo(taskId).getTaskStatus() != 2) {
+        // 等待磁力元数据 (.torrent) 下载完成，最多等待 30 秒，避免无 peer 时无限阻塞。
+        // 元数据下载完成后 getTaskInfo 返回 status=2 (对应 .torrent 文件已存在)。
+        int waitTime = 0;
+        while (waitTime < 30000) {
+            XLTaskInfo taskInfo = XLTaskHelper.get().getTaskInfo(taskId);
+            if (taskInfo.getTaskStatus() == 2) break;
+            if (taskInfo.getTaskStatus() == 3) throw new ExtractException(taskInfo.getErrorMsg());
             SystemClock.sleep(300);
+            waitTime += 300;
         }
         List<TorrentFileInfo> medias = XLTaskHelper.get().getTorrentInfo(taskId.getSaveFile()).getMedias();
         if (medias.isEmpty()) throw new ExtractException("no media found");
+        // 停止磁力元数据任务，避免与后续 BT 任务重复下载同一文件。
+        // .torrent 文件已落盘保留，addTorrentTask 将基于它创建 BT 任务。
         XLTaskHelper.get().stopTask(taskId);
         return medias.get(0).getPlayUrl();
     }
@@ -150,10 +159,12 @@ public class Thunder implements Source.Extractor {
         android.util.Log.e("Thunder", "addTorrentTask final name: " + name + ", calling addTorrentTask with torrent: " + torrent.getAbsolutePath());
         taskId = XLTaskHelper.get().addTorrentTask(torrent, Objects.requireNonNull(torrent.getParentFile()), index);
         android.util.Log.e("Thunder", "addTorrentTask taskId: " + (taskId != null ? taskId.getTaskId() : "null"));
-        // Wait for the sub-task to start downloading (status != 0), with a timeout
-        // If timeout, still return the local URL (Thunder SDK supports streaming while downloading)
+        // 边下边播：等待子任务开始下载 (status != 0) 且本地 HTTP 代理就绪，最多等待 20 秒。
+        // 迅雷 SDK 的 getLocalUrl 返回本地 HTTP 代理地址 (http://127.0.0.1:PORT/...)，
+        // 播放器通过该地址发起 Range 请求 (206) 实现边下边播。
+        File target = new File(torrent.getParent(), name);
         int waitTime = 0;
-        while (waitTime < 15000) {
+        while (waitTime < 20000) {
             BtSubTaskDetail subTaskDetail = XLTaskHelper.get().getBtSubTaskInfo(taskId, index);
             if (subTaskDetail == null || subTaskDetail.mTaskInfo == null) {
                 android.util.Log.e("Thunder", "addTorrentTask subTaskDetail or mTaskInfo is null, waiting...");
@@ -165,16 +176,20 @@ public class Thunder implements Source.Extractor {
             android.util.Log.e("Thunder", "addTorrentTask taskStatus: " + taskInfo.mTaskStatus + ", waitTime: " + waitTime);
             if (taskInfo.mTaskStatus == 3) throw new ExtractException(taskInfo.getErrorMsg());
             if (taskInfo.mTaskStatus != 0) {
-                String localUrl = XLTaskHelper.get().getLocalUrl(new File(torrent.getParent(), name));
-                android.util.Log.e("Thunder", "addTorrentTask returning localUrl: " + localUrl);
-                return localUrl;
+                // 子任务已开始下载，确认本地代理就绪后返回
+                String localUrl = XLTaskHelper.get().getLocalUrl(target);
+                if (localUrl != null && !localUrl.isEmpty()) {
+                    android.util.Log.e("Thunder", "addTorrentTask returning localUrl: " + localUrl);
+                    return localUrl;
+                }
+                android.util.Log.w("Thunder", "addTorrentTask localUrl empty, keep waiting...");
             }
             SystemClock.sleep(300);
             waitTime += 300;
         }
         // Timeout reached, return local URL anyway (supports streaming)
         android.util.Log.w("Thunder", "addTorrentTask timeout, returning local URL anyway");
-        String localUrl = XLTaskHelper.get().getLocalUrl(new File(torrent.getParent(), name));
+        String localUrl = XLTaskHelper.get().getLocalUrl(target);
         android.util.Log.e("Thunder", "addTorrentTask timeout returning localUrl: " + localUrl);
         return localUrl;
     }
