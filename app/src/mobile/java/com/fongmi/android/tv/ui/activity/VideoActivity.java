@@ -362,7 +362,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setPosterOutline() {
+        // 利用 Android 原生阴影机制：elevation + ViewOutlineProvider。
+        // 系统根据 outline 自动绘制柔和的弥散阴影，无需手动叠加渐变或半透明 View。
+        // setClipToOutline(true) 仅将海报内容裁剪为圆角，不影响阴影绘制。
         mBinding.poster.setClipToOutline(true);
+        mBinding.poster.setElevation(ResUtil.dp2px(8));
         mBinding.poster.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
@@ -370,6 +374,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
             }
         });
+        // API 28+ 可自定义阴影颜色，加深阴影（默认阴影偏浅）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            mBinding.poster.setOutlineAmbientShadowColor(Color.BLACK);
+            mBinding.poster.setOutlineSpotShadowColor(Color.BLACK);
+        }
     }
 
     @Override
@@ -531,8 +540,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setVideoView(boolean isInPictureInPictureMode) {
         if (isInPictureInPictureMode) {
+            if (mAnimator != null) mAnimator.cancel();
             mBinding.video.setLayoutParams(getFullscreenParams());
         } else {
+            // 退出 PiP：恢复正确的 16:9 播放框高度，避免 mAnimator 中途取消导致的高度残留
+            if (isPort() && mBinding.video.getWidth() > 0) {
+                mFrameParams.height = mBinding.video.getWidth() * 9 / 16;
+            }
             mBinding.video.setLayoutParams(mFrameParams);
         }
     }
