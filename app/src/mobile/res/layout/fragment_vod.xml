@@ -26,8 +26,8 @@
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/logo"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_logo"
@@ -50,6 +50,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="4dp"
                     android:layout_weight="1"
+                    android:ellipsize="marquee"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:marqueeRepeatLimit="marquee_forever"
                     android:singleLine="true"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"

@@ -148,6 +148,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     private void setSiteText() {
         String site = getSite().getName();
         mBinding.site.setText(site);
+        mBinding.site.setSelected(true);
     }
 
     private void setAppBarView() {

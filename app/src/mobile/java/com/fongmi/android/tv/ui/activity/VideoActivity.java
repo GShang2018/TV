@@ -674,9 +674,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setPoster(item.getVodPic());
         setText(mBinding.remark, 0, item.getVodRemarks());
         mBinding.currentSite.setText(getSite().getName());
-        setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
+        setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()));
+        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()));
+        setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()));
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(item);
@@ -688,29 +688,33 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         checkKeepImg();
     }
 
-    private void setText(TextView view, int resId, String text) {
-        if (text.isEmpty()) text = getString(R.string.detail_na);
+    private void setText(TextView view, int resId, CharSequence text) {
+        if (TextUtils.isEmpty(text)) text = getString(R.string.detail_na);
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(View.VISIBLE);
         view.setLinkTextColor(ResUtil.getColorAttr(view.getContext(), com.google.android.material.R.attr.colorPrimary));
         CustomMovement.bind(view);
-        view.setTag(text);
+        view.setTag(text.toString());
     }
 
-    private SpannableStringBuilder getSpan(int resId, String text) {
+    private SpannableStringBuilder getSpan(int resId, CharSequence text) {
         if (resId > 0) text = getString(resId, text);
+        SpannableStringBuilder span = new SpannableStringBuilder(text);
+        String str = text.toString();
         Map<String, String> map = new HashMap<>();
-        Matcher m = Sniffer.CLICKER.matcher(text);
+        Matcher m = Sniffer.CLICKER.matcher(str);
         while (m.find()) {
             String key = Trans.s2t(m.group(2)).trim();
-            text = text.replace(m.group(), key);
+            str = str.replace(m.group(), key);
             map.put(key, m.group(1));
         }
-        SpannableStringBuilder span = new SpannableStringBuilder(text);
-        for (String s : map.keySet()) {
-            int index = text.indexOf(s);
-            Result result = Result.type(map.get(s));
-            span.setSpan(getClickSpan(result), index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (!map.isEmpty()) {
+            span = new SpannableStringBuilder(str);
+            for (String s : map.keySet()) {
+                int index = str.indexOf(s);
+                Result result = Result.type(map.get(s));
+                span.setSpan(getClickSpan(result), index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
         }
         return span;
     }
@@ -725,7 +729,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             }
             @Override
             public void updateDrawState(@NonNull TextPaint ds) {
-                ds.setUnderlineText(false);
+                ds.setUnderlineText(true);
             }
         };
     }
