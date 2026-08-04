@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.ui.holder;
 
+import android.view.View;
+import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.bean.Vod;
@@ -22,13 +25,15 @@ public class VodOneHolder extends BaseVodHolder {
     @Override
     public void initView(Vod item) {
         binding.name.setText(item.getVodName());
-        binding.site.setText(item.getSiteName());
+        binding.name.setVisibility(item.getNameVisible());
+        binding.year.setText(item.getVodYear());
+        binding.year.setVisibility(item.getVodYear().isEmpty() ? View.GONE : View.VISIBLE);
         binding.remark.setText(item.getVodRemarks());
+        binding.remark.setVisibility(item.getVodRemarks().isEmpty() ? View.GONE : View.VISIBLE);
+        binding.site.setText(item.getSiteName());
         binding.site.setVisibility(item.getSiteVisible());
-        binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
-        setTagMaxWidth(binding.image, 12, binding.site, binding.remark);
+        ImgUtil.load(item.getVodName(), item.getVodPic(), binding.image, ImageView.ScaleType.FIT_CENTER, false);
     }
 }

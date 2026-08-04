@@ -53,8 +53,11 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void toggleView(View view) {
-        if (Setting.getHistoryViewType() == ViewType.PORTRAIT) {
+        int viewType = Setting.getHistoryViewType();
+        if (viewType == ViewType.PORTRAIT) {
             Setting.putHistoryViewType(ViewType.GRID);
+        } else if (viewType == ViewType.GRID) {
+            Setting.putHistoryViewType(ViewType.LIST);
         } else {
             Setting.putHistoryViewType(ViewType.PORTRAIT);
         }
@@ -74,15 +77,28 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void updateViewIcon() {
-        if (Setting.getHistoryViewType() == ViewType.PORTRAIT) {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-        } else {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        switch (Setting.getHistoryViewType()) {
+            case ViewType.PORTRAIT:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+                break;
+            case ViewType.LIST:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
+                break;
+            default:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+                break;
         }
     }
 
     private Style getViewStyle() {
-        return Setting.getHistoryViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        switch (Setting.getHistoryViewType()) {
+            case ViewType.PORTRAIT:
+                return Style.rect();
+            case ViewType.LIST:
+                return Style.list();
+            default:
+                return Style.land();
+        }
     }
 
     private void setRecyclerView() {

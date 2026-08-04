@@ -55,12 +55,22 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private Style getViewStyle() {
-        return Setting.getKeepViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        switch (Setting.getKeepViewType()) {
+            case ViewType.PORTRAIT:
+                return Style.rect();
+            case ViewType.LIST:
+                return Style.list();
+            default:
+                return Style.land();
+        }
     }
 
     private void toggleView(View view) {
-        if (Setting.getKeepViewType() == ViewType.PORTRAIT) {
+        int viewType = Setting.getKeepViewType();
+        if (viewType == ViewType.PORTRAIT) {
             Setting.putKeepViewType(ViewType.GRID);
+        } else if (viewType == ViewType.GRID) {
+            Setting.putKeepViewType(ViewType.LIST);
         } else {
             Setting.putKeepViewType(ViewType.PORTRAIT);
         }
@@ -80,10 +90,16 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void updateViewIcon() {
-        if (Setting.getKeepViewType() == ViewType.PORTRAIT) {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-        } else {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        switch (Setting.getKeepViewType()) {
+            case ViewType.PORTRAIT:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+                break;
+            case ViewType.LIST:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
+                break;
+            default:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+                break;
         }
     }
 

@@ -113,9 +113,12 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     @Override
     protected void initEvent() {
-        mBinding.site.setOnClickListener(this::onSite);
+        mBinding.back.setOnClickListener(v -> onBackPressed());
+        mBinding.search.setOnClickListener(v -> search());
+        mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.view.setOnClickListener(this::toggleView);
         mBinding.siteMore.setOnClickListener(this::onSiteMore);
+        mBinding.recordClear.setOnClickListener(v -> clearRecord());
         mBinding.keyword.setOnEditorActionListener((textView, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) search();
             return true;
@@ -155,7 +158,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void setViewType(int viewType) {
         Setting.putViewType(viewType);
-        Style style = viewType == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        Style style = viewType == ViewType.PORTRAIT ? Style.rect() : viewType == ViewType.LIST ? Style.list() : Style.land();
         int count = Product.getColumn(this, style);
         mSearchAdapter.setViewType(viewType, count);
         int[] spec = Product.getSpec(this, style);
@@ -163,6 +166,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(count);
         if (viewType == ViewType.PORTRAIT) {
             mBinding.view.setImageResource(R.drawable.ic_action_grid);
+        } else if (viewType == ViewType.LIST) {
+            mBinding.view.setImageResource(R.drawable.ic_action_list);
         } else {
             mBinding.view.setImageResource(R.drawable.ic_action_portrait);
         }
@@ -208,7 +213,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mSearchAdapter.clear();
         mCollectAdapter.clear();
         Util.hideKeyboard(mBinding.keyword);
-        mBinding.site.setVisibility(View.GONE);
         mBinding.agent.setVisibility(View.GONE);
         mBinding.siteLayout.setVisibility(View.VISIBLE);
         mBinding.view.setVisibility(View.VISIBLE);
@@ -216,6 +220,9 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         if (mExecutor != null) mExecutor.shutdownNow();
         mExecutor = new PauseExecutor(Constant.THREAD_POOL * 2);
         String keyword = mBinding.keyword.getText().toString().trim();
+        // 每次搜索前重新构建站源列表，使筛选弹窗中的修改立即生效
+        mSites.clear();
+        setSite();
         for (Site site : mSites) mExecutor.execute(() -> search(site, keyword));
         App.post(() -> mRecordAdapter.add(keyword), 250);
         // 更多按钮固定显示，不依赖列表加载完成
@@ -255,9 +262,13 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         });
     }
 
-    private void onSite(View view) {
+    private void onFilter(View view) {
         Util.hideKeyboard(mBinding.keyword);
         SiteDialog.create().search().show(this);
+    }
+
+    private void clearRecord() {
+        if (mRecordAdapter != null) mRecordAdapter.clear();
     }
 
     private void onSiteMore(View view) {
@@ -316,7 +327,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void toggleView(View view) {
-        setViewType(mSearchAdapter.isGrid() ? ViewType.PORTRAIT : ViewType.GRID);
+        int viewType = mSearchAdapter.isPortrait() ? ViewType.GRID : mSearchAdapter.isGrid() ? ViewType.LIST : ViewType.PORTRAIT;
+        setViewType(viewType);
     }
 
     private void showAgent() {
@@ -326,7 +338,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mBinding.view.setVisibility(View.GONE);
         mBinding.siteLayout.setVisibility(View.GONE);
         mBinding.result.setVisibility(View.GONE);
-        mBinding.site.setVisibility(View.VISIBLE);
         mBinding.agent.setVisibility(View.VISIBLE);
         if (mExecutor != null) mExecutor.shutdownNow();
     }
@@ -370,7 +381,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     @Override
     public void onDataChanged(int size) {
-        mBinding.record.setVisibility(size == 0 ? View.GONE : View.VISIBLE);
         mBinding.recordRecycler.setVisibility(size == 0 ? View.GONE : View.VISIBLE);
         App.post(() -> mBinding.recordRecycler.requestLayout(), 250);
     }

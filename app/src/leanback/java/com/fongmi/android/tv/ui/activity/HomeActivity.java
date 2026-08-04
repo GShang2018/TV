@@ -272,7 +272,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getHomeViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
+        int viewType = Setting.getHomeViewType();
+        if (viewType == ViewType.PORTRAIT) {
+            viewType = ViewType.GRID;
+        } else if (viewType == ViewType.GRID) {
+            viewType = ViewType.LIST;
+        } else {
+            viewType = ViewType.PORTRAIT;
+        }
         Setting.putHomeViewType(viewType);
         // 首页切换按钮同时控制分类页（VodFragment）的布局
         Setting.putCategoryViewType(viewType);
@@ -282,15 +289,28 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void updateViewIcon() {
-        if (Setting.getHomeViewType() == ViewType.PORTRAIT) {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-        } else {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+        switch (Setting.getHomeViewType()) {
+            case ViewType.PORTRAIT:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+                break;
+            case ViewType.LIST:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
+                break;
+            default:
+                mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
+                break;
         }
     }
 
     private Style getHomeViewStyle() {
-        return Setting.getHomeViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        switch (Setting.getHomeViewType()) {
+            case ViewType.PORTRAIT:
+                return Style.rect();
+            case ViewType.LIST:
+                return Style.list();
+            default:
+                return Style.land();
+        }
     }
 
     private void refreshAllFragments() {

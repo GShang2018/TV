@@ -60,6 +60,13 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
         Setting.putKeyword(App.gson().toJson(mItems));
     }
 
+    public void clear() {
+        mItems.clear();
+        notifyDataSetChanged();
+        mListener.onDataChanged(getItemCount());
+        Setting.putKeyword("");
+    }
+
     @Override
     public int getItemCount() {
         return mItems.size();

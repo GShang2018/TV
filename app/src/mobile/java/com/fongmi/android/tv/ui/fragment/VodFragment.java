@@ -288,23 +288,22 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void toggleView(View view) {
-		int viewType = Setting.getHomeViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
-		Setting.putHomeViewType(viewType);
-		updateViewIcon();
-		TypeFragment fragment = getFragment();
-		if (fragment != null) fragment.refreshStyle();
-	}
+  int viewType = Setting.getHomeViewType() == ViewType.PORTRAIT ? ViewType.GRID : Setting.getHomeViewType() == ViewType.GRID ? ViewType.LIST : ViewType.PORTRAIT;
+  Setting.putHomeViewType(viewType);
+  updateViewIcon();
+  TypeFragment fragment = getFragment();
+  if (fragment != null) fragment.refreshStyle();
+ }
 
     private void updateViewIcon() {
-        if (Setting.getHomeViewType() == ViewType.PORTRAIT) {
-            mBinding.view.setImageResource(R.drawable.ic_action_grid);
-        } else {
-            mBinding.view.setImageResource(R.drawable.ic_action_portrait);
-        }
+        int viewType = Setting.getHomeViewType();
+        int icon = viewType == ViewType.PORTRAIT ? R.drawable.ic_action_grid : viewType == ViewType.GRID ? R.drawable.ic_action_portrait : R.drawable.ic_action_list;
+        mBinding.view.setImageResource(icon);
     }
 
     Style getHomeViewStyle() {
-        return Setting.getHomeViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        int viewType = Setting.getHomeViewType();
+        return viewType == ViewType.PORTRAIT ? Style.rect() : viewType == ViewType.GRID ? Style.land() : Style.list();
     }
 
     private void checkTypeOverflow() {

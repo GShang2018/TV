@@ -60,16 +60,17 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void setLayout(int viewType) {
-        int column = viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1;
+        int column = viewType == ViewType.LIST ? 1 : (viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1);
         mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1));
         int imageWidth = (ResUtil.getScreenWidth(this) - space) / column;
         int imageHeight = viewType == ViewType.PORTRAIT ? imageWidth * 4 / 3 : imageWidth * 3 / 4;
         mAdapter.setSize(new int[]{imageWidth, imageHeight});
+        mAdapter.setViewType(viewType);
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getHistoryViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
+        int viewType = Setting.getHistoryViewType() == ViewType.PORTRAIT ? ViewType.GRID : Setting.getHistoryViewType() == ViewType.GRID ? ViewType.LIST : ViewType.PORTRAIT;
         Setting.putHistoryViewType(viewType);
         updateViewIcon();
         setLayout(viewType);
@@ -77,7 +78,9 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void updateViewIcon() {
-        mBinding.view.setImageResource(Setting.getHistoryViewType() == ViewType.PORTRAIT ? R.drawable.ic_action_grid : R.drawable.ic_action_portrait);
+        int viewType = Setting.getHistoryViewType();
+        int icon = viewType == ViewType.PORTRAIT ? R.drawable.ic_action_grid : viewType == ViewType.GRID ? R.drawable.ic_action_portrait : R.drawable.ic_action_list;
+        mBinding.view.setImageResource(icon);
     }
 
     private void getHistory() {

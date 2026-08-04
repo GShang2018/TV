@@ -64,16 +64,17 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void setLayout(int viewType) {
-        int column = viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1;
+        int column = viewType == ViewType.LIST ? 1 : (viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1);
         mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1));
         int imageWidth = (ResUtil.getScreenWidth(this) - space) / column;
         int imageHeight = viewType == ViewType.PORTRAIT ? imageWidth * 4 / 3 : imageWidth * 3 / 4;
         mAdapter.setSize(new int[]{imageWidth, imageHeight});
+        mAdapter.setViewType(viewType);
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getKeepViewType() == ViewType.PORTRAIT ? ViewType.GRID : ViewType.PORTRAIT;
+        int viewType = Setting.getKeepViewType() == ViewType.PORTRAIT ? ViewType.GRID : Setting.getKeepViewType() == ViewType.GRID ? ViewType.LIST : ViewType.PORTRAIT;
         Setting.putKeepViewType(viewType);
         updateViewIcon();
         setLayout(viewType);
@@ -81,7 +82,9 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void updateViewIcon() {
-        mBinding.view.setImageResource(Setting.getKeepViewType() == ViewType.PORTRAIT ? R.drawable.ic_action_grid : R.drawable.ic_action_portrait);
+        int viewType = Setting.getKeepViewType();
+        int icon = viewType == ViewType.PORTRAIT ? R.drawable.ic_action_grid : viewType == ViewType.GRID ? R.drawable.ic_action_portrait : R.drawable.ic_action_list;
+        mBinding.view.setImageResource(icon);
     }
 
     private void getKeep() {

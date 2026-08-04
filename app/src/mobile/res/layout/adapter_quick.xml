@@ -24,7 +24,7 @@
         android:singleLine="true"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp"
-        tools:text="娉ュ反"
+        tools:text="泥巴"
         tools:visibility="visible" />
 
     <TextView

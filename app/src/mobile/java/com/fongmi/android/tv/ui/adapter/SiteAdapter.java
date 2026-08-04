@@ -1,11 +1,13 @@
 package com.fongmi.android.tv.ui.adapter;
 
+import android.content.res.ColorStateList;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
@@ -35,13 +37,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
         void onTextClick(Site item);
 
-        void onSearchClick(int position, Site item);
-
-        void onChangeClick(int position, Site item);
-
-        boolean onSearchLongClick(Site item);
-
-        boolean onChangeLongClick(Site item);
+        void onSearchClick(Site item);
     }
 
     public SiteAdapter search(boolean search) {
@@ -91,27 +87,27 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         Site item = mItems.get(position);
         boolean on = !search || change;
         holder.binding.text.setText(item.getName());
-        holder.binding.text.setEnabled(on);
-        holder.binding.text.setFocusable(on);
-        holder.binding.text.setSelected(on && item.isActivated());
-        holder.binding.text.setActivated(on && item.isActivated());
-        holder.binding.search.setImageResource(getSearchIcon(item));
-        holder.binding.change.setImageResource(getChangeIcon(item));
-        holder.binding.search.setVisibility(search ? View.VISIBLE : View.GONE);
-        holder.binding.change.setVisibility(change ? View.VISIBLE : View.GONE);
-        holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
-        holder.binding.search.setOnClickListener(v -> listener.onSearchClick(position, item));
-        holder.binding.change.setOnClickListener(v -> listener.onChangeClick(position, item));
-        holder.binding.search.setOnLongClickListener(v -> listener.onSearchLongClick(item));
-        holder.binding.change.setOnLongClickListener(v -> listener.onChangeLongClick(item));
-    }
-
-    private int getSearchIcon(Site item) {
-        return item.isSearchable() ? R.drawable.ic_site_search : R.drawable.ic_site_block;
-    }
-
-    private int getChangeIcon(Site item) {
-        return item.isChangeable() ? R.drawable.ic_site_change : R.drawable.ic_site_block;
+        holder.binding.text.setEnabled(true);
+        holder.binding.text.setFocusable(true);
+        if (search) {
+            // 搜索模式：点击站源切换是否参与检索
+            boolean searchable = item.isSearchable();
+            holder.binding.text.setSelected(searchable);
+            holder.binding.text.setActivated(searchable);
+            if (searchable) {
+                holder.binding.text.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_stroke_active)));
+                holder.binding.text.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_text_active));
+            } else {
+                holder.binding.text.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_disabled_stroke)));
+                holder.binding.text.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_disabled_text));
+            }
+            holder.binding.text.setOnClickListener(v -> listener.onSearchClick(item));
+        } else {
+            // 切换站源模式
+            holder.binding.text.setSelected(on && item.isActivated());
+            holder.binding.text.setActivated(on && item.isActivated());
+            holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

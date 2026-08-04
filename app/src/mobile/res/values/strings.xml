@@ -33,6 +33,11 @@
     <string name="gallery_save_fail">Save failed</string>
     <string name="detail_content">Summary</string>
     <string name="detail_source">Play Source</string>
+    <string name="detail_cast">Cast</string>
+    <string name="detail_info">Info</string>
+    <string name="detail_share">Share</string>
+    <string name="detail_keep">Keep</string>
+    <string name="detail_setting">Setting</string>
     <string name="dialog_source_choose">Choose Source</string>
     <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_na">N/A</string>

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.Html;
@@ -620,9 +621,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
         setText(mBinding.type, R.string.detail_type, item.getTypeName());
         setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
-        setText(mBinding.content, R.string.detail_content, Html.fromHtml(item.getVodContent()).toString());
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
+        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(removeImg(item.getVodActor())).toString());
+        setText(mBinding.content, R.string.detail_content, Html.fromHtml(removeImg(item.getVodContent())).toString());
+        setText(mBinding.director, R.string.detail_director, Html.fromHtml(removeImg(item.getVodDirector())).toString());
         mFlagAdapter.setItems(item.getVodFlags(), null);
         setGallery(item);
         mBinding.content.setMaxLines(getMaxLines());
@@ -672,9 +673,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setText(TextView view, int resId, String text) {
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
-        view.setLinkTextColor(view.getContext().getColor(R.color.spotify_green));
+        view.setLinkTextColor(Color.WHITE);
         CustomMovement.bind(view);
         view.setTag(text);
+    }
+
+    // 移除简介中的 <img> 标签，避免 Html.fromHtml 将其渲染成占位小方块
+    private String removeImg(String text) {
+        if (TextUtils.isEmpty(text)) return text;
+        return text.replaceAll("(?i)<img[^>]*>", "");
     }
 
     private SpannableStringBuilder getSpan(int resId, String text) {

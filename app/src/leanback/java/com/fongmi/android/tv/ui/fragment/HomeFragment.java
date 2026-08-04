@@ -129,8 +129,11 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         int index = getRecommendIndex();
         if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
         Style style = result.getStyle(getHome().getStyle());
-        if (Setting.getHomeViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+        int homeViewType = Setting.getHomeViewType();
+        if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             style = Style.rect();
+        } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {
+            style = Style.list();
         }
         for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
@@ -142,8 +145,11 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     public void refreshWithStyle() {
         if (mResult == null || mResult.getList().isEmpty()) return;
         final Style style;
-        if (Setting.getHomeViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+        int homeViewType = Setting.getHomeViewType();
+        if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             style = Style.rect();
+        } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {
+            style = Style.list();
         } else {
             style = Style.land();
         }

@@ -141,8 +141,11 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void toggleView(View view) {
-        if (Setting.getCollectViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+        int viewType = Setting.getCollectViewType();
+        if (viewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.GRID);
+        } else if (viewType == com.fongmi.android.tv.ui.base.ViewType.GRID) {
+            Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.LIST);
         } else {
             Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.PORTRAIT);
         }
@@ -165,8 +168,11 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void updateViewIcon() {
-        if (Setting.getCollectViewType() == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
+        int viewType = Setting.getCollectViewType();
+        if (viewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
+        } else if (viewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {
+            mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
         } else {
             mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
         }

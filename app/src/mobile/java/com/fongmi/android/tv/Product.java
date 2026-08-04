@@ -18,6 +18,7 @@ public class Product {
     }
 
     public static int getColumn(Context context, Style style) {
+        if (style.isList()) return 1;
         return style.isLand() ? getColumn(context) - 1 : getColumn(context);
     }
 

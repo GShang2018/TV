@@ -53,7 +53,8 @@ public class ImgUtil {
     }
 
     public static void load(String text, String url, ImageView view, ImageView.ScaleType scaleType, boolean rect) {
-        view.setScaleType(scaleType);
+        // 加载中/失败时图标不缩放，居中显示；加载成功后由 listener 设为 CENTER_CROP 铺满
+        view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(getSignature(url)).listener(getListener(view, scaleType)).into(view);
         else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), rect));
         else view.setImageResource(R.drawable.ic_img_error);
@@ -146,7 +147,8 @@ public class ImgUtil {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
                 view.setImageResource(R.drawable.ic_img_error);
-                view.setScaleType(scaleType);
+                // 加载失败图标不缩放，居中显示
+                view.setScaleType(ImageView.ScaleType.CENTER);
                 return true;
             }
 

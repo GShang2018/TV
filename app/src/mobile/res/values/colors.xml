@@ -37,4 +37,12 @@
     <color name="text_highlight_teal">#40009688</color>
     <color name="text_highlight_pink">#40E91E63</color>
 
+    <!-- 站源选择：不参与检索时的浅灰色 -->
+    <color name="site_disabled_stroke">#4D808080</color>
+    <color name="site_disabled_text">#808080</color>
+
+    <!-- 站源选择：参与检索时的白色边框与文字 -->
+    <color name="site_stroke_active">#FFFFFFFF</color>
+    <color name="site_text_active">#FFFFFFFF</color>
+
 </resources>

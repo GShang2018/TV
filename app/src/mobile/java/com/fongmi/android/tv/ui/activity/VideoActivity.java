@@ -446,17 +446,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.currentSite.setOnClickListener(view -> onSource());
         mBinding.name.setOnLongClickListener(view -> onChange());
         mBinding.content.setOnLongClickListener(view -> onCopy());
-        mBinding.control.cast.setOnClickListener(view -> onCast());
-        mBinding.control.info.setOnClickListener(view -> onInfo());
-        mBinding.control.share.setOnClickListener(view -> onShareClick());
+        mBinding.cast.setOnClickListener(view -> onCast());
+        mBinding.info.setOnClickListener(view -> onInfo());
+        mBinding.share.setOnClickListener(view -> onShareClick());
         mBinding.control.full.setOnClickListener(view -> onFull());
-        mBinding.control.keep.setOnClickListener(view -> onKeep());
+        mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.control.danmu.setOnClickListener(view -> onDanmu());
         mBinding.control.danmuSetting.setOnClickListener(view -> onDanmuSetting());
         mBinding.control.play.setOnClickListener(view -> checkPlay());
         mBinding.control.next.setOnClickListener(view -> checkNext());
         mBinding.control.prev.setOnClickListener(view -> checkPrev());
-        mBinding.control.setting.setOnClickListener(view -> onSetting());
+        mBinding.setting.setOnClickListener(view -> onSetting());
         mBinding.control.title.setOnLongClickListener(view -> onChange());
         mBinding.control.backTop.setOnClickListener(view -> onBack());
         mBinding.control.right.lock.setOnClickListener(view -> onLock());
@@ -674,9 +674,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setPoster(item.getVodPic());
         setText(mBinding.remark, 0, item.getVodRemarks());
         mBinding.currentSite.setText(getSite().getName());
-        setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()));
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()));
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()));
+        setText(mBinding.content, 0, Html.fromHtml(removeImg(item.getVodContent())));
+        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(removeImg(item.getVodActor())));
+        setText(mBinding.director, R.string.detail_director, Html.fromHtml(removeImg(item.getVodDirector())));
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(item);
@@ -686,15 +686,30 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         checkHistory(item);
         checkFlag(item);
         checkKeepImg();
+        checkActionBar();
+    }
+
+    private void checkActionBar() {
+        mBinding.setting.setVisibility(mHistory == null || isFullscreen() ? View.GONE : View.VISIBLE);
+        mBinding.keep.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
     }
 
     private void setText(TextView view, int resId, CharSequence text) {
         if (TextUtils.isEmpty(text)) text = getString(R.string.detail_na);
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(View.VISIBLE);
-        view.setLinkTextColor(ResUtil.getColorAttr(view.getContext(), com.google.android.material.R.attr.colorPrimary));
+        view.setLinkTextColor(Color.WHITE);
         CustomMovement.bind(view);
         view.setTag(text.toString());
+    }
+
+    // 移除简介中的 <img> 标签，避免 Html.fromHtml 将其渲染成占位小方块
+    private String removeImg(String text) {
+        if (TextUtils.isEmpty(text)) return text;
+        return text.replaceAll("(?i)<img[^>]*>", "");
     }
 
     private SpannableStringBuilder getSpan(int resId, CharSequence text) {
@@ -1327,18 +1342,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
         mBinding.control.danmu.setVisibility(isLock() || !mBinding.danmaku.isPrepared() ? View.GONE : View.VISIBLE);
         mBinding.control.danmuSetting.setVisibility(isLock() || !Setting.isDanmuLoad() || !isVisible(mBinding.danmaku) ? View.GONE : View.VISIBLE);
-        mBinding.control.setting.setVisibility(mHistory == null || isFullscreen() ? View.GONE : View.VISIBLE);
+        mBinding.setting.setVisibility(mHistory == null || isFullscreen() ? View.GONE : View.VISIBLE);
         mBinding.control.batteryInfo.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.right.rotate.setVisibility(isFullscreen() && !isLock() ? View.VISIBLE : View.GONE);
-        mBinding.control.keep.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.keep.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.right.back.setVisibility(View.GONE);
         mBinding.control.backTop.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.parse.setVisibility(isFullscreen() && isUseParse() ? View.VISIBLE : View.GONE);
         mBinding.control.action.getRoot().setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.right.lock.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
-        mBinding.control.info.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
-        mBinding.control.share.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
-        mBinding.control.cast.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
+        mBinding.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
@@ -1534,7 +1549,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void checkKeepImg() {
-        mBinding.control.keep.setImageResource(Keep.find(getHistoryKey()) == null ? R.drawable.ic_control_keep_off : R.drawable.ic_control_keep_on);
+        mBinding.keep.setImageResource(Keep.find(getHistoryKey()) == null ? R.drawable.ic_control_keep_off : R.drawable.ic_control_keep_on);
     }
 
     private void checkLockImg() {

@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
@@ -27,7 +28,7 @@ public class DescDialog {
 
     private void initView(TextView view, CharSequence desc) {
         view.setText(desc, TextView.BufferType.SPANNABLE);
-        view.setLinkTextColor(view.getContext().getColor(R.color.spotify_green));
+        view.setLinkTextColor(Color.WHITE);
         CustomMovement.bind(view);
     }
 }

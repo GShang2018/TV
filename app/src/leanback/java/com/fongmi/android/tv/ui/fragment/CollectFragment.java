@@ -68,7 +68,10 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     }
 
     private Style getViewStyle() {
-        return Setting.getCollectViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        int viewType = Setting.getCollectViewType();
+        if (viewType == ViewType.PORTRAIT) return Style.rect();
+        if (viewType == ViewType.LIST) return Style.list();
+        return Style.land();
     }
 
     @Override

@@ -29,6 +29,11 @@
     <string name="gallery_save_fail">儲存失敗</string>
     <string name="detail_content">簡介</string>
     <string name="detail_source">播放源</string>
+    <string name="detail_cast">投屏</string>
+    <string name="detail_info">資訊</string>
+    <string name="detail_share">分享</string>
+    <string name="detail_keep">收藏</string>
+    <string name="detail_setting">設定</string>
     <string name="dialog_source_choose">選擇播放源</string>
     <string name="detail_search">快搜「<xliff:g name="name">%s</xliff:g>」</string>
     <string name="detail_na">暫無</string>

@@ -15,14 +15,16 @@ import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
+import com.fongmi.android.tv.databinding.AdapterVodListBinding;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
+public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final OnClickListener mListener;
     private final List<History> mItems;
@@ -98,9 +100,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         return mItems.size();
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return mStyle.isList() ? ViewType.LIST : ViewType.GRID;
+    }
+
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == ViewType.LIST) {
+            return new ListHolder(AdapterVodListBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        }
         ViewHolder holder = new ViewHolder(AdapterVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         holder.binding.getRoot().getLayoutParams().width = width;
         holder.binding.getRoot().getLayoutParams().height = height + ResUtil.dp2px(32);
@@ -110,30 +120,39 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         History item = mItems.get(position);
+        if (holder instanceof ListHolder) {
+            ListHolder listHolder = (ListHolder) holder;
+            listHolder.binding.name.setText(item.getVodName());
+            String remark = item.getSiteVisible() == View.VISIBLE ? item.getSiteName() + " · " + ResUtil.getString(R.string.vod_last, item.getVodRemarks()) : ResUtil.getString(R.string.vod_last, item.getVodRemarks());
+            listHolder.binding.remark.setText(remark);
+            setFocusListener(listHolder.binding.getRoot());
+            setClickListener(listHolder.binding.getRoot(), item);
+            ImgUtil.loadVod(item.getVodName(), item.getVodPic(), listHolder.binding.image);
+            return;
+        }
+        ViewHolder vh = (ViewHolder) holder;
         // 每次绑定都更新 LayoutParams，确保切换布局后封面大小正确
-        holder.binding.getRoot().getLayoutParams().width = width;
-        holder.binding.getRoot().getLayoutParams().height = height + ResUtil.dp2px(32);
-        holder.binding.image.getLayoutParams().width = width;
-        holder.binding.image.getLayoutParams().height = height;
-        setFocusListener(holder.binding);
-        setClickListener(holder.itemView, item);
-        holder.binding.name.setText(item.getVodName());
-        holder.binding.site.setText(item.getSiteName());
-        holder.binding.site.setVisibility(item.getSiteVisible());
-        holder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
-        holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
-        holder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
-        ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
-        BaseVodHolder.setTagMaxWidth(holder.binding.image, 8, holder.binding.site, holder.binding.remark);
+        vh.binding.getRoot().getLayoutParams().width = width;
+        vh.binding.getRoot().getLayoutParams().height = height + ResUtil.dp2px(32);
+        vh.binding.image.getLayoutParams().width = width;
+        vh.binding.image.getLayoutParams().height = height;
+        setFocusListener(vh.binding.getRoot());
+        setClickListener(vh.itemView, item);
+        vh.binding.name.setText(item.getVodName());
+        vh.binding.site.setText(item.getSiteName());
+        vh.binding.site.setVisibility(item.getSiteVisible());
+        vh.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
+        vh.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
+        vh.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
+        ImgUtil.loadVod(item.getVodName(), item.getVodPic(), vh.binding.image);
+        BaseVodHolder.setTagMaxWidth(vh.binding.image, 8, vh.binding.site, vh.binding.remark);
     }
 
-    private void setFocusListener(AdapterVodBinding binding) {
-        binding.getRoot().setOnFocusChangeListener((v, hasFocus) -> {
+    private void setFocusListener(View root) {
+        root.setOnFocusChangeListener((v, hasFocus) -> {
             v.setSelected(hasFocus);
-            binding.name.setSelected(hasFocus);
-            binding.remark.setSelected(hasFocus);
             if (hasFocus) {
                 AnimatorSet animator = new AnimatorSet();
                 ObjectAnimator scaleX = ObjectAnimator.ofFloat(v, "scaleX", 1.0f, 1.02f);
@@ -166,6 +185,16 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         private final AdapterVodBinding binding;
 
         public ViewHolder(@NonNull AdapterVodBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+    }
+
+    public static class ListHolder extends RecyclerView.ViewHolder {
+
+        private final AdapterVodListBinding binding;
+
+        public ListHolder(@NonNull AdapterVodListBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

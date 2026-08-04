@@ -9,6 +9,17 @@
     android:paddingTop="16dp"
     android:paddingRight="16dp">
 
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:text="@string/site_choose_title"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
     <LinearLayout
         android:id="@+id/searchInput"
         android:layout_width="match_parent"
@@ -48,15 +59,45 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/search"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/selectAll"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_site_search" />
+            android:layout_marginStart="12dp"
+            android:minWidth="0dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:strokeColor="@color/site_stroke_active"
+            android:text="@string/site_select_all"
+            android:textColor="@color/site_text_active"
+            android:textSize="14sp"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="8dp"
+            app:rippleColor="?attr/colorPrimary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/selectNone"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:minWidth="0dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:strokeColor="@color/site_stroke_active"
+            android:text="@string/site_select_none"
+            android:textColor="@color/site_text_active"
+            android:textSize="14sp"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="8dp"
+            app:rippleColor="?attr/colorPrimary" />
 
     </LinearLayout>
 
@@ -71,7 +112,6 @@
         android:paddingTop="4dp"
         android:paddingRight="0dp"
         android:paddingBottom="16dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:maxHeight="376dp"
         tools:listitem="@layout/adapter_site" />
 

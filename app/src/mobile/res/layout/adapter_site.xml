@@ -10,34 +10,16 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/text"
         style="?attr/materialButtonOutlinedStyle"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:ellipsize="marquee"
         android:singleLine="true"
-        android:backgroundTint="@color/site_bg_video"
         android:strokeColor="@color/site_stroke_video"
         android:textColor="@color/control_video"
         android:textSize="14sp"
+        app:backgroundTint="@color/site_bg_video"
         app:cornerRadius="8dp"
+        app:rippleColor="?attr/colorPrimary"
         tools:text="泥巴" />
-
-    <ImageView
-        android:id="@+id/search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_site_search" />
-
-    <ImageView
-        android:id="@+id/change"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_site_change" />
 
 </LinearLayout>

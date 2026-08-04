@@ -1,14 +1,17 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
@@ -16,10 +19,9 @@ import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
-import com.fongmi.android.tv.utils.ResUtil;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickListener {
+public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListener {
 
     private DialogSiteBinding binding;
     private SiteCallback callback;
@@ -47,23 +49,20 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     public void show(Fragment fragment) {
+        for (Fragment f : fragment.getChildFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
         show(fragment.getChildFragmentManager(), null);
         if (fragment instanceof SiteCallback) callback = (SiteCallback) fragment;
     }
 
     public void show(FragmentActivity activity) {
+        for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
         show(activity.getSupportFragmentManager(), null);
         if (activity instanceof SiteCallback) callback = (SiteCallback) activity;
     }
 
     @Override
-    protected ViewBinding getBinding() {
-        return binding = DialogSiteBinding.inflate(getLayoutInflater());
-    }
-
-    @Override
-    protected MaterialAlertDialogBuilder getBuilder() {
-        return builder().setView(getBinding().getRoot());
+    protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+        return binding = DialogSiteBinding.inflate(inflater, container, false);
     }
 
     @Override
@@ -73,9 +72,17 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         adapter.search(search).change(change);
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
-        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
+        // 站点列表固定为 2 列
+        binding.recycler.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        binding.recycler.addItemDecoration(new SpaceItemDecoration(2, 8));
         binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
         setSearchView();
+    }
+
+    @Override
+    protected void initEvent() {
+        binding.selectAll.setOnClickListener(v -> selectAll(true));
+        binding.selectNone.setOnClickListener(v -> selectAll(false));
     }
 
     private void setSearchView() {
@@ -89,12 +96,20 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
                 searchSite();
             }
         });
-        binding.search.setOnClickListener(v -> searchSite());
         if (VodConfig.get().getSites().size() < 10) binding.searchInput.setVisibility(View.GONE);
+        if (!search) {
+            binding.selectAll.setVisibility(View.GONE);
+            binding.selectNone.setVisibility(View.GONE);
+        }
     }
 
     private void searchSite() {
         adapter.keyword(binding.keyword.getText().toString().trim());
+    }
+
+    private void selectAll(boolean searchable) {
+        adapter.getItems().forEach(site -> site.setSearchable(searchable).save());
+        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
     }
 
     @Override
@@ -104,37 +119,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     @Override
-    public void onSearchClick(int position, Site item) {
+    public void onSearchClick(Site item) {
         item.setSearchable(!item.isSearchable()).save();
-        adapter.notifyItemChanged(position);
-    }
-
-    @Override
-    public void onChangeClick(int position, Site item) {
-        item.setChangeable(!item.isChangeable()).save();
-        adapter.notifyItemChanged(position);
-    }
-
-    @Override
-    public boolean onSearchLongClick(Site item) {
-        boolean result = !item.isSearchable();
-        adapter.getItems().forEach(site -> site.setSearchable(result).save());
-        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-        return true;
-    }
-
-    @Override
-    public boolean onChangeLongClick(Site item) {
-        boolean result = !item.isChangeable();
-        adapter.getItems().forEach(site -> site.setChangeable(result).save());
-        adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-        return true;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (adapter != null && adapter.getItemCount() == 0) dismiss();
-        else if (ResUtil.isLand(requireContext())) setWidth(0.5f);
+        adapter.notifyItemChanged(adapter.getItems().indexOf(item));
     }
 }
