@@ -18,8 +18,14 @@ public class Product {
     }
 
     public static int getColumn(Context context, Style style) {
-        if (style.isList()) return 1;
+        if (style.isList()) return getListColumn(context);
         return style.isLand() ? getColumn(context) - 1 : getColumn(context);
+    }
+
+    public static int getListColumn(Context context) {
+        int widthDp = ResUtil.getScreenWidth(context) / ResUtil.dp2px(1);
+        int column = widthDp / 420;
+        return Math.max(1, column);
     }
 
     public static int[] getSpec(Context context) {

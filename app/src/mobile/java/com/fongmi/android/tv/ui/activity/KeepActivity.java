@@ -64,7 +64,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void setLayout(int viewType) {
-        int column = viewType == ViewType.LIST ? 1 : (viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1);
+        int column = viewType == ViewType.LIST ? Product.getListColumn(this) : (viewType == ViewType.PORTRAIT ? Product.getColumn(this) : Product.getColumn(this) - 1);
         mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
         int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1));
         int imageWidth = (ResUtil.getScreenWidth(this) - space) / column;
