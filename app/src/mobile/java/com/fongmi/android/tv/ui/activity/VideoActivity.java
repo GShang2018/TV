@@ -447,7 +447,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.name.setOnLongClickListener(view -> onChange());
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.cast.setOnClickListener(view -> onCast());
-        mBinding.info.setOnClickListener(view -> onInfo());
+        mBinding.control.info.setOnClickListener(view -> onInfo());
+        mBinding.control.refresh.setOnClickListener(view -> onRefresh());
         mBinding.share.setOnClickListener(view -> onShareClick());
         mBinding.control.full.setOnClickListener(view -> onFull());
         mBinding.keep.setOnClickListener(view -> onKeep());
@@ -692,7 +693,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void checkActionBar() {
         mBinding.setting.setVisibility(mHistory == null || isFullscreen() ? View.GONE : View.VISIBLE);
         mBinding.keep.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
-        mBinding.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.control.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
     }
@@ -1351,7 +1352,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.parse.setVisibility(isFullscreen() && isUseParse() ? View.VISIBLE : View.GONE);
         mBinding.control.action.getRoot().setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.right.lock.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
-        mBinding.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.control.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.control.refresh.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
