@@ -111,10 +111,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             listHolder.binding.name.setText(item.getVodName());
             listHolder.binding.site.setText(item.getSiteName());
             listHolder.binding.site.setVisibility(item.getSiteVisible());
-            listHolder.binding.remark.setText(item.getSiteName());
+            listHolder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
             listHolder.binding.remark.setVisibility(View.VISIBLE);
-            listHolder.binding.tag.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
-            listHolder.binding.tag.setVisibility(View.VISIBLE);
             listHolder.binding.progress.setMax((int) item.getDuration());
             listHolder.binding.progress.setProgress((int) item.getPosition());
             listHolder.binding.progress.setVisibility(View.VISIBLE);

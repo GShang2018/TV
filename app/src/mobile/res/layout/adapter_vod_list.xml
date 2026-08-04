@@ -23,21 +23,6 @@
             app:shapeAppearanceOverlay="@style/Vod.Grid"
             tools:src="@drawable/ic_img_error" />
 
-        <TextView
-            android:id="@+id/tag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|start"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:background="@drawable/shape_vod_tag"
-            android:singleLine="true"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="11sp"
-            android:visibility="gone"
-            tools:text="上次看到"
-            tools:visibility="visible" />
-
         <ProgressBar
             android:id="@+id/progress"
             style="?android:attr/progressBarStyleHorizontal"
