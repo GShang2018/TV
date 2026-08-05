@@ -12,6 +12,7 @@ public class VodRectHolder extends BaseVodHolder {
 
     private final VodAdapter.OnClickListener listener;
     private final AdapterVodRectBinding binding;
+    private int[] size;
 
     public VodRectHolder(@NonNull AdapterVodRectBinding binding, VodAdapter.OnClickListener listener) {
         super(binding.getRoot());
@@ -20,6 +21,7 @@ public class VodRectHolder extends BaseVodHolder {
     }
 
     public VodRectHolder size(int[] size) {
+        this.size = size;
         binding.image.getLayoutParams().width = size[0];
         binding.image.getLayoutParams().height = size[1];
         return this;
@@ -37,7 +39,9 @@ public class VodRectHolder extends BaseVodHolder {
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
+        // 竖版（3:4）封面应用与播放页一致的裁切方式（左/中/右），横版保持原样
+        if (size != null && size[0] < size[1]) ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), binding.image);
+        else ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
         setTagMaxWidth(binding.image, 12, binding.year, binding.site, binding.remark);
     }
 }

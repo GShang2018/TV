@@ -50,7 +50,7 @@ public class SiteViewModel extends ViewModel {
     public MutableLiveData<Result> action;
     public MutableLiveData<Danmu> danmaku;
     public MutableLiveData<Result> download;
-    private ExecutorService executor;
+    private final ExecutorService executor;
 
     public SiteViewModel() {
         this.ep = new MutableLiveData<>();
@@ -60,6 +60,8 @@ public class SiteViewModel extends ViewModel {
         this.search = new MutableLiveData<>();
         this.action = new MutableLiveData<>();
         this.download = new MutableLiveData<>();
+        // 复用固定线程池，避免每次请求都 shutdownNow + 新建线程池的开销
+        this.executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
     }
 
     public void setEpisode(Episode value) {
@@ -300,8 +302,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     private void execute(MutableLiveData<Result> result, Callable<Result> callable) {
-        if (executor != null) executor.shutdownNow();
-        executor = Executors.newFixedThreadPool(2);
+        // 直接提交任务并等待结果，去除外层 execute + 内层 submit 的双重线程嵌套
         executor.execute(() -> {
             try {
                 if (Thread.interrupted()) return;
@@ -322,6 +323,6 @@ public class SiteViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        if (executor != null) executor.shutdownNow();
+        executor.shutdownNow();
     }
 }

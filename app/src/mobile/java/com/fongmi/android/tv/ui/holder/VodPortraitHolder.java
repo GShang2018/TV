@@ -37,7 +37,8 @@ public class VodPortraitHolder extends BaseVodHolder {
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
+        // 竖版封面应用与播放页一致的裁切方式（左/中/右）
+        ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), binding.image);
         setTagMaxWidth(binding.image, 12, binding.year, binding.site, binding.remark);
     }
 }

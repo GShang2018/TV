@@ -63,7 +63,7 @@ public class ImgUtil {
     // 海报加载：加载中显示 loading 图标（居中），完成后按 3:4 竖版固定显示
     public static void loadPoster(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);
-        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform()).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().listener(getPosterListener(view)).into(view);
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform(Setting.getPosterCrop())).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().listener(getPosterListener(view)).into(view);
         else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
         else view.setImageResource(R.drawable.ic_img_error);
     }

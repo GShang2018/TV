@@ -73,10 +73,13 @@ public class JarLoader {
     }
 
     private File download(String url) {
+        File file = Path.jar(url);
+        // 本地已缓存 jar 时直接复用，避免每次重启都重新下载
+        if (file.exists() && file.length() > 0) return file;
         try {
-            return Path.write(Path.jar(url), OkHttp.newCall(url).execute().body().bytes());
+            return Path.write(file, OkHttp.newCall(url).execute().body().bytes());
         } catch (Exception e) {
-            return Path.jar(url);
+            return file;
         }
     }
 

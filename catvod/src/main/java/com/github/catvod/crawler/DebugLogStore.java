@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DebugLogStore {
 
@@ -22,6 +24,12 @@ public class DebugLogStore {
     private static final String FILE_NAME = "tv-debug-log.txt";
     private static final int MAX_LINES = 2000;
     private static final int MAX_MESSAGE_CHARS = 12000;
+    // 单线程异步写文件，避免同步磁盘 I/O 阻塞爬虫线程
+    private static final ExecutorService WRITER = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "debug-log-writer");
+        thread.setDaemon(true);
+        return thread;
+    });
     private static long version;
     private static volatile boolean enabled = true;
 
@@ -41,8 +49,9 @@ public class DebugLogStore {
             LINES.addLast(line);
             if (LINES.size() > MAX_LINES) LINES.removeFirst();
             version++;
-            writeLocked(line);
         }
+        // 异步写文件，不阻塞调用线程
+        WRITER.execute(() -> writeLocked(line));
     }
 
     public static String text() {

@@ -3,7 +3,6 @@ package com.fongmi.android.tv.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -109,7 +108,7 @@ public class KeepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             listHolder.binding.site.setText(item.getSiteName());
             listHolder.binding.site.setVisibility(View.VISIBLE);
             listHolder.binding.remark.setText(item.getSiteName());
-            ImgUtil.load(item.getVodName(), item.getVodPic(), listHolder.binding.image, ImageView.ScaleType.FIT_CENTER, false);
+            ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), listHolder.binding.image);
             setClickListener(listHolder.binding.getRoot(), item);
         } else {
             ViewHolder viewHolder = (ViewHolder) holder;

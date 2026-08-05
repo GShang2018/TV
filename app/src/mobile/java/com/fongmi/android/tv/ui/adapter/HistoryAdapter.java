@@ -3,7 +3,6 @@ package com.fongmi.android.tv.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -116,7 +115,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             listHolder.binding.progress.setMax((int) item.getDuration());
             listHolder.binding.progress.setProgress((int) item.getPosition());
             listHolder.binding.progress.setVisibility(View.VISIBLE);
-            ImgUtil.load(item.getVodName(), item.getVodPic(), listHolder.binding.image, ImageView.ScaleType.FIT_CENTER, false);
+            ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), listHolder.binding.image);
             setClickListener(listHolder.binding.getRoot(), item);
         } else {
             ViewHolder viewHolder = (ViewHolder) holder;

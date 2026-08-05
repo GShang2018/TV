@@ -59,7 +59,7 @@
                     android:textSize="14sp"
                     android:gravity="left"
                     tools:ignore="NestedWeights"
-                    tools:text="鐙傞" />
+                    tools:text="狂飆" />
 
             </LinearLayout>
 
@@ -85,7 +85,7 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="14sp"
                     tools:ignore="NestedWeights"
-                    tools:text="鐙傞" />
+                    tools:text="狂飆" />
 
                 <ImageView
                     android:id="@+id/search"

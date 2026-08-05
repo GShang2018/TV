@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.ui.holder;
 
 import android.view.View;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
@@ -34,6 +33,7 @@ public class VodOneHolder extends BaseVodHolder {
         binding.site.setVisibility(item.getSiteVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.load(item.getVodName(), item.getVodPic(), binding.image, ImageView.ScaleType.FIT_CENTER, false);
+        // 搜索结果列表竖版封面应用与播放页一致的裁切方式（左/中/右）
+        ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), binding.image);
     }
 }

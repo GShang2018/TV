@@ -81,6 +81,7 @@
     <string name="setting_reset">重置App</string>
     <string name="setting_quality">图片品质</string>
     <string name="setting_size">图片尺寸</string>
+    <string name="setting_poster_crop">竖版封面裁切</string>
     <string name="setting_aggregated_search">聚合搜索</string>
     <string name="setting_language">语言设置</string>
     <string name="setting_parse_webview">嗅探内核</string>
@@ -158,6 +159,8 @@
     <string name="error_config_parse">配置解析失败</string>
     <string name="error_play_next">已经是最后一集了！</string>
     <string name="error_play_prev">已经是第一集了！</string>
+    <string name="error_pip">当前设备不支持画中画</string>
+    <string name="pip_restore">还原</string>
     <string name="error_play_parse">播放地址解析失败</string>
     <string name="error_play_url">播放地址加载失败\n错误代码：<xliff:g name="name">%s</xliff:g></string>
     <string name="error_play_flag">暂无线路数据</string>
@@ -227,6 +230,12 @@
         <item>中</item>
         <item>大</item>
         <item>特大</item>
+    </string-array>
+
+    <string-array name="select_poster_crop">
+        <item>靠左</item>
+        <item>居中</item>
+        <item>靠右</item>
     </string-array>
 
     <string-array name="select_scale">

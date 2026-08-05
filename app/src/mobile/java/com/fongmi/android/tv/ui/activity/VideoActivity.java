@@ -449,6 +449,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
         mBinding.control.refresh.setOnClickListener(view -> onRefresh());
+        mBinding.control.pip.setOnClickListener(view -> onPiP());
         mBinding.share.setOnClickListener(view -> onShareClick());
         mBinding.control.full.setOnClickListener(view -> onFull());
         mBinding.keep.setOnClickListener(view -> onKeep());
@@ -1354,6 +1355,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.right.lock.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.refresh.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.control.pip.setVisibility(mHistory == null || PiP.noPiP() ? View.GONE : View.VISIBLE);
         mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
@@ -1626,6 +1628,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             mBinding.control.prev.performClick();
         } else if (ActionEvent.STOP.equals(event.getAction())) {
             finish();
+        } else if (ActionEvent.RESTORE.equals(event.getAction())) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) moveTaskToBack(false);
         }
     }
 
@@ -2119,6 +2123,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) mPlayers.checkData(data);
+    }
+
+    private void onPiP() {
+        if (PiP.noPiP()) {
+            Notify.show(R.string.error_pip);
+            return;
+        }
+        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) {
+            mPiP.enterManually(this, mPlayers.getVideoWidth(), mPlayers.getVideoHeight(), getScale(), mPlayers.isPlaying());
+        }
     }
 
     @Override

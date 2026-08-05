@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -95,7 +96,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
             holder.binding.text.setSelected(searchable);
             holder.binding.text.setActivated(searchable);
             if (searchable) {
-                holder.binding.text.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_stroke_active)));
+                holder.binding.text.setStrokeColor(ColorStateList.valueOf(getOutlineColor(holder.itemView)));
                 holder.binding.text.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_text_active));
             } else {
                 holder.binding.text.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_disabled_stroke)));
@@ -107,6 +108,15 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
             holder.binding.text.setSelected(on && item.isActivated());
             holder.binding.text.setActivated(on && item.isActivated());
             holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
+        }
+    }
+
+    private int getOutlineColor(View view) {
+        TypedArray a = view.getContext().obtainStyledAttributes(new int[]{com.google.android.material.R.attr.colorOutline});
+        try {
+            return a.getColor(0, ContextCompat.getColor(view.getContext(), R.color.site_stroke_active));
+        } finally {
+            a.recycle();
         }
     }
 

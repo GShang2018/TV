@@ -12,6 +12,7 @@ public class ActionEvent {
     public static String PLAY = BuildConfig.APPLICATION_ID.concat(".play");
     public static String PAUSE = BuildConfig.APPLICATION_ID.concat(".pause");
     public static String UPDATE = BuildConfig.APPLICATION_ID.concat(".update");
+    public static String RESTORE = BuildConfig.APPLICATION_ID.concat(".restore");
 
     private final String action;
 

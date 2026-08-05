@@ -19,7 +19,6 @@
         android:textSize="14sp"
         app:backgroundTint="@color/site_bg_video"
         app:cornerRadius="8dp"
-        app:rippleColor="?attr/colorPrimary"
         tools:text="泥巴" />
 
 </LinearLayout>

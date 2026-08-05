@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.ui.holder;
 
-import android.widget.ImageView;
-
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.bean.Vod;
@@ -33,6 +31,7 @@ public class VodListHolder extends BaseVodHolder {
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.load(item.getVodName(), item.getVodPic(), binding.image, ImageView.ScaleType.FIT_CENTER, false);
+        // list 模式竖版封面应用与详情页一致的裁切方式（左/中/右），保证与首页封面效果一致
+        ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), binding.image);
     }
 }

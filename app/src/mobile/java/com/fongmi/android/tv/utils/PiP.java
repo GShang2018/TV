@@ -60,15 +60,22 @@ public class PiP {
 
     public void update(Activity activity, boolean play) {
         if (noPiP()) return;
-        List<RemoteAction> actions = new ArrayList<>();
-        actions.add(buildRemoteAction(activity, R.drawable.exo_icon_previous, R.string.exo_controls_previous_description, ActionEvent.PREV));
-        actions.add(getPlayPauseAction(activity, play));
-        actions.add(buildRemoteAction(activity, R.drawable.exo_icon_next, R.string.exo_controls_next_description, ActionEvent.NEXT));
         try {
-            activity.setPictureInPictureParams(builder.setActions(actions).build());
+            activity.setPictureInPictureParams(builder.setActions(getActions(activity, play)).build());
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private List<RemoteAction> getActions(Activity activity, boolean play) {
+        List<RemoteAction> actions = new ArrayList<>();
+        // 还原按钮放在最前面，确保在控件栏中优先显示
+        actions.add(buildRemoteAction(activity, com.fongmi.android.tv.R.drawable.ic_control_full, com.fongmi.android.tv.R.string.pip_restore, ActionEvent.RESTORE));
+        actions.add(getPlayPauseAction(activity, play));
+        actions.add(buildRemoteAction(activity, R.drawable.exo_icon_previous, R.string.exo_controls_previous_description, ActionEvent.PREV));
+        actions.add(buildRemoteAction(activity, R.drawable.exo_icon_next, R.string.exo_controls_next_description, ActionEvent.NEXT));
+        return actions;
     }
 
     public void enter(Activity activity, int width, int height, int scale) {
@@ -76,22 +83,35 @@ public class PiP {
             if (noPiP() || activity.isInPictureInPictureMode() || !Setting.isBackgroundPiP()) return;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) builder.setAutoEnterEnabled(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) builder.setSeamlessResizeEnabled(true);
-            if (scale == 1) builder.setAspectRatio(new Rational(16, 9));
-            else if (scale == 2) builder.setAspectRatio(new Rational(4, 3));
-            else builder.setAspectRatio(getRational(width, height));
+            builder.setAspectRatio(getFixedRational(scale));
             activity.enterPictureInPictureMode(builder.build());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private Rational getRational(int width, int height) {
-        Rational limitWide = new Rational(239, 100);
-        Rational limitTall = new Rational(100, 239);
-        Rational rational = new Rational(width, height);
-        if (rational.isInfinite()) return new Rational(16, 9);
-        if (rational.floatValue() > limitWide.floatValue()) return limitWide;
-        if (rational.floatValue() < limitTall.floatValue()) return limitTall;
-        return rational;
+    /**
+     * 手动进入画中画（不检查后台画中画开关）
+     */
+    public void enterManually(Activity activity, int width, int height, int scale, boolean play) {
+        try {
+            if (noPiP() || activity.isInPictureInPictureMode()) return;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) builder.setAutoEnterEnabled(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) builder.setSeamlessResizeEnabled(true);
+            builder.setAspectRatio(getFixedRational(scale));
+            builder.setActions(getActions(activity, play));
+            activity.setPictureInPictureParams(builder.build());
+            activity.enterPictureInPictureMode(builder.build());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 小窗保持固定比例，不随视频内容变化
+     */
+    private Rational getFixedRational(int scale) {
+        if (scale == 2) return new Rational(4, 3);
+        return new Rational(16, 9);
     }
 }

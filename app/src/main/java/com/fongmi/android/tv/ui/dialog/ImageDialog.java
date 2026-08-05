@@ -49,7 +49,17 @@ public class ImageDialog {
         dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
+        // 顶部预留状态栏高度，避免图像被状态栏遮挡
+        binding.image.setPadding(0, getStatusBarHeight(), 0, 0);
         binding.getRoot().setOnClickListener(v -> dialog.dismiss());
+    }
+
+    private int getStatusBarHeight() {
+        int resourceId = binding.getRoot().getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            return binding.getRoot().getResources().getDimensionPixelSize(resourceId);
+        }
+        return 0;
     }
 
     private void initView() {

@@ -38,6 +38,7 @@ public class SettingCustomFragment extends BaseFragment {
     private String[] lang;
     private String[] configCache;
     private String[] themeColors;
+    private String[] posterCrop;
 
     public static SettingCustomFragment newInstance() {
         return new SettingCustomFragment();
@@ -55,6 +56,7 @@ public class SettingCustomFragment extends BaseFragment {
     @Override
     protected void initView() {
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Setting.getSize()]);
+        mBinding.posterCropText.setText((posterCrop = ResUtil.getStringArray(R.array.select_poster_crop))[Setting.getPosterCrop()]);
         mBinding.speedText.setText(getSpeedText());
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
@@ -72,6 +74,7 @@ public class SettingCustomFragment extends BaseFragment {
     @Override
     protected void initEvent() {
         mBinding.size.setOnClickListener(this::setSize);
+        mBinding.posterCrop.setOnClickListener(this::setPosterCrop);
         mBinding.speed.setOnClickListener(this::setSpeed);
         mBinding.speed.setOnLongClickListener(this::resetSpeed);
         mBinding.incognito.setOnClickListener(this::setIncognito);
@@ -99,6 +102,15 @@ public class SettingCustomFragment extends BaseFragment {
         new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, Setting.getSize(), (dialog, which) -> {
             mBinding.sizeText.setText(size[which]);
             Setting.putSize(which);
+            RefreshEvent.size();
+            dialog.dismiss();
+        }).show();
+    }
+
+    private void setPosterCrop(View view) {
+        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_poster_crop).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(posterCrop, Setting.getPosterCrop(), (dialog, which) -> {
+            mBinding.posterCropText.setText(posterCrop[which]);
+            Setting.putPosterCrop(which);
             RefreshEvent.size();
             dialog.dismiss();
         }).show();

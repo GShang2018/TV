@@ -8,7 +8,7 @@ public class Constant {
     //網路偵測間隔
     public static final int INTERVAL_TRAFFIC = 1000;
     //點播爬蟲時間
-    public static final int TIMEOUT_VOD = 30 * 1000;
+    public static final int TIMEOUT_VOD = 15 * 1000;
     //直播爬蟲時間
     public static final int TIMEOUT_LIVE = 30 * 1000;
     //節目爬蟲時間

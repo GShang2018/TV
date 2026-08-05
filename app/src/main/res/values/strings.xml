@@ -88,6 +88,7 @@
     <string name="setting_reset">Reset app</string>
     <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
+    <string name="setting_poster_crop">Poster crop</string>
     <string name="setting_aggregated_search">Aggregated search</string>
     <string name="setting_language">Lanuage setting</string>
     <string name="setting_parse_webview">Parse webview</string>
@@ -165,6 +166,8 @@
     <string name="error_config_parse">Configuration parse failed</string>
     <string name="error_play_next">It\'s the last episode!</string>
     <string name="error_play_prev">It\'s the first episode!</string>
+    <string name="error_pip">Picture-in-picture is not supported</string>
+    <string name="pip_restore">Restore</string>
     <string name="error_play_parse">Unable to parse url</string>
     <string name="error_play_url">Unable to load url\nError code: <xliff:g name="name">%s</xliff:g></string>
     <string name="error_play_flag">No flag data</string>
@@ -239,6 +242,12 @@
         <item>Medium</item>
         <item>Large</item>
         <item>Extra</item>
+    </string-array>
+
+    <string-array name="select_poster_crop">
+        <item>Left</item>
+        <item>Center</item>
+        <item>Right</item>
     </string-array>
 
     <string-array name="select_scale">

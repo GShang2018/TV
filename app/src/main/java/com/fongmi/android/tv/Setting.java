@@ -122,6 +122,17 @@ public class Setting {
         Prefers.put("size", size);
     }
 
+    /**
+     * 竖版封面裁切方式：0=靠左，1=居中，2=靠右，默认居中
+     */
+    public static int getPosterCrop() {
+        return Prefers.getInt("poster_crop", 1);
+    }
+
+    public static void putPosterCrop(int crop) {
+        Prefers.put("poster_crop", crop);
+    }
+
     public static int getViewType(int viewType) {
         return Prefers.getInt("viewType", viewType);
     }

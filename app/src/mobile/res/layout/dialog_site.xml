@@ -71,13 +71,12 @@
             android:paddingEnd="14dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:strokeColor="@color/site_stroke_active"
+            android:strokeColor="?attr/colorOutline"
             android:text="@string/site_select_all"
             android:textColor="@color/site_text_active"
             android:textSize="14sp"
             app:backgroundTint="@android:color/transparent"
-            app:cornerRadius="8dp"
-            app:rippleColor="?attr/colorPrimary" />
+            app:cornerRadius="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/selectNone"
@@ -91,13 +90,12 @@
             android:paddingEnd="14dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:strokeColor="@color/site_stroke_active"
+            android:strokeColor="?attr/colorOutline"
             android:text="@string/site_select_none"
             android:textColor="@color/site_text_active"
             android:textSize="14sp"
             app:backgroundTint="@android:color/transparent"
-            app:cornerRadius="8dp"
-            app:rippleColor="?attr/colorPrimary" />
+            app:cornerRadius="8dp" />
 
     </LinearLayout>
 
