@@ -12,6 +12,23 @@
     <string name="home_history">最近观看</string>
     <string name="home_recommend">更新推荐</string>
 
+    <!-- Keep Folder -->
+    <string name="keep_folder">收藏夹</string>
+    <string name="keep_folder_create">新建收藏夹</string>
+    <string name="keep_folder_name">收藏夹名称</string>
+    <string name="keep_folder_default">默认收藏夹</string>
+    <string name="keep_folder_delete">删除收藏夹</string>
+    <string name="keep_folder_delete_msg">删除该收藏夹及其所有收藏？</string>
+    <string name="keep_choose_folder">选择收藏夹</string>
+    <string name="keep_move_folder">移动到收藏夹</string>
+    <string name="keep_export">导出收藏</string>
+    <string name="keep_import">导入收藏</string>
+    <string name="keep_export_success">收藏已导出</string>
+    <string name="keep_import_success">收藏已导入</string>
+    <string name="keep_import_fail">导入失败</string>
+    <string name="keep_folder_empty">暂无收藏</string>
+    <string name="keep_folder_count">%d 个影片</string>
+
     <!-- Collect -->
     <string name="collect_result">“<xliff:g name="name">%s</xliff:g>”的搜索结果</string>
 

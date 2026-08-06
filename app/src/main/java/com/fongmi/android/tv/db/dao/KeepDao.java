@@ -13,6 +13,12 @@ public abstract class KeepDao extends BaseDao<Keep> {
     @Query("SELECT * FROM Keep WHERE type = 0 ORDER BY createTime DESC")
     public abstract List<Keep> getVod();
 
+    @Query("SELECT * FROM Keep WHERE type = 0 AND folderId = :folderId ORDER BY createTime DESC")
+    public abstract List<Keep> getVod(int folderId);
+
+    @Query("SELECT COUNT(*) FROM Keep WHERE type = 0 AND folderId = :folderId")
+    public abstract int getFolderCount(int folderId);
+
     @Query("SELECT * FROM Keep WHERE type = 1 ORDER BY createTime DESC")
     public abstract List<Keep> getLive();
 
@@ -33,4 +39,7 @@ public abstract class KeepDao extends BaseDao<Keep> {
 
     @Query("DELETE FROM Keep WHERE type = 0")
     public abstract void delete();
+
+    @Query("DELETE FROM Keep WHERE type = 0 AND folderId = :folderId")
+    public abstract void deleteFolder(int folderId);
 }

@@ -4,6 +4,23 @@
     <string name="app_keep">Keep</string>
     <string name="app_history">History</string>
 
+    <!-- Keep Folder -->
+    <string name="keep_folder">Folders</string>
+    <string name="keep_folder_create">New Folder</string>
+    <string name="keep_folder_name">Folder Name</string>
+    <string name="keep_folder_default">Default</string>
+    <string name="keep_folder_delete">Delete Folder</string>
+    <string name="keep_folder_delete_msg">Delete this folder and all its keeps?</string>
+    <string name="keep_choose_folder">Choose Folder</string>
+    <string name="keep_move_folder">Move to Folder</string>
+    <string name="keep_export">Export Keeps</string>
+    <string name="keep_import">Import Keeps</string>
+    <string name="keep_export_success">Keeps exported</string>
+    <string name="keep_import_success">Keeps imported</string>
+    <string name="keep_import_fail">Import failed</string>
+    <string name="keep_folder_empty">No keeps</string>
+    <string name="keep_folder_count">%d movies</string>
+
     <!-- Nav -->
     <string name="nav_vod">Vod</string>
     <string name="nav_live">Live</string>

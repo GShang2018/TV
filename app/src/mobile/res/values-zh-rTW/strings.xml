@@ -4,6 +4,23 @@
     <string name="app_keep">我的收藏</string>
     <string name="app_history">最近觀看</string>
 
+    <!-- Keep Folder -->
+    <string name="keep_folder">收藏夾</string>
+    <string name="keep_folder_create">新增收藏夾</string>
+    <string name="keep_folder_name">收藏夾名稱</string>
+    <string name="keep_folder_default">預設收藏夾</string>
+    <string name="keep_folder_delete">刪除收藏夾</string>
+    <string name="keep_folder_delete_msg">刪除該收藏夾及其所有收藏？</string>
+    <string name="keep_choose_folder">選擇收藏夾</string>
+    <string name="keep_move_folder">移動到收藏夾</string>
+    <string name="keep_export">匯出收藏</string>
+    <string name="keep_import">匯入收藏</string>
+    <string name="keep_export_success">收藏已匯出</string>
+    <string name="keep_import_success">收藏已匯入</string>
+    <string name="keep_import_fail">匯入失敗</string>
+    <string name="keep_folder_empty">暫無收藏</string>
+    <string name="keep_folder_count">%d 個影片</string>
+
     <!-- Nav -->
     <string name="nav_vod">點播</string>
     <string name="nav_live">直播</string>

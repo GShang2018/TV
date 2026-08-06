@@ -13,9 +13,11 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -47,6 +49,7 @@ import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.bean.KeepFolder;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Part;
 import com.fongmi.android.tv.bean.Result;
@@ -97,6 +100,7 @@ import com.github.bassaer.library.MDColor;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -927,11 +931,53 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void onKeep() {
         Keep keep = Keep.find(getHistoryKey());
-        Notify.show(keep != null ? R.string.keep_del : R.string.keep_add);
-        if (keep != null) keep.delete();
-        else createKeep();
-        RefreshEvent.keep();
-        checkKeep();
+        if (keep != null) {
+            Notify.show(R.string.keep_del);
+            keep.delete();
+            RefreshEvent.keep();
+            checkKeep();
+        } else {
+            chooseFolder();
+        }
+    }
+
+    private void chooseFolder() {
+        List<KeepFolder> folders = new ArrayList<>();
+        KeepFolder def = new KeepFolder(getString(R.string.keep_folder_default));
+        def.setId(0);
+        folders.add(def);
+        folders.addAll(KeepFolder.getAll());
+        String[] names = new String[folders.size() + 1];
+        for (int i = 0; i < folders.size(); i++) names[i] = folders.get(i).getName();
+        names[folders.size()] = getString(R.string.keep_folder_create);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.keep_choose_folder)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setSingleChoiceItems(names, 0, (dialog, which) -> {
+                    if (which < folders.size()) {
+                        createKeep(folders.get(which).getId());
+                        dialog.dismiss();
+                    } else {
+                        dialog.dismiss();
+                        createFolderAndKeep();
+                    }
+                }).show();
+    }
+
+    private void createFolderAndKeep() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_text, null);
+        EditText editText = dialogView.findViewById(R.id.editText);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.keep_folder_create)
+                .setView(dialogView)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    String name = editText.getText().toString().trim();
+                    if (TextUtils.isEmpty(name)) return;
+                    new KeepFolder(name).save();
+                    KeepFolder folder = KeepFolder.findByName(name);
+                    createKeep(folder == null ? 0 : folder.getId());
+                }).show();
     }
 
     private void onVideo() {
@@ -1360,7 +1406,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.keep.setCompoundDrawablesWithIntrinsicBounds(Keep.find(getHistoryKey()) == null ? R.drawable.ic_detail_keep_off : R.drawable.ic_detail_keep_on, 0, 0, 0);
     }
 
-    private void createKeep() {
+    private void createKeep(int folderId) {
         Keep keep = new Keep();
         keep.setKey(getHistoryKey());
         keep.setCid(VodConfig.getCid());
@@ -1368,7 +1414,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         keep.setVodPic(mBinding.video.getTag().toString());
         keep.setVodName(mBinding.name.getText().toString());
         keep.setCreateTime(System.currentTimeMillis());
+        keep.setFolderId(folderId);
         keep.save();
+        Notify.show(R.string.keep_add);
+        RefreshEvent.keep();
+        checkKeep();
     }
 
     @Override

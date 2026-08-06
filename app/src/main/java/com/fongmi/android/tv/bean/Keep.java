@@ -34,6 +34,8 @@ public class Keep {
     private int type;
     @SerializedName("cid")
     private int cid;
+    @SerializedName("folderId")
+    private int folderId;
 
     public static List<Keep> arrayFrom(String str) {
         Type listType = new TypeToken<List<Keep>>() {}.getType();
@@ -98,6 +100,14 @@ public class Keep {
         this.cid = cid;
     }
 
+    public int getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(int folderId) {
+        this.folderId = folderId;
+    }
+
     public String getSiteKey() {
         return getKey().split(AppDatabase.SYMBOL)[0];
     }
@@ -132,6 +142,10 @@ public class Keep {
 
     public static List<Keep> getVod() {
         return AppDatabase.get().getKeepDao().getVod();
+    }
+
+    public static List<Keep> getVod(int folderId) {
+        return AppDatabase.get().getKeepDao().getVod(folderId);
     }
 
     public static List<Keep> getLive() {

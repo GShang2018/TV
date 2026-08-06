@@ -12,6 +12,23 @@
     <string name="home_history">History</string>
     <string name="home_recommend">Recommend</string>
 
+    <!-- Keep Folder -->
+    <string name="keep_folder">Folders</string>
+    <string name="keep_folder_create">New Folder</string>
+    <string name="keep_folder_name">Folder Name</string>
+    <string name="keep_folder_default">Default</string>
+    <string name="keep_folder_delete">Delete Folder</string>
+    <string name="keep_folder_delete_msg">Delete this folder and all its keeps?</string>
+    <string name="keep_choose_folder">Choose Folder</string>
+    <string name="keep_move_folder">Move to Folder</string>
+    <string name="keep_export">Export Keeps</string>
+    <string name="keep_import">Import Keeps</string>
+    <string name="keep_export_success">Keeps exported</string>
+    <string name="keep_import_success">Keeps imported</string>
+    <string name="keep_import_fail">Import failed</string>
+    <string name="keep_folder_empty">No keeps</string>
+    <string name="keep_folder_count">%d movies</string>
+
     <!-- Collect -->
     <string name="collect_result">Search results for <xliff:g name="name">%s</xliff:g></string>
 

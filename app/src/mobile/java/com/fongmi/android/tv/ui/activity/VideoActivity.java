@@ -26,11 +26,13 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -64,6 +66,7 @@ import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.bean.KeepFolder;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
@@ -1024,11 +1027,53 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onKeep() {
         Keep keep = Keep.find(getHistoryKey());
-        Notify.show(keep != null ? R.string.keep_del : R.string.keep_add);
-        if (keep != null) keep.delete();
-        else createKeep();
-        RefreshEvent.keep();
-        checkKeepImg();
+        if (keep != null) {
+            Notify.show(R.string.keep_del);
+            keep.delete();
+            RefreshEvent.keep();
+            checkKeepImg();
+        } else {
+            chooseFolder();
+        }
+    }
+
+    private void chooseFolder() {
+        List<KeepFolder> folders = new ArrayList<>();
+        KeepFolder def = new KeepFolder(getString(R.string.keep_folder_default));
+        def.setId(0);
+        folders.add(def);
+        folders.addAll(KeepFolder.getAll());
+        String[] names = new String[folders.size() + 1];
+        for (int i = 0; i < folders.size(); i++) names[i] = folders.get(i).getName();
+        names[folders.size()] = getString(R.string.keep_folder_create);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.keep_choose_folder)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setSingleChoiceItems(names, 0, (dialog, which) -> {
+                    if (which < folders.size()) {
+                        createKeep(folders.get(which).getId());
+                        dialog.dismiss();
+                    } else {
+                        dialog.dismiss();
+                        createFolderAndKeep();
+                    }
+                }).show();
+    }
+
+    private void createFolderAndKeep() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_text, null);
+        EditText editText = dialogView.findViewById(R.id.editText);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.keep_folder_create)
+                .setView(dialogView)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    String name = editText.getText().toString().trim();
+                    if (TextUtils.isEmpty(name)) return;
+                    new KeepFolder(name).save();
+                    KeepFolder folder = KeepFolder.findByName(name);
+                    createKeep(folder == null ? 0 : folder.getId());
+                }).show();
     }
 
     private void onDanmu() {
@@ -1576,7 +1621,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.battery.setImageResource(resId);
     }
 
-    private void createKeep() {
+    private void createKeep(int folderId) {
         Keep keep = new Keep();
         keep.setKey(getHistoryKey());
         keep.setCid(VodConfig.getCid());
@@ -1584,7 +1629,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         keep.setVodPic(mBinding.video.getTag().toString());
         keep.setVodName(mBinding.name.getText().toString());
         keep.setCreateTime(System.currentTimeMillis());
+        keep.setFolderId(folderId);
         keep.save();
+        Notify.show(R.string.keep_add);
+        RefreshEvent.keep();
+        checkKeepImg();
     }
 
     @Override

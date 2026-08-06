@@ -16,6 +16,7 @@ import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.Download;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.bean.KeepFolder;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Track;
@@ -24,6 +25,7 @@ import com.fongmi.android.tv.db.dao.DeviceDao;
 import com.fongmi.android.tv.db.dao.DownloadDao;
 import com.fongmi.android.tv.db.dao.HistoryDao;
 import com.fongmi.android.tv.db.dao.KeepDao;
+import com.fongmi.android.tv.db.dao.KeepFolderDao;
 import com.fongmi.android.tv.db.dao.LiveDao;
 import com.fongmi.android.tv.db.dao.SiteDao;
 import com.fongmi.android.tv.db.dao.TrackDao;
@@ -36,10 +38,10 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-@Database(entities = {Keep.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class}, version = AppDatabase.VERSION)
+@Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 31;
+    public static final int VERSION = 32;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
     public static final String BACKUP_SUFFIX = "tv.backup";
@@ -116,10 +118,13 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_28_29)
                 .addMigrations(MIGRATION_29_30)
                 .addMigrations(MIGRATION_30_31)
+                .addMigrations(MIGRATION_31_32)
                 .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
     public abstract KeepDao getKeepDao();
+
+    public abstract KeepFolderDao getKeepFolderDao();
 
     public abstract SiteDao getSiteDao();
 
@@ -285,6 +290,14 @@ public abstract class AppDatabase extends RoomDatabase {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("CREATE TABLE Download (`id` TEXT NOT NULL, vodPic TEXT, vodName TEXT, url TEXT, header TEXT, createTime INTEGER NOT NULL, PRIMARY KEY (`id`))");
+        }
+    };
+
+    static final Migration MIGRATION_31_32 = new Migration(31, 32) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Keep ADD COLUMN folderId INTEGER DEFAULT 0 NOT NULL");
+            database.execSQL("CREATE TABLE IF NOT EXISTS `KeepFolder` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `createTime` INTEGER NOT NULL)");
         }
     };
 }
