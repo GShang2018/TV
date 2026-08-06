@@ -697,6 +697,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.info.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.download.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
     }
 
     private void setText(TextView view, int resId, CharSequence text) {
@@ -1358,6 +1359,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.pip.setVisibility(mHistory == null || PiP.noPiP() ? View.GONE : View.VISIBLE);
         mBinding.share.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.cast.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
+        mBinding.download.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
