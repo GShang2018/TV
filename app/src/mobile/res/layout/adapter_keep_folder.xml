@@ -1,78 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="16dp">
-
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="bottom">
-
-        <ImageView
-            android:id="@+id/cover3"
-            android:layout_width="58dp"
-            android:layout_height="77dp"
-            android:layout_gravity="bottom"
-            android:layout_marginStart="40dp"
-            android:background="@drawable/shape_keep_cover"
-            android:clipToOutline="true"
-            android:contentDescription="@string/keep_folder"
-            android:elevation="4dp"
-            android:outlineAmbientShadowColor="#30000000"
-            android:outlineProvider="background"
-            android:outlineSpotShadowColor="#30000000"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_img_loading" />
-
-        <ImageView
-            android:id="@+id/cover2"
-            android:layout_width="65dp"
-            android:layout_height="87dp"
-            android:layout_gravity="bottom"
-            android:layout_marginStart="20dp"
-            android:background="@drawable/shape_keep_cover"
-            android:clipToOutline="true"
-            android:contentDescription="@string/keep_folder"
-            android:elevation="6dp"
-            android:outlineAmbientShadowColor="#55000000"
-            android:outlineProvider="background"
-            android:outlineSpotShadowColor="#55000000"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_img_loading" />
-
-        <ImageView
-            android:id="@+id/cover1"
-            android:layout_width="72dp"
-            android:layout_height="96dp"
-            android:layout_gravity="bottom"
-            android:background="@drawable/shape_keep_cover"
-            android:clipToOutline="true"
-            android:contentDescription="@string/keep_folder"
-            android:elevation="8dp"
-            android:outlineAmbientShadowColor="#80000000"
-            android:outlineProvider="background"
-            android:outlineSpotShadowColor="#80000000"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_img_loading" />
-
-    </FrameLayout>
+    android:orientation="vertical"
+    android:paddingTop="16dp"
+    android:paddingBottom="8dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="12dp">
 
         <TextView
             android:id="@+id/name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
@@ -81,24 +29,41 @@
             tools:text="默认收藏夹" />
 
         <TextView
-            android:id="@+id/count"
+            android:id="@+id/all"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="13sp"
-            tools:text="0 个影片" />
+            android:gravity="center"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            app:drawableEndCompat="@drawable/ic_detail_more"
+            app:drawableTint="?attr/colorOnSurface"
+            tools:text="全部 10" />
+
+        <ImageView
+            android:id="@+id/delete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/keep_folder_delete"
+            android:src="@drawable/ic_action_delete"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/delete"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/keep_folder_delete"
-        android:src="@drawable/ic_action_delete"
-        android:visibility="gone"
-        tools:visibility="visible" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:nestedScrollingEnabled="false"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:itemCount="3" />
 
 </LinearLayout>

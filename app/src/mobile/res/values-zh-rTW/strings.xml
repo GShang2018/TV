@@ -20,6 +20,7 @@
     <string name="keep_import_fail">匯入失敗</string>
     <string name="keep_folder_empty">暫無收藏</string>
     <string name="keep_folder_count">%d 個影片</string>
+    <string name="keep_folder_all">全部 %d</string>
 
     <!-- Nav -->
     <string name="nav_vod">點播</string>

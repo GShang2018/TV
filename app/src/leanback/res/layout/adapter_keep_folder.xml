@@ -7,12 +7,15 @@
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:clipChildren="false">
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="bottom">
+        android:gravity="bottom"
+        android:clipChildren="false"
+        android:padding="22dp">
 
         <ImageView
             android:id="@+id/cover3"
@@ -23,10 +26,11 @@
             android:background="@drawable/shape_keep_cover"
             android:clipToOutline="true"
             android:contentDescription="@string/keep_folder"
-            android:elevation="6dp"
-            android:outlineAmbientShadowColor="#30000000"
+            android:elevation="12dp"
+            android:translationZ="3dp"
             android:outlineProvider="background"
-            android:outlineSpotShadowColor="#30000000"
+            android:outlineSpotShadowColor="#CC000000"
+            android:outlineAmbientShadowColor="#99000000"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_img_loading" />
 
@@ -39,10 +43,11 @@
             android:background="@drawable/shape_keep_cover"
             android:clipToOutline="true"
             android:contentDescription="@string/keep_folder"
-            android:elevation="8dp"
-            android:outlineAmbientShadowColor="#55000000"
+            android:elevation="16dp"
+            android:translationZ="5dp"
             android:outlineProvider="background"
-            android:outlineSpotShadowColor="#55000000"
+            android:outlineSpotShadowColor="#DD000000"
+            android:outlineAmbientShadowColor="#AA000000"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_img_loading" />
 
@@ -54,10 +59,11 @@
             android:background="@drawable/shape_keep_cover"
             android:clipToOutline="true"
             android:contentDescription="@string/keep_folder"
-            android:elevation="10dp"
-            android:outlineAmbientShadowColor="#80000000"
+            android:elevation="20dp"
+            android:translationZ="8dp"
             android:outlineProvider="background"
-            android:outlineSpotShadowColor="#80000000"
+            android:outlineSpotShadowColor="#FF000000"
+            android:outlineAmbientShadowColor="#BB000000"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_img_loading" />
 

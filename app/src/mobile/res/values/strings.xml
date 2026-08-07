@@ -20,6 +20,7 @@
     <string name="keep_import_fail">Import failed</string>
     <string name="keep_folder_empty">No keeps</string>
     <string name="keep_folder_count">%d movies</string>
+    <string name="keep_folder_all">All %d</string>
 
     <!-- Nav -->
     <string name="nav_vod">Vod</string>
