@@ -30,6 +30,7 @@ import com.fongmi.android.tv.ui.adapter.KeepAdapter;
 import com.fongmi.android.tv.ui.adapter.KeepFolderAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.SyncDialog;
+import com.fongmi.android.tv.ui.dialog.WebDavDialog;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.KeepBackup;
 import com.fongmi.android.tv.utils.Notify;
@@ -155,7 +156,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
         mBinding.add.setVisibility(folder ? View.VISIBLE : View.GONE);
         mBinding.importBtn.setVisibility(folder ? View.VISIBLE : View.GONE);
         mBinding.exportBtn.setVisibility(folder ? View.VISIBLE : View.GONE);
-        mBinding.sync.setVisibility(folder ? View.GONE : View.VISIBLE);
+        mBinding.sync.setVisibility(View.VISIBLE);
         mBinding.view.setVisibility(folder ? View.GONE : View.VISIBLE);
         mBinding.delete.setVisibility(View.VISIBLE);
     }
@@ -194,7 +195,12 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void onSync(View view) {
-        SyncDialog.create().keep().show(this);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.keep_sync)
+                .setItems(new CharSequence[]{getString(R.string.keep_sync_lan), getString(R.string.keep_sync_webdav)}, (dialog, which) -> {
+                    if (which == 0) SyncDialog.create().keep().show(this);
+                    else WebDavDialog.create().show(this);
+                }).show();
     }
 
     private void onDelete(View view) {

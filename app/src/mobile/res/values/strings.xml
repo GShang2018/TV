@@ -21,6 +21,31 @@
     <string name="keep_folder_empty">No keeps</string>
     <string name="keep_folder_count">%d movies</string>
     <string name="keep_folder_all">All %d</string>
+    <string name="keep_sync">Sync Method</string>
+    <string name="keep_sync_lan">LAN Sync</string>
+    <string name="keep_sync_webdav">WebDAV Cloud Sync</string>
+
+    <!-- WebDAV -->
+    <string name="webdav_title">WebDAV Cloud Sync</string>
+    <string name="webdav_connected">Connected</string>
+    <string name="webdav_url_hint">Server Address</string>
+    <string name="webdav_username_hint">Username</string>
+    <string name="webdav_password_hint">Password</string>
+    <string name="webdav_path_hint">Path (default /tv)</string>
+    <string name="webdav_test">Test Connection</string>
+    <string name="webdav_upload">Upload</string>
+    <string name="webdav_download">Download</string>
+    <string name="webdav_clear">Clear Config</string>
+    <string name="webdav_url_empty">Please enter server address</string>
+    <string name="webdav_username_empty">Please enter username</string>
+    <string name="webdav_password_empty">Please enter password</string>
+    <string name="webdav_upload_confirm_title">Confirm Upload</string>
+    <string name="webdav_upload_confirm_msg">This will overwrite remote data. Continue?</string>
+    <string name="webdav_download_confirm_title">Confirm Download</string>
+    <string name="webdav_download_confirm_msg">This will pull remote data and overwrite local data. Continue?</string>
+    <string name="webdav_clear_confirm_title">Clear Config</string>
+    <string name="webdav_clear_confirm_msg">Clear WebDAV configuration?</string>
+    <string name="webdav_clear_success">Config cleared</string>
 
     <!-- Nav -->
     <string name="nav_vod">Vod</string>

@@ -21,6 +21,31 @@
     <string name="keep_folder_empty">暫無收藏</string>
     <string name="keep_folder_count">%d 個影片</string>
     <string name="keep_folder_all">全部 %d</string>
+    <string name="keep_sync">同步方式</string>
+    <string name="keep_sync_lan">區域網路同步</string>
+    <string name="keep_sync_webdav">WebDAV 雲端同步</string>
+
+    <!-- WebDAV -->
+    <string name="webdav_title">WebDAV 雲端同步</string>
+    <string name="webdav_connected">已連線</string>
+    <string name="webdav_url_hint">伺服器位址</string>
+    <string name="webdav_username_hint">使用者名稱</string>
+    <string name="webdav_password_hint">密碼</string>
+    <string name="webdav_path_hint">路徑（預設 /tv）</string>
+    <string name="webdav_test">測試連線</string>
+    <string name="webdav_upload">上傳</string>
+    <string name="webdav_download">下載</string>
+    <string name="webdav_clear">清除設定</string>
+    <string name="webdav_url_empty">請輸入伺服器位址</string>
+    <string name="webdav_username_empty">請輸入使用者名稱</string>
+    <string name="webdav_password_empty">請輸入密碼</string>
+    <string name="webdav_upload_confirm_title">確認上傳</string>
+    <string name="webdav_upload_confirm_msg">此操作會覆蓋遠端資料，是否繼續？</string>
+    <string name="webdav_download_confirm_title">確認下載</string>
+    <string name="webdav_download_confirm_msg">此操作會拉取遠端資料覆蓋本機資料，是否繼續？</string>
+    <string name="webdav_clear_confirm_title">清除設定</string>
+    <string name="webdav_clear_confirm_msg">確定要清除 WebDAV 設定嗎？</string>
+    <string name="webdav_clear_success">設定已清除</string>
 
     <!-- Nav -->
     <string name="nav_vod">點播</string>
