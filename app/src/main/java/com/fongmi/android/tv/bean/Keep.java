@@ -15,11 +15,10 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
-@Entity
+@Entity(primaryKeys = {"key", "folderId"})
 public class Keep {
 
     @NonNull
-    @PrimaryKey
     @SerializedName("key")
     private String key;
     @SerializedName("siteName")
@@ -124,6 +123,10 @@ public class Keep {
         return AppDatabase.get().getKeepDao().find(cid, key);
     }
 
+    public static List<Integer> getFolderIds(String key) {
+        return AppDatabase.get().getKeepDao().getFolderIds(VodConfig.getCid(), key);
+    }
+
     public static boolean exist(String key) {
         return AppDatabase.get().getKeepDao().find(key) != null;
     }
@@ -163,6 +166,11 @@ public class Keep {
 
     public Keep delete() {
         AppDatabase.get().getKeepDao().delete(getCid(), getKey());
+        return this;
+    }
+
+    public Keep deleteFromFolder(int folderId) {
+        AppDatabase.get().getKeepDao().delete(getCid(), getKey(), folderId);
         return this;
     }
 

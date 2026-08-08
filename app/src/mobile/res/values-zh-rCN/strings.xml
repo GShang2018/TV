@@ -24,6 +24,12 @@
     <string name="keep_sync">同步方式</string>
     <string name="keep_sync_lan">局域网同步</string>
     <string name="keep_sync_webdav">WebDAV 云同步</string>
+    <string name="keep_added_to">已加入“%1$s”</string>
+    <string name="keep_modify">修改收藏夹</string>
+    <string name="keep_done">完成</string>
+    <string name="keep_go_see">去看看</string>
+    <string name="keep_choose_title">选择收藏夹</string>
+    <string name="keep_choose_new">新建收藏夹</string>
 
     <!-- WebDAV -->
     <string name="webdav_title">WebDAV 云同步</string>

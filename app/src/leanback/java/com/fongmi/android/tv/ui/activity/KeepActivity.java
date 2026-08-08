@@ -293,7 +293,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     public void onItemDelete(Keep item) {
-        mAdapter.delete(item.delete());
+        // 在收藏夹视图中删除，只从当前收藏夹移出；在全部视图中删除，取消所有收藏
+        if (mMode == MODE_KEEP) item.deleteFromFolder(mFolderId);
+        else item.delete();
+        mAdapter.delete(item);
         if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
     }
 

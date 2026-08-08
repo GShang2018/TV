@@ -59,6 +59,12 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
         activity.startActivity(new Intent(activity, KeepActivity.class));
     }
 
+    public static void start(Activity activity, int folderId) {
+        Intent intent = new Intent(activity, KeepActivity.class);
+        intent.putExtra("folderId", folderId);
+        activity.startActivity(intent);
+    }
+
     @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityKeepBinding.inflate(getLayoutInflater());
@@ -67,7 +73,21 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     @Override
     protected void initView(Bundle savedInstanceState) {
         setRecyclerView();
-        showFolder();
+        int folderId = getIntent().getIntExtra("folderId", -1);
+        if (folderId == 0) {
+            KeepFolder def = new KeepFolder(getString(R.string.keep_folder_default));
+            def.setId(0);
+            showKeep(def);
+        } else if (folderId > 0) {
+            KeepFolder folder = KeepFolder.find(folderId);
+            if (folder != null) {
+                showKeep(folder);
+            } else {
+                showFolder();
+            }
+        } else {
+            showFolder();
+        }
         updateViewIcon();
     }
 
@@ -270,7 +290,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     public void onItemDelete(Keep item) {
-        mAdapter.remove(item.delete());
+        // 在收藏夹视图中删除，只从当前收藏夹移出；在全部视图中删除，取消所有收藏
+        if (mMode == MODE_KEEP) item.deleteFromFolder(mFolderId);
+        else item.delete();
+        mAdapter.remove(item);
         if (mAdapter.getItemCount() > 0) return;
         mBinding.delete.setVisibility(View.GONE);
         mAdapter.setDelete(false);

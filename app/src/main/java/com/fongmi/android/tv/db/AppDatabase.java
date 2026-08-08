@@ -41,7 +41,7 @@ import java.util.Locale;
 @Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 32;
+    public static final int VERSION = 33;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
     public static final String BACKUP_SUFFIX = "tv.backup";
@@ -119,6 +119,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_29_30)
                 .addMigrations(MIGRATION_30_31)
                 .addMigrations(MIGRATION_31_32)
+                .addMigrations(MIGRATION_32_33)
                 .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
@@ -298,6 +299,16 @@ public abstract class AppDatabase extends RoomDatabase {
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE Keep ADD COLUMN folderId INTEGER DEFAULT 0 NOT NULL");
             database.execSQL("CREATE TABLE IF NOT EXISTS `KeepFolder` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `createTime` INTEGER NOT NULL)");
+        }
+    };
+
+    static final Migration MIGRATION_32_33 = new Migration(32, 33) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE Keep_Backup (`key` TEXT NOT NULL, siteName TEXT, vodName TEXT, vodPic TEXT, createTime INTEGER NOT NULL, type INTEGER NOT NULL, cid INTEGER NOT NULL, folderId INTEGER NOT NULL, PRIMARY KEY (`key`, folderId))");
+            database.execSQL("INSERT INTO Keep_Backup SELECT `key`, siteName, vodName, vodPic, createTime, type, cid, folderId FROM Keep");
+            database.execSQL("DROP TABLE Keep");
+            database.execSQL("ALTER TABLE Keep_Backup RENAME to Keep");
         }
     };
 }

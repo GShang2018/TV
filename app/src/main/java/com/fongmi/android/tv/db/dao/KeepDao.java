@@ -10,7 +10,7 @@ import java.util.List;
 @Dao
 public abstract class KeepDao extends BaseDao<Keep> {
 
-    @Query("SELECT * FROM Keep WHERE type = 0 ORDER BY createTime DESC")
+    @Query("SELECT * FROM Keep WHERE type = 0 GROUP BY `key` ORDER BY createTime DESC")
     public abstract List<Keep> getVod();
 
     @Query("SELECT * FROM Keep WHERE type = 0 AND folderId = :folderId ORDER BY createTime DESC")
@@ -22,8 +22,11 @@ public abstract class KeepDao extends BaseDao<Keep> {
     @Query("SELECT * FROM Keep WHERE type = 1 ORDER BY createTime DESC")
     public abstract List<Keep> getLive();
 
-    @Query("SELECT * FROM Keep WHERE type = 0 AND cid = :cid AND `key` = :key")
+    @Query("SELECT * FROM Keep WHERE type = 0 AND cid = :cid AND `key` = :key LIMIT 1")
     public abstract Keep find(int cid, String key);
+
+    @Query("SELECT folderId FROM Keep WHERE type = 0 AND cid = :cid AND `key` = :key")
+    public abstract List<Integer> getFolderIds(int cid, String key);
 
     @Query("SELECT * FROM Keep WHERE type = 1 AND `key` = :key")
     public abstract Keep find(String key);
@@ -33,6 +36,9 @@ public abstract class KeepDao extends BaseDao<Keep> {
 
     @Query("DELETE FROM Keep WHERE type = 0 AND cid = :cid AND `key` = :key")
     public abstract void delete(int cid, String key);
+
+    @Query("DELETE FROM Keep WHERE type = 0 AND cid = :cid AND `key` = :key AND folderId = :folderId")
+    public abstract void delete(int cid, String key, int folderId);
 
     @Query("DELETE FROM Keep WHERE type = 0 AND cid = :cid")
     public abstract void delete(int cid);
