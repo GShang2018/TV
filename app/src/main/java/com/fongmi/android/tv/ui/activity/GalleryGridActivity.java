@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -47,14 +48,22 @@ public class GalleryGridActivity extends AppCompatActivity {
         initGrid();
     }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        initGrid();
+    }
+
     private void initGrid() {
-        int spanCount = 3;
         int spacing = ResUtil.dp2px(12);
         int screenWidth = ResUtil.getScreenWidth(this);
+        int spanCount = Math.max(3, screenWidth / ResUtil.dp2px(160));
         int imageSize = (screenWidth - spacing * (spanCount + 1)) / spanCount;
         GridLayoutManager glm = new GridLayoutManager(this, spanCount);
         mBinding.grid.setLayoutManager(glm);
-        mBinding.grid.addItemDecoration(new ItemDecoration(spacing));
+        if (mBinding.grid.getItemDecorationCount() == 0) {
+            mBinding.grid.addItemDecoration(new ItemDecoration(spacing));
+        }
         mBinding.grid.setAdapter(new GridAdapter(mUrls, imageSize));
     }
 

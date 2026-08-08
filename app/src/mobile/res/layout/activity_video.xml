@@ -190,6 +190,7 @@
                                 android:layout_marginTop="4dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
+                                android:lineSpacingExtra="4dp"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textSize="14sp"
                                 tools:text="演員：FongMi" />
