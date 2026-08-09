@@ -76,6 +76,6 @@
         android:layout_marginBottom="8dp"
         android:gravity="start|center_vertical"
         android:text="@string/subscribe_use"
-        android:textColor="?attr/colorControlActivated" />
+        android:textColor="?android:attr/textColorSecondary" />
 
 </LinearLayout>

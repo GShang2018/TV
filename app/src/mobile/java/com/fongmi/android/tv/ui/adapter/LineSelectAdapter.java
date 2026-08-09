@@ -52,7 +52,7 @@ public class LineSelectAdapter extends RecyclerView.Adapter<LineSelectAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Depot item = mItems.get(position);
         boolean checked = TextUtils.equals(selected, item.getUrl());
-        holder.binding.root.setBackgroundResource(checked ? R.drawable.shape_item_border_selected : 0);
+        holder.binding.root.setBackgroundResource(checked ? R.drawable.shape_item_border_selected : R.drawable.shape_item_border_unselected);
         holder.binding.check.setVisibility(checked ? View.VISIBLE : View.GONE);
         holder.binding.name.setText(item.getName());
         holder.binding.url.setText(item.getUrl());

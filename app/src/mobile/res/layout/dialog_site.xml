@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="@string/site_switch_subscribe"
-                android:textColor="?attr/colorControlActivated"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="14sp" />
 
         </LinearLayout>

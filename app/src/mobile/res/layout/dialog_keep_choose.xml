@@ -75,9 +75,12 @@
             android:paddingTop="12dp"
             android:paddingBottom="12dp"
             android:text="@string/keep_done"
-            android:textColor="?attr/colorOnPrimary"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold" 
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
 
     </LinearLayout>
 
