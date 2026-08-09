@@ -53,7 +53,6 @@ import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
-import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
@@ -248,14 +247,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void onLogo(View view) {
-        Config config = VodConfig.get().getConfig();
-        if (config.isDepot()) {
-            LineSelectDialog.create(this, config).show();
-        } else if (Setting.isHomeDisplayName()) {
-            HistoryDialog.create(this).type(0).show();
-        } else {
-            SiteDialog.create().change().show(this);
-        }
+        LineSelectDialog.createAll(this).show();
     }
 
     private boolean onRefresh(View view) {

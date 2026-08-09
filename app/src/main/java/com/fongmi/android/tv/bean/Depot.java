@@ -18,6 +18,11 @@ public class Depot {
     @SerializedName("name")
     private String name;
 
+    public Depot(String url, String name) {
+        this.url = url;
+        this.name = name;
+    }
+
     public static List<Depot> arrayFrom(String str) {
         Type listType = new TypeToken<List<Depot>>() {}.getType();
         List<Depot> items = App.gson().fromJson(str, listType);
