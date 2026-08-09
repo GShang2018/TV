@@ -33,15 +33,11 @@ import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.MainActivity;
+import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BackupDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.CustomSiteDialog;
-import com.fongmi.android.tv.ui.dialog.CustomSiteListDialog;
-import com.fongmi.android.tv.ui.dialog.HistoryDialog;
-import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
-import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.TransmitActionDialog;
 import com.fongmi.android.tv.ui.dialog.TransmitDialog;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -95,8 +91,6 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     @Override
     protected void initView() {
         EventBus.getDefault().register(this);
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
@@ -117,8 +111,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
 
     @Override
     protected void initEvent() {
-        mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.live.setOnClickListener(this::onLive);
+        mBinding.subscribe.setOnClickListener(v -> SubscriptionActivity.start(getActivity()));
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
@@ -129,17 +122,9 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.version.setOnClickListener(this::onVersion);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
-        mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.addSite.setOnClickListener(this::onAddCustomSite);
-        mBinding.addSiteEdit.setOnClickListener(this::onEditCustomSite);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.backup.setOnLongClickListener(this::onBackupMode);
-        mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.doh.setOnClickListener(this::setDoh);
@@ -161,12 +146,10 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
             case 0:
                 Notify.progress(getActivity());
                 VodConfig.load(config, getCallback());
-                mBinding.vodUrl.setText(config.getDesc());
                 break;
             case 1:
                 Notify.progress(getActivity());
                 LiveConfig.load(config, getCallback());
-                mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
                 Notify.progress(getActivity());
@@ -240,55 +223,13 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         LiveConfig.get().setHome(item);
     }
 
-    private void onVod(View view) {
-        ConfigDialog.create(this).type(type = 0).show();
-    }
-
-    private void onAddCustomSite(View view) {
-        CustomSiteDialog.create(this).show();
-    }
-
-    private void onEditCustomSite(View view) {
-        CustomSiteListDialog.create(this).show();
-    }
-
-    private void onLive(View view) {
-        ConfigDialog.create(this).type(type = 1).show();
-    }
-
     private void onWall(View view) {
         ConfigDialog.create(this).type(type = 2).show();
-    }
-
-    private boolean onVodEdit(View view) {
-        ConfigDialog.create(this).type(type = 0).edit().show();
-        return true;
-    }
-
-    private boolean onLiveEdit(View view) {
-        ConfigDialog.create(this).type(type = 1).edit().show();
-        return true;
     }
 
     private boolean onWallEdit(View view) {
         ConfigDialog.create(this).type(type = 2).edit().show();
         return true;
-    }
-
-    private void onVodHome(View view) {
-        SiteDialog.create().all().show(this);
-    }
-
-    private void onLiveHome(View view) {
-        LiveDialog.create(this).action().show();
-    }
-
-    private void onVodHistory(View view) {
-        HistoryDialog.create(this).type(type = 0).show();
-    }
-
-    private void onLiveHistory(View view) {
-        HistoryDialog.create(this).type(type = 1).show();
     }
 
     private void onPlayer(View view) {
@@ -440,8 +381,6 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     @Override
     public void onHiddenChanged(boolean hidden) {
         if (hidden) return;
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         setCacheText();
@@ -462,8 +401,6 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         switch (event.getType()) {
             case CONFIG:
                 setCacheText();
-                mBinding.vodUrl.setText(VodConfig.getDesc());
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
                 mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
         }

@@ -143,6 +143,7 @@
     <string name="search_suggest">Suggest</string>
     <string name="search_hot">Hot</string>
     <string name="site_choose_title">Choose Search Source</string>
+    <string name="site_switch_subscribe">Switch Subscription</string>
     <string name="site_select_all">Select All</string>
     <string name="site_select_none">Select None</string>
     <string name="search_record_clear">Clear</string>

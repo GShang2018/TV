@@ -16,6 +16,7 @@ import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.SiteCallback;
+import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
@@ -83,6 +84,11 @@ public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListene
     protected void initEvent() {
         binding.selectAll.setOnClickListener(v -> selectAll(true));
         binding.selectNone.setOnClickListener(v -> selectAll(false));
+        binding.switchSubscribe.setVisibility(change ? View.VISIBLE : View.GONE);
+        binding.switchSubscribe.setOnClickListener(v -> {
+            SubscriptionActivity.start(requireActivity(), 0, true);
+            dismiss();
+        });
     }
 
     private void setSearchView() {

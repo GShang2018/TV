@@ -28,6 +28,7 @@ public class CustomSiteDialog {
     private final Fragment fragment;
     private final CustomSite custom;
     private AlertDialog dialog;
+    private Runnable onSaved;
 
     public static CustomSiteDialog create(Fragment fragment) {
         return new CustomSiteDialog(fragment, null);
@@ -35,6 +36,11 @@ public class CustomSiteDialog {
 
     public static CustomSiteDialog create(Fragment fragment, CustomSite custom) {
         return new CustomSiteDialog(fragment, custom);
+    }
+
+    public CustomSiteDialog setOnSaved(Runnable onSaved) {
+        this.onSaved = onSaved;
+        return this;
     }
 
     public CustomSiteDialog(Fragment fragment, CustomSite custom) {
@@ -92,6 +98,7 @@ public class CustomSiteDialog {
         Notify.show(edit ? R.string.custom_site_updated : R.string.custom_site_added);
         refresh();
         Util.hideKeyboard(binding.api);
+        if (onSaved != null) onSaved.run();
         dialog.dismiss();
     }
 

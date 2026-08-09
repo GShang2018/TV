@@ -71,6 +71,7 @@
     <string name="dialog_custom_site_api">API Address</string>
     <string name="setting_custom_vod">Custom Site</string>
     <string name="custom_site_list">Custom Site List</string>
+    <string name="custom_line">Custom Line</string>
     <string name="error_custom_site_empty">Please enter site name and API address</string>
     <string name="custom_site_added">Custom site added</string>
     <string name="custom_site_updated">Custom site updated</string>
@@ -91,6 +92,26 @@
     <string name="dialog_custom_site_style_oval">Oval</string>
     <string name="dialog_custom_site_style_list">List</string>
     <string name="dialog_custom_site_ratio">Cover Ratio</string>
+
+    <!-- Subscribe -->
+    <string name="setting_subscribe_manage">Subscription Management</string>
+    <string name="subscribe_vod">VOD Subscriptions</string>
+    <string name="subscribe_live">Live Subscriptions</string>
+    <string name="subscribe_add_vod">Add VOD Subscription</string>
+    <string name="subscribe_add_live">Add Live Subscription</string>
+    <string name="subscribe_name">Name</string>
+    <string name="subscribe_url">Address</string>
+    <string name="subscribe_epg">EPG Address</string>
+    <string name="subscribe_use">Use this subscription</string>
+    <string name="subscribe_selected_line">Selected line: %1$s</string>
+    <string name="subscribe_from">From: %1$s</string>
+    <string name="subscribe_delete_title">Delete Subscription</string>
+    <string name="subscribe_delete">Delete this subscription?</string>
+    <string name="subscribe_deleted">Subscription deleted</string>
+    <string name="subscribe_added">Subscription added</string>
+    <string name="subscribe_file_error">Failed to read file</string>
+    <string name="subscribe_empty">No subscriptions yet</string>
+    <string name="subscribe_positive">Add</string>
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>

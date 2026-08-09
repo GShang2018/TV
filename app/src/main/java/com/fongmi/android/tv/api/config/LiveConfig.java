@@ -111,11 +111,36 @@ public class LiveConfig {
         App.execute(() -> loadConfig(callback));
     }
 
+    public static void probe(Config config, Callback callback) {
+        get().probeConfig(config, callback);
+    }
+
+    private void probeConfig(Config config, Callback callback) {
+        App.execute(() -> {
+            try {
+                if (!TextUtils.isEmpty(config.getUrl())) {
+                    String text = Decoder.getJson(config.getUrl());
+                    if (!Json.invalid(text)) {
+                        JsonObject object = Json.parse(text).getAsJsonObject();
+                        if (object.has("urls")) {
+                            List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
+                            config.lines(items).line(items.isEmpty() ? null : items.get(0).getUrl()).save();
+                        }
+                    }
+                }
+                App.post(() -> callback.success(config.getDesc()));
+            } catch (Throwable e) {
+                e.printStackTrace();
+                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            }
+        });
+    }
+
     private void loadConfig(Callback callback) {
         try {
-            parseConfig(Decoder.getJson(config.getUrl()), callback);
+            parseConfig(Decoder.getJson(config.getLoadUrl()), callback);
         } catch (Throwable e) {
-            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
+            if (TextUtils.isEmpty(config.getLoadUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
             e.printStackTrace();
         }
@@ -130,7 +155,8 @@ public class LiveConfig {
     }
 
     private void parseText(String text, Callback callback) {
-        Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
+        Live live = new Live(TextUtils.isEmpty(config.getName()) ? parseName(config.getLoadUrl()) : config.getName(), config.getLoadUrl()).sync();
+        if (live.getEpg().isEmpty()) live.setEpg(config.getEpg());
         LiveParser.text(live, text);
         lives.add(live);
         setHome(live, true);
@@ -158,11 +184,11 @@ public class LiveConfig {
 
     private void parseDepot(JsonObject object, Callback callback) {
         List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
-        List<Config> configs = new ArrayList<>();
-        for (Depot item : items) configs.add(Config.find(item, 1));
-        Config.delete(config.getUrl());
-        config = configs.get(0);
-        loadConfig(callback);
+        String ori = config.getLine();
+        if (config.getLineList().isEmpty()) config.line(items.isEmpty() ? null : items.get(0).getUrl());
+        config.lines(items).update();
+        if (!TextUtils.equals(ori, config.getLine())) loadConfig(callback);
+        else App.post(() -> callback.success(""));
     }
 
     private void parseConfig(JsonObject object, Callback callback) {
@@ -185,6 +211,7 @@ public class LiveConfig {
             live.setApi(parseApi(live.getApi()));
             live.setExt(parseExt(live.getExt()));
             live.setJar(parseJar(live, spider));
+            if (live.getEpg().isEmpty()) live.setEpg(config.getEpg());
             lives.add(live.sync());
         }
         for (Live live : lives) {

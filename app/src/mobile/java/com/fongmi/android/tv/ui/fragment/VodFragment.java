@@ -54,6 +54,7 @@ import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
+import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
@@ -125,8 +126,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.link.setOnClickListener(this::onLink);
         mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.logo.setOnLongClickListener(this::onRefresh);
+        mBinding.siteView.setOnClickListener(this::onSite);
         mBinding.hot.setOnClickListener(this::onHot);
-        mBinding.site.setOnClickListener(this::onSite);
         mBinding.view.setOnClickListener(this::toggleView);
         mBinding.keep.setOnClickListener(this::onKeep);
         mBinding.retry.setOnClickListener(this::onRetry);
@@ -146,7 +147,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void setSiteText() {
-        String site = getSite().getName();
+        Config config = VodConfig.get().getConfig();
+        String site = config.isDepot() ? config.getLineName() : getSite().getName();
+        if (TextUtils.isEmpty(site)) site = config.getDesc();
         mBinding.site.setText(site);
         mBinding.site.setSelected(true);
     }
@@ -155,6 +158,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.searchInput.setVisibility(Setting.isHomeDisplayName() ? View.GONE : View.VISIBLE);
         mBinding.siteView.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
         mBinding.searchIcon.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
+        mBinding.topSpace.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
     }
 
     private void setRecyclerView() {
@@ -239,13 +243,19 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         LinkDialog.create(this).show();
     }
 
-    private void onLogo(View view) {
-        if (Setting.isHomeDisplayName()) HistoryDialog.create(this).type(0).show();
-        else SiteDialog.create().change().show(this);
-    }
-
     private void onSite(View view) {
         SiteDialog.create().change().show(this);
+    }
+
+    private void onLogo(View view) {
+        Config config = VodConfig.get().getConfig();
+        if (config.isDepot()) {
+            LineSelectDialog.create(this, config).show();
+        } else if (Setting.isHomeDisplayName()) {
+            HistoryDialog.create(this).type(0).show();
+        } else {
+            SiteDialog.create().change().show(this);
+        }
     }
 
     private boolean onRefresh(View view) {

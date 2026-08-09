@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 34,
-    "identityHash": "885ff2711b25f299d07bc712434d7a1b",
+    "identityHash": "28c8e466dfd2dc359b3ac33a48e01cbd",
     "entities": [
       {
         "tableName": "Keep",
@@ -245,7 +245,7 @@
       },
       {
         "tableName": "Config",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `time` INTEGER NOT NULL, `url` TEXT, `json` TEXT, `name` TEXT, `logo` TEXT, `home` TEXT, `parse` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `time` INTEGER NOT NULL, `url` TEXT, `json` TEXT, `name` TEXT, `logo` TEXT, `home` TEXT, `parse` TEXT, `epg` TEXT, `lines` TEXT, `line` TEXT, `source` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -298,6 +298,30 @@
           {
             "fieldPath": "parse",
             "columnName": "parse",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "epg",
+            "columnName": "epg",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lines",
+            "columnName": "lines",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "line",
+            "columnName": "line",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -542,50 +566,12 @@
         },
         "indices": [],
         "foreignKeys": []
-      },
-      {
-        "tableName": "CustomSite",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `name` TEXT, `api` TEXT, `group` TEXT, PRIMARY KEY(`key`))",
-        "fields": [
-          {
-            "fieldPath": "key",
-            "columnName": "key",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "api",
-            "columnName": "api",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "group",
-            "columnName": "group",
-            "affinity": "TEXT",
-            "notNull": false
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "key"
-          ]
-        },
-        "indices": [],
-        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '885ff2711b25f299d07bc712434d7a1b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '28c8e466dfd2dc359b3ac33a48e01cbd')"
     ]
   }
 }

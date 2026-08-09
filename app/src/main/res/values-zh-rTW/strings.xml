@@ -136,6 +136,7 @@
     <string name="search_suggest">建議</string>
     <string name="search_hot">熱搜</string>
     <string name="site_choose_title">選擇搜索站源</string>
+    <string name="site_switch_subscribe">切換訂閱</string>
     <string name="site_select_all">全選</string>
     <string name="site_select_none">全不選</string>
     <string name="search_record_clear">清空</string>

@@ -31,6 +31,7 @@ public class CustomSiteAdapter extends RecyclerView.Adapter<CustomSiteAdapter.Vi
 
     public CustomSiteAdapter addAll(List<CustomSite> items) {
         mItems = new ArrayList<>(items);
+        notifyDataSetChanged();
         return this;
     }
 

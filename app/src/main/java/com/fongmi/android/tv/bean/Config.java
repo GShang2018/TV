@@ -45,6 +45,14 @@ public class Config {
     private String home;
     @SerializedName("parse")
     private String parse;
+    @SerializedName("epg")
+    private String epg;
+    @SerializedName("lines")
+    private String lines;
+    @SerializedName("line")
+    private String line;
+    @SerializedName("source")
+    private String source;
 
     public static List<Config> arrayFrom(String str) {
         Type listType = new TypeToken<List<Config>>() {}.getType();
@@ -132,6 +140,38 @@ public class Config {
         this.parse = parse;
     }
 
+    public String getEpg() {
+        return epg;
+    }
+
+    public void setEpg(String epg) {
+        this.epg = epg;
+    }
+
+    public String getLines() {
+        return lines;
+    }
+
+    public void setLines(String lines) {
+        this.lines = lines;
+    }
+
+    public String getLine() {
+        return line;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     public long getTime() {
         return time;
     }
@@ -179,6 +219,26 @@ public class Config {
         return this;
     }
 
+    public Config epg(String epg) {
+        setEpg(epg);
+        return this;
+    }
+
+    public Config lines(List<Depot> items) {
+        setLines(items == null || items.isEmpty() ? null : App.gson().toJson(items));
+        return this;
+    }
+
+    public Config line(String line) {
+        setLine(line);
+        return this;
+    }
+
+    public Config source(String source) {
+        setSource(source);
+        return this;
+    }
+
     public boolean isEmpty() {
         return TextUtils.isEmpty(getUrl());
     }
@@ -190,6 +250,26 @@ public class Config {
     public String getDesc() {
         if (!TextUtils.isEmpty(getName())) return getName();
         if (!TextUtils.isEmpty(getUrl())) return getUrl();
+        return "";
+    }
+
+    public boolean isDepot() {
+        return !TextUtils.isEmpty(getLines());
+    }
+
+    public List<Depot> getLineList() {
+        return Depot.arrayFrom(getLines());
+    }
+
+    public String getLoadUrl() {
+        if (isDepot()) return TextUtils.isEmpty(getLine()) ? getUrl() : getLine();
+        return getUrl();
+    }
+
+    public String getLineName() {
+        for (Depot item : getLineList()) {
+            if (item.getUrl().equals(getLine())) return item.getName();
+        }
         return "";
     }
 
@@ -227,7 +307,7 @@ public class Config {
     }
 
     public static Config custom() {
-        return new Config().type(0).url(CUSTOM).name(App.get().getString(R.string.custom_site_list)).json("");
+        return new Config().type(0).url(CUSTOM).name(App.get().getString(R.string.custom_line)).json("");
     }
 
     public static Config find(int id) {

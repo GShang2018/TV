@@ -75,6 +75,12 @@
             android:windowSoftInputMode="adjustPan" />
 
         <activity
+            android:name=".ui.activity.SubscriptionActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:screenOrientation="fullUser"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
             android:name=".ui.activity.DetailActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout"
             android:screenOrientation="fullUser" />

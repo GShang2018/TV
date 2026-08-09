@@ -156,12 +156,10 @@ public class CustomSite {
     }
 
     public void save() {
-        App.execute(() -> {
-            List<CustomSite> items = new ArrayList<>(getAll());
-            items.remove(this);
-            items.add(this);
-            saveAll(items);
-        });
+        List<CustomSite> items = new ArrayList<>(getAll());
+        items.remove(this);
+        items.add(this);
+        saveAll(items);
     }
 
     public void delete() {

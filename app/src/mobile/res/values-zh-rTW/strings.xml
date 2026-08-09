@@ -61,6 +61,7 @@
     <string name="dialog_custom_site_api">API 位址</string>
     <string name="setting_custom_vod">自訂站點</string>
     <string name="custom_site_list">自訂站源列表</string>
+    <string name="custom_line">自訂線路</string>
     <string name="error_custom_site_empty">請輸入站點名稱和 API 位址</string>
     <string name="custom_site_added">自訂站點已新增</string>
     <string name="custom_site_updated">自訂站點已更新</string>
@@ -81,6 +82,26 @@
     <string name="dialog_custom_site_style_oval">圓形</string>
     <string name="dialog_custom_site_style_list">列表</string>
     <string name="dialog_custom_site_ratio">封面比例</string>
+
+    <!-- 訂閱 -->
+    <string name="setting_subscribe_manage">訂閱管理</string>
+    <string name="subscribe_vod">點播訂閱</string>
+    <string name="subscribe_live">直播訂閱</string>
+    <string name="subscribe_add_vod">新增點播訂閱</string>
+    <string name="subscribe_add_live">新增直播訂閱</string>
+    <string name="subscribe_name">名稱</string>
+    <string name="subscribe_url">位址</string>
+    <string name="subscribe_epg">EPG位址</string>
+    <string name="subscribe_use">使用此訂閱</string>
+    <string name="subscribe_selected_line">已選線路: %1$s</string>
+    <string name="subscribe_from">來自: %1$s</string>
+    <string name="subscribe_delete_title">刪除訂閱</string>
+    <string name="subscribe_delete">刪除此訂閱？</string>
+    <string name="subscribe_deleted">訂閱已刪除</string>
+    <string name="subscribe_added">訂閱已新增</string>
+    <string name="subscribe_file_error">檔案讀取失敗</string>
+    <string name="subscribe_empty">暫無訂閱</string>
+    <string name="subscribe_positive">新增</string>
 
     <!-- Detail -->
     <string name="detail_flag">線路</string>

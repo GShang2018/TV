@@ -32,7 +32,7 @@ public class CustomSiteListDialog implements CustomSiteAdapter.OnClickListener {
         this.fragment = fragment;
         this.binding = DialogCustomSiteListBinding.inflate(LayoutInflater.from(fragment.getContext()));
         this.adapter = new CustomSiteAdapter(this);
-        this.dialog = new MaterialAlertDialogBuilder(fragment.getActivity()).setTitle(R.string.setting_manage_custom_site).setView(binding.getRoot()).setNegativeButton(R.string.dialog_negative, null).create();
+        this.dialog = new MaterialAlertDialogBuilder(fragment.getActivity()).setTitle(R.string.setting_manage_custom_site).setView(binding.getRoot()).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.setting_add, null).create();
     }
 
     public void show() {
@@ -47,18 +47,19 @@ public class CustomSiteListDialog implements CustomSiteAdapter.OnClickListener {
     }
 
     private void setDialog() {
-        if (adapter.getItemCount() == 0) {
-            Notify.show(R.string.custom_site_empty);
-            return;
-        }
         dialog.getWindow().setDimAmount(0);
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> CustomSiteDialog.create(fragment).setOnSaved(this::refreshList).show()));
         dialog.show();
+    }
+
+    private void refreshList() {
+        adapter.addAll(CustomSite.getAll());
+        refresh();
     }
 
     @Override
     public void onEditClick(CustomSite item) {
-        dialog.dismiss();
-        CustomSiteDialog.create(fragment, item).show();
+        CustomSiteDialog.create(fragment, item).setOnSaved(this::refreshList).show();
     }
 
     @Override

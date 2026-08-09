@@ -120,12 +120,34 @@ public class VodConfig {
         else App.execute(() -> loadConfig(callback));
     }
 
+    public static void probe(Config config, Callback callback) {
+        get().probeConfig(config, callback);
+    }
+
+    private void probeConfig(Config config, Callback callback) {
+        App.execute(() -> {
+            try {
+                if (!TextUtils.isEmpty(config.getUrl())) {
+                    JsonObject object = Json.parse(Decoder.getJson(config.getUrl())).getAsJsonObject();
+                    if (object.has("urls")) {
+                        List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
+                        config.lines(items).line(items.isEmpty() ? null : items.get(0).getUrl()).save();
+                    }
+                }
+                App.post(() -> callback.success(config.getDesc()));
+            } catch (Throwable e) {
+                e.printStackTrace();
+                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            }
+        });
+    }
+
     private void loadConfig(Callback callback) {
         try {
-            JsonObject object = config.isCustom() ? getCustomObject() : Json.parse(Decoder.getJson(config.getUrl())).getAsJsonObject();
+            JsonObject object = config.isCustom() ? getCustomObject() : Json.parse(Decoder.getJson(config.getLoadUrl())).getAsJsonObject();
             checkJson(object, callback);
         } catch (Throwable e) {
-            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
+            if (TextUtils.isEmpty(config.getLoadUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
             e.printStackTrace();
         }
@@ -137,7 +159,7 @@ public class VodConfig {
     }
 
     private void loadConfigCache(Callback callback) {
-        if (config.isCustom()) loadConfig(callback);
+        if (config.isCustom() || config.isDepot()) loadConfig(callback);
         else if (!TextUtils.isEmpty(config.getJson()) && config.isCache()) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
         else loadConfig(callback);
     }
@@ -154,11 +176,11 @@ public class VodConfig {
 
     private void parseDepot(JsonObject object, Callback callback) {
         List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
-        List<Config> configs = new ArrayList<>();
-        for (Depot item : items) configs.add(Config.find(item, 0));
-        Config.delete(config.getUrl());
-        config = configs.get(0);
-        loadConfig(callback);
+        String ori = config.getLine();
+        if (config.getLineList().isEmpty()) config.line(items.isEmpty() ? null : items.get(0).getUrl());
+        config.lines(items).update();
+        if (!TextUtils.equals(ori, config.getLine())) loadConfig(callback);
+        else App.post(() -> callback.success(""));
     }
 
     private void parseConfig(JsonObject object, Callback callback) {
@@ -213,8 +235,8 @@ public class VodConfig {
 
     private void initLive(JsonObject object) {
         try {
-            Config temp = Config.find(config, 1).save();
-            boolean sync = LiveConfig.get().needSync(config.getUrl());
+            Config temp = Config.find(config, 1).line(config.isDepot() ? config.getLine() : null).lines(config.isDepot() ? config.getLineList() : null).source(config.isDepot() ? config.getName() + ":" + config.getLineName() : config.getName()).save();
+            boolean sync = LiveConfig.get().needSync(config.getLoadUrl());
             if (sync) LiveConfig.get().clear().config(temp).parse(object);
         } catch (Throwable e) {
             e.printStackTrace();

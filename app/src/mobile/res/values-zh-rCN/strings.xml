@@ -70,6 +70,7 @@
     <string name="dialog_custom_site_api">API 地址</string>
     <string name="setting_custom_vod">自定义站点</string>
     <string name="custom_site_list">自定义站源列表</string>
+    <string name="custom_line">自定义线路</string>
     <string name="error_custom_site_empty">请输入站点名称和 API 地址</string>
     <string name="custom_site_added">自定义站点已添加</string>
     <string name="custom_site_updated">自定义站点已更新</string>
@@ -90,6 +91,26 @@
     <string name="dialog_custom_site_style_oval">圆形</string>
     <string name="dialog_custom_site_style_list">列表</string>
     <string name="dialog_custom_site_ratio">封面比例</string>
+
+    <!-- 订阅 -->
+    <string name="setting_subscribe_manage">订阅管理</string>
+    <string name="subscribe_vod">点播订阅</string>
+    <string name="subscribe_live">直播订阅</string>
+    <string name="subscribe_add_vod">添加点播订阅</string>
+    <string name="subscribe_add_live">添加直播订阅</string>
+    <string name="subscribe_name">名称</string>
+    <string name="subscribe_url">地址</string>
+    <string name="subscribe_epg">EPG地址(可选)</string>
+    <string name="subscribe_use">使用此订阅</string>
+    <string name="subscribe_selected_line">已选线路: %1$s</string>
+    <string name="subscribe_from">来自: %1$s</string>
+    <string name="subscribe_delete_title">删除订阅</string>
+    <string name="subscribe_delete">删除此订阅？</string>
+    <string name="subscribe_deleted">订阅已删除</string>
+    <string name="subscribe_added">订阅已添加</string>
+    <string name="subscribe_file_error">文件读取失败</string>
+    <string name="subscribe_empty">暂无订阅</string>
+    <string name="subscribe_positive">添加</string>
 
     <!-- Detail -->
     <string name="detail_flag">线路</string>
