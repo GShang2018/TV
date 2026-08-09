@@ -63,8 +63,16 @@
     <string name="custom_site_list">自訂站源列表</string>
     <string name="error_custom_site_empty">請輸入站點名稱和 API 位址</string>
     <string name="custom_site_added">自訂站點已新增</string>
+    <string name="custom_site_updated">自訂站點已更新</string>
+    <string name="custom_site_deleted">自訂站點已刪除</string>
+    <string name="custom_site_empty">暫無自訂站點</string>
     <string name="setting_add_custom_site">新增自訂源</string>
     <string name="setting_add">新增</string>
+    <string name="setting_edit">編輯</string>
+    <string name="setting_manage_custom_site">管理自訂站點</string>
+    <string name="setting_edit_custom_site">編輯自訂站點</string>
+    <string name="dialog_delete_custom_site_title">刪除自訂站點</string>
+    <string name="dialog_delete_custom_site">確定刪除該自訂站點？</string>
     <string name="dialog_custom_site_searchable">可搜尋</string>
     <string name="dialog_custom_site_quick_search">快速搜尋</string>
     <string name="dialog_custom_site_filterable">可篩選</string>

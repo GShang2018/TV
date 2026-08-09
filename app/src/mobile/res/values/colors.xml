@@ -11,6 +11,9 @@
     <!-- Black 20% transparency for nav indicator -->
     <color name="black_20">#33000000</color>
 
+    <!-- List item divider line (20% white) -->
+    <color name="divider">#33FFFFFF</color>
+
     <color name="primary">@color/spotify_green</color>
     <color name="primaryDark">@color/spotify_green</color>
     <color name="accent">@color/spotify_green</color>

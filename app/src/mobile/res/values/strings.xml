@@ -73,8 +73,16 @@
     <string name="custom_site_list">Custom Site List</string>
     <string name="error_custom_site_empty">Please enter site name and API address</string>
     <string name="custom_site_added">Custom site added</string>
+    <string name="custom_site_updated">Custom site updated</string>
+    <string name="custom_site_deleted">Custom site deleted</string>
+    <string name="custom_site_empty">No custom sites</string>
     <string name="setting_add_custom_site">Add Custom Site</string>
     <string name="setting_add">Add</string>
+    <string name="setting_edit">Edit</string>
+    <string name="setting_manage_custom_site">Manage Custom Sites</string>
+    <string name="setting_edit_custom_site">Edit Custom Site</string>
+    <string name="dialog_delete_custom_site_title">Delete Custom Site</string>
+    <string name="dialog_delete_custom_site">Delete this custom site?</string>
     <string name="dialog_custom_site_searchable">Searchable</string>
     <string name="dialog_custom_site_quick_search">Quick Search</string>
     <string name="dialog_custom_site_filterable">Filterable</string>
