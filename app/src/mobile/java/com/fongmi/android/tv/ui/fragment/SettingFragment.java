@@ -36,6 +36,7 @@ import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BackupDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
+import com.fongmi.android.tv.ui.dialog.CustomSiteDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
@@ -129,6 +130,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
+        mBinding.addSite.setOnClickListener(this::onAddCustomSite);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
@@ -238,6 +240,10 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
 
     private void onVod(View view) {
         ConfigDialog.create(this).type(type = 0).show();
+    }
+
+    private void onAddCustomSite(View view) {
+        CustomSiteDialog.create(this).show();
     }
 
     private void onLive(View view) {

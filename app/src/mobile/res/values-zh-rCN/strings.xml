@@ -66,6 +66,22 @@
     <string name="dialog_site_list">站点列表</string>
     <string name="dialog_site_line">选择线路</string>
     <string name="dialog_site_source">选择直播源</string>
+    <string name="dialog_custom_site_name">站点名称</string>
+    <string name="dialog_custom_site_api">API 地址</string>
+    <string name="setting_custom_vod">自定义站点</string>
+    <string name="custom_site_list">自定义站源列表</string>
+    <string name="error_custom_site_empty">请输入站点名称和 API 地址</string>
+    <string name="custom_site_added">自定义站点已添加</string>
+    <string name="setting_add_custom_site">添加站源</string>
+    <string name="setting_add">添加</string>
+    <string name="dialog_custom_site_searchable">可搜索</string>
+    <string name="dialog_custom_site_quick_search">快速搜索</string>
+    <string name="dialog_custom_site_filterable">可筛选</string>
+    <string name="dialog_custom_site_style">封面样式</string>
+    <string name="dialog_custom_site_style_rect">矩形</string>
+    <string name="dialog_custom_site_style_oval">圆形</string>
+    <string name="dialog_custom_site_style_list">列表</string>
+    <string name="dialog_custom_site_ratio">封面比例</string>
 
     <!-- Detail -->
     <string name="detail_flag">线路</string>

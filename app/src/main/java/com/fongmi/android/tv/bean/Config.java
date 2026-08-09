@@ -8,6 +8,7 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -22,6 +23,8 @@ import java.util.List;
 
 @Entity(indices = @Index(value = {"url", "type"}, unique = true))
 public class Config {
+
+    public static final String CUSTOM = "custom://sites";
 
     @PrimaryKey(autoGenerate = true)
     @SerializedName("id")
@@ -180,6 +183,10 @@ public class Config {
         return TextUtils.isEmpty(getUrl());
     }
 
+    public boolean isCustom() {
+        return CUSTOM.equals(getUrl());
+    }
+
     public String getDesc() {
         if (!TextUtils.isEmpty(getName())) return getName();
         if (!TextUtils.isEmpty(getUrl())) return getUrl();
@@ -217,6 +224,10 @@ public class Config {
     public static Config wall() {
         Config item = AppDatabase.get().getConfigDao().findOne(2);
         return item == null ? create(2) : item;
+    }
+
+    public static Config custom() {
+        return new Config().type(0).url(CUSTOM).name(App.get().getString(R.string.custom_site_list)).json("");
     }
 
     public static Config find(int id) {

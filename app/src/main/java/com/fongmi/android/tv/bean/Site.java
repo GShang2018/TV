@@ -84,6 +84,14 @@ public class Site implements Parcelable {
     private Integer changeable;
 
     @Ignore
+    @SerializedName("quickSearch")
+    private Integer quickSearch;
+
+    @Ignore
+    @SerializedName("filterable")
+    private Integer filterable;
+
+    @Ignore
     @SerializedName("categories")
     private List<String> categories;
 
@@ -174,6 +182,10 @@ public class Site implements Parcelable {
         return type == null ? 0 : type;
     }
 
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
     public Integer getTimeout() {
         return timeout == null ? Constant.TIMEOUT_PLAY : Math.max(timeout, 1) * 1000;
     }
@@ -196,6 +208,22 @@ public class Site implements Parcelable {
 
     public void setChangeable(Integer changeable) {
         this.changeable = changeable;
+    }
+
+    public Integer getQuickSearch() {
+        return quickSearch == null ? 1 : quickSearch;
+    }
+
+    public void setQuickSearch(Integer quickSearch) {
+        this.quickSearch = quickSearch;
+    }
+
+    public Integer getFilterable() {
+        return filterable == null ? 1 : filterable;
+    }
+
+    public void setFilterable(Integer filterable) {
+        this.filterable = filterable;
     }
 
     public boolean isIndexs() {
@@ -225,6 +253,10 @@ public class Site implements Parcelable {
 
     public Style getStyle(Style style) {
         return getStyle() != null ? getStyle() : style != null ? style : Style.rect();
+    }
+
+    public void setStyle(Style style) {
+        this.style = style;
     }
 
     public boolean isActivated() {
@@ -326,6 +358,8 @@ public class Site implements Parcelable {
         dest.writeValue(this.searchable);
         dest.writeValue(this.changeable);
         dest.writeValue(this.indexs);
+        dest.writeValue(this.quickSearch);
+        dest.writeValue(this.filterable);
         dest.writeStringList(this.categories);
         dest.writeParcelable(this.style, flags);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
@@ -345,6 +379,8 @@ public class Site implements Parcelable {
         this.searchable = (Integer) in.readValue(Integer.class.getClassLoader());
         this.changeable = (Integer) in.readValue(Integer.class.getClassLoader());
         this.indexs = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.quickSearch = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.filterable = (Integer) in.readValue(Integer.class.getClassLoader());
         this.categories = in.createStringArrayList();
         this.style = in.readParcelable(Style.class.getClassLoader());
         this.activated = in.readByte() != 0;

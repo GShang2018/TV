@@ -7,6 +7,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomSite;
 import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Rule;
@@ -17,6 +18,7 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -120,7 +122,8 @@ public class VodConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            checkJson(Json.parse(Decoder.getJson(config.getUrl())).getAsJsonObject(), callback);
+            JsonObject object = config.isCustom() ? getCustomObject() : Json.parse(Decoder.getJson(config.getUrl())).getAsJsonObject();
+            checkJson(object, callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
@@ -134,7 +137,8 @@ public class VodConfig {
     }
 
     private void loadConfigCache(Callback callback) {
-        if (!TextUtils.isEmpty(config.getJson()) && config.isCache()) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
+        if (config.isCustom()) loadConfig(callback);
+        else if (!TextUtils.isEmpty(config.getJson()) && config.isCache()) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
         else loadConfig(callback);
     }
 
@@ -194,6 +198,17 @@ public class VodConfig {
                 setHome(site);
             }
         }
+    }
+
+    private JsonObject getCustomObject() {
+        JsonObject object = new JsonObject();
+        JsonArray array = new JsonArray();
+        for (CustomSite custom : CustomSite.getAll()) array.add(App.gson().toJsonTree(custom.toSite()));
+        object.add("sites", array);
+        object.add("rules", new JsonArray());
+        object.add("doh", new JsonArray());
+        object.add("parses", new JsonArray());
+        return object;
     }
 
     private void initLive(JsonObject object) {

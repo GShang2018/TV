@@ -80,6 +80,7 @@
     <string name="setting_vod">Vod</string>
     <string name="setting_live">Live</string>
     <string name="setting_wall">Wallpaper</string>
+    <string name="custom_site_list">Custom Site List</string>
     <string name="setting_player">Player setting</string>
     <string name="setting_danmu">Danmu setting</string>
     <string name="setting_custom">Custom setting</string>

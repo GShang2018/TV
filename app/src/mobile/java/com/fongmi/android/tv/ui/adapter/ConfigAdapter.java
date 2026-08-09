@@ -31,8 +31,18 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
 
     public ConfigAdapter addAll(int type) {
         mItems = Config.getAll(type);
-        mItems.remove(type == 0 ? VodConfig.get().getConfig() : LiveConfig.get().getConfig());
+        Config current = type == 0 ? VodConfig.get().getConfig() : LiveConfig.get().getConfig();
+        for (int i = mItems.size() - 1; i >= 0; i--) {
+            Config item = mItems.get(i);
+            if (item.equals(current) || (type == 0 && item.isCustom())) mItems.remove(i);
+        }
+        if (type == 0 && !containsCustom()) mItems.add(0, Config.custom());
         return this;
+    }
+
+    private boolean containsCustom() {
+        for (Config item : mItems) if (item.isCustom()) return true;
+        return false;
     }
 
     public int remove(Config item) {

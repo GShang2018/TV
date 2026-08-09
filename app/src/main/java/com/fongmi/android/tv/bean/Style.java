@@ -24,6 +24,10 @@ public class Style implements Parcelable {
         return new Style("rect", 1.33f);
     }
 
+    public static Style oval() {
+        return new Style("oval", 1.0f);
+    }
+
     public static Style list() {
         return new Style("list");
     }

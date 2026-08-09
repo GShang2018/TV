@@ -67,6 +67,22 @@
     <string name="dialog_site_list">Site List</string>
     <string name="dialog_site_line">Select Line</string>
     <string name="dialog_site_source">Select Source</string>
+    <string name="dialog_custom_site_name">Site Name</string>
+    <string name="dialog_custom_site_api">API Address</string>
+    <string name="setting_custom_vod">Custom Site</string>
+    <string name="custom_site_list">Custom Site List</string>
+    <string name="error_custom_site_empty">Please enter site name and API address</string>
+    <string name="custom_site_added">Custom site added</string>
+    <string name="setting_add_custom_site">Add Custom Site</string>
+    <string name="setting_add">Add</string>
+    <string name="dialog_custom_site_searchable">Searchable</string>
+    <string name="dialog_custom_site_quick_search">Quick Search</string>
+    <string name="dialog_custom_site_filterable">Filterable</string>
+    <string name="dialog_custom_site_style">Cover Style</string>
+    <string name="dialog_custom_site_style_rect">Rect</string>
+    <string name="dialog_custom_site_style_oval">Oval</string>
+    <string name="dialog_custom_site_style_list">List</string>
+    <string name="dialog_custom_site_ratio">Cover Ratio</string>
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>

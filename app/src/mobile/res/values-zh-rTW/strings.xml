@@ -57,6 +57,22 @@
 
     <!-- Dialog -->
     <string name="dialog_site_title">選擇站點</string>
+    <string name="dialog_custom_site_name">站點名稱</string>
+    <string name="dialog_custom_site_api">API 位址</string>
+    <string name="setting_custom_vod">自訂站點</string>
+    <string name="custom_site_list">自訂站源列表</string>
+    <string name="error_custom_site_empty">請輸入站點名稱和 API 位址</string>
+    <string name="custom_site_added">自訂站點已新增</string>
+    <string name="setting_add_custom_site">新增自訂源</string>
+    <string name="setting_add">新增</string>
+    <string name="dialog_custom_site_searchable">可搜尋</string>
+    <string name="dialog_custom_site_quick_search">快速搜尋</string>
+    <string name="dialog_custom_site_filterable">可篩選</string>
+    <string name="dialog_custom_site_style">封面樣式</string>
+    <string name="dialog_custom_site_style_rect">矩形</string>
+    <string name="dialog_custom_site_style_oval">圓形</string>
+    <string name="dialog_custom_site_style_list">列表</string>
+    <string name="dialog_custom_site_ratio">封面比例</string>
 
     <!-- Detail -->
     <string name="detail_flag">線路</string>
