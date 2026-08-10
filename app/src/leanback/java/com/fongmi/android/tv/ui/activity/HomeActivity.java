@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
@@ -232,7 +233,17 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setPager() {
-        mBinding.pager.setAdapter(mPageAdapter = new HomeActivity.PageAdapter(getSupportFragmentManager()));
+        FragmentManager fm = getSupportFragmentManager();
+        String prefix = "android:switcher:" + mBinding.pager.getId() + ":";
+        FragmentTransaction transaction = null;
+        for (Fragment fragment : new ArrayList<>(fm.getFragments())) {
+            if (fragment != null && fragment.getTag() != null && fragment.getTag().startsWith(prefix)) {
+                if (transaction == null) transaction = fm.beginTransaction();
+                transaction.remove(fragment);
+            }
+        }
+        if (transaction != null) transaction.commitNowAllowingStateLoss();
+        mBinding.pager.setAdapter(mPageAdapter = new HomeActivity.PageAdapter(fm));
         mBinding.pager.setNoScrollItem(0);
     }
 
