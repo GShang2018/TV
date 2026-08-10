@@ -247,7 +247,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void onLogo(View view) {
-        LineSelectDialog.createAll(this).show();
+        LineSelectDialog.createAll(this).show(this);
     }
 
     private boolean onRefresh(View view) {

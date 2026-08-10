@@ -1,11 +1,13 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
@@ -17,47 +19,50 @@ import com.fongmi.android.tv.ui.adapter.LineSelectAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.fragment.SubscribeFragment;
 import com.fongmi.android.tv.utils.Notify;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LineSelectDialog implements LineSelectAdapter.OnClickListener {
+public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.OnClickListener {
 
-    private final DialogLineSelectBinding binding;
-    private final LineSelectAdapter adapter;
-    private final Fragment fragment;
-    private final Config config;
-    private final AlertDialog dialog;
+    private DialogLineSelectBinding binding;
+    private LineSelectAdapter adapter;
+    private Fragment fragment;
+    private Config config;
+    private boolean all;
     private final Map<String, Config> mapping = new HashMap<>();
-    private final boolean all;
 
     public static LineSelectDialog create(Fragment fragment, Config config) {
-        return new LineSelectDialog(fragment, config, false);
+        LineSelectDialog dialog = new LineSelectDialog();
+        dialog.config = config;
+        dialog.all = false;
+        return dialog;
     }
 
     public static LineSelectDialog createAll(Fragment fragment) {
-        return new LineSelectDialog(fragment, VodConfig.get().getConfig(), true);
+        LineSelectDialog dialog = new LineSelectDialog();
+        dialog.config = VodConfig.get().getConfig();
+        dialog.all = true;
+        return dialog;
     }
 
-    public LineSelectDialog(Fragment fragment, Config config, boolean all) {
+    public void show(Fragment fragment) {
         this.fragment = fragment;
-        this.config = config;
-        this.all = all;
-        this.binding = DialogLineSelectBinding.inflate(LayoutInflater.from(fragment.getContext()));
-        this.adapter = new LineSelectAdapter(this);
-        this.dialog = new MaterialAlertDialogBuilder(fragment.getActivity()).setTitle(R.string.dialog_site_line).setView(binding.getRoot()).setNegativeButton(R.string.dialog_negative, null).create();
+        for (Fragment f : fragment.getChildFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
+        show(fragment.getChildFragmentManager(), null);
     }
 
-    public void show() {
-        setRecyclerView();
-        dialog.getWindow().setDimAmount(0);
-        dialog.show();
+    @Override
+    protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+        return binding = DialogLineSelectBinding.inflate(inflater, container, false);
     }
 
-    private void setRecyclerView() {
+    @Override
+    protected void initView() {
+        adapter = new LineSelectAdapter(this);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
         binding.recycler.setAdapter(adapter.addAll(getLines(), getSelected()));
@@ -97,10 +102,10 @@ public class LineSelectDialog implements LineSelectAdapter.OnClickListener {
 
     @Override
     public void onLineClick(Depot item) {
-        dialog.dismiss();
+        dismiss();
         Config target = all ? mapping.get(item.getUrl()) : config;
         if (target == null) return;
-        Notify.progress(fragment.getContext());
+        Notify.progress(requireContext());
         if (target.isDepot()) target.line(item.getUrl()).save();
         else target.update();
         if (target.getType() == 0) VodConfig.load(target, getCallback());

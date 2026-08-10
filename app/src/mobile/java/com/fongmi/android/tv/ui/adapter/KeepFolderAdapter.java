@@ -132,7 +132,7 @@ public class KeepFolderAdapter extends RecyclerView.Adapter<KeepFolderAdapter.Vi
             Keep item = mItems.get(position);
             holder.binding.name.setText(item.getVodName());
             holder.binding.site.setText(item.getSiteName());
-            holder.binding.site.setVisibility(View.VISIBLE);
+            holder.binding.site.setVisibility(View.GONE);
             holder.binding.year.setVisibility(View.GONE);
             holder.binding.remark.setVisibility(View.GONE);
             ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), holder.binding.image);

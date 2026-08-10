@@ -101,7 +101,7 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
 
     @Override
     public void onLine(Config item) {
-        LineSelectDialog.create(this, item).show();
+        LineSelectDialog.create(this, item).show(this);
     }
 
     @Override
