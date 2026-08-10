@@ -96,9 +96,7 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
     @Override
     public void onSelect(Config item) {
         item.update();
-        Notify.progress(getContext());
-        if (getType() == 0) VodConfig.load(item, getCallback());
-        else LiveConfig.load(item, getCallback());
+        setConfig(item);
     }
 
     @Override

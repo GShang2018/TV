@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
                 android:singleLine="true"
-                android:textColor="?android:attr/textColorPrimary"
+                android:textColor="@color/white"
                 android:textSize="14sp"
                 tools:text="订阅名称" />
 
@@ -44,7 +44,7 @@
                 android:layout_marginTop="6dp"
                 android:ellipsize="middle"
                 android:singleLine="true"
-                android:textColor="?android:attr/textColorSecondary"
+                android:textColor="@color/white"
                 android:textSize="12sp"
                 tools:text="https://example.com/api.json" />
         </LinearLayout>
@@ -57,7 +57,7 @@
             android:ellipsize="end"
             android:maxWidth="120dp"
             android:singleLine="true"
-            android:textColor="?attr/colorControlActivated"
+            android:textColor="@color/white"
             android:textSize="12sp"
             android:visibility="gone"
             tools:text="来自: 订阅:线路" />

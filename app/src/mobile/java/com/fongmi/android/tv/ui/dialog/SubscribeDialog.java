@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.permissionx.guolindev.PermissionX;
 
 public class SubscribeDialog {
 
@@ -121,8 +123,22 @@ public class SubscribeDialog {
         Notify.progress(fragment.getContext());
         Util.hideKeyboard(binding.url);
         dialog.dismiss();
-        if (type == 0) VodConfig.probe(config, getProbe(use, config));
-        else LiveConfig.probe(config, getProbe(use, config));
+        probe(use, config);
+    }
+
+    private void probe(boolean use, Config config) {
+        ensurePermission(() -> {
+            if (type == 0) VodConfig.probe(config, getProbe(use, config));
+            else LiveConfig.probe(config, getProbe(use, config));
+        }, config);
+    }
+
+    private void ensurePermission(Runnable action, Config config) {
+        if (config.getUrl().startsWith("file") && !PermissionX.isGranted(fragment.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            PermissionX.init(fragment).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> action.run());
+        } else {
+            action.run();
+        }
     }
 
     private Callback getProbe(boolean use, Config config) {
@@ -152,8 +168,10 @@ public class SubscribeDialog {
     }
 
     private void load(Config config) {
-        if (type == 0) VodConfig.load(config, getCallback());
-        else LiveConfig.load(config, getCallback());
+        ensurePermission(() -> {
+            if (type == 0) VodConfig.load(config, getCallback());
+            else LiveConfig.load(config, getCallback());
+        }, config);
     }
 
     private Callback getCallback() {

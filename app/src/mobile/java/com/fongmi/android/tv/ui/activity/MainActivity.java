@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -39,6 +40,7 @@ import com.fongmi.android.tv.ui.fragment.VodFragment;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.permissionx.guolindev.PermissionX;
 import com.google.android.material.navigation.NavigationBarView;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -103,8 +105,21 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     private void initConfig() {
         WallConfig.get().init();
-        LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(), true);
+        VodConfig vod = VodConfig.get().init();
+        LiveConfig live = LiveConfig.get().init();
+        if (needPermission(vod.getConfig()) || needPermission(live.getConfig())) {
+            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
+                vod.load(getCallback(), true);
+                live.load();
+            });
+        } else {
+            vod.load(getCallback(), true);
+            live.load();
+        }
+    }
+
+    private boolean needPermission(Config config) {
+        return config.getUrl() != null && config.getUrl().startsWith("file") && !PermissionX.isGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
 
     private Callback getCallback() {
@@ -142,7 +157,16 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     }
 
     private void loadLive(String url) {
-        LiveConfig.load(Config.find(url, 1), new Callback() {
+        Config config = Config.find(url, 1);
+        if (needPermission(config)) {
+            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> doLoadLive(config));
+        } else {
+            doLoadLive(config);
+        }
+    }
+
+    private void doLoadLive(Config config) {
+        LiveConfig.load(config, new Callback() {
             @Override
             public void success() {
                 openLive();
