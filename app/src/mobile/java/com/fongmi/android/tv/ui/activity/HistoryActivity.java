@@ -47,6 +47,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
 
     @Override
     protected void initEvent() {
+        mBinding.back.setOnClickListener(v -> onBackPressed());
         mBinding.sync.setOnClickListener(this::onSync);
         mBinding.view.setOnClickListener(this::toggleView);
         mBinding.delete.setOnClickListener(this::onDelete);

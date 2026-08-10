@@ -22,6 +22,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.FragmentSettingCustomBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -73,6 +74,7 @@ public class SettingCustomFragment extends BaseFragment {
 
     @Override
     protected void initEvent() {
+        mBinding.back.setOnClickListener(v -> ((MainActivity) getActivity()).change(1));
         mBinding.size.setOnClickListener(this::setSize);
         mBinding.posterCrop.setOnClickListener(this::setPosterCrop);
         mBinding.speed.setOnClickListener(this::setSpeed);

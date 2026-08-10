@@ -19,6 +19,7 @@ import com.fongmi.android.tv.impl.UaCallback;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.extractor.BtEngine;
 import com.fongmi.android.tv.setting.ExoPerformanceSetting;
+import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.CacheTimeDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
@@ -78,6 +79,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, C
 
     @Override
     protected void initEvent() {
+        mBinding.back.setOnClickListener(v -> ((MainActivity) getActivity()).change(1));
         mBinding.ua.setOnClickListener(this::onUa);
         mBinding.rtsp.setOnClickListener(this::setRtsp);
         mBinding.http.setOnClickListener(this::setHttp);
