@@ -64,6 +64,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Path;
 import com.google.android.material.shape.ShapeAppearanceModel;
 import com.google.common.net.HttpHeaders;
 import com.permissionx.guolindev.PermissionX;
@@ -89,6 +90,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 	private Runnable mRunnable;
 	private List<String> mHots;
 	private Result mResult;
+	private LineSelectDialog mLineDialog;
 
     public static VodFragment newInstance() {
         return new VodFragment();
@@ -247,7 +249,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void onLogo(View view) {
-        LineSelectDialog.createAll(this).show(this);
+        mLineDialog = LineSelectDialog.createAll(this);
+        mLineDialog.show(this);
     }
 
     private boolean onRefresh(View view) {
@@ -475,6 +478,13 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
+        if (mLineDialog != null && mLineDialog.isEditShowing()) {
+            String path = FileChooser.getPathFromUri(getContext(), data.getData());
+            if (path == null) { Notify.show(R.string.subscribe_file_error); return; }
+            String url = "file:/" + path.replace(Path.rootPath(), "");
+            mLineDialog.setUrl(url);
+            return;
+        }
         VideoActivity.file(getActivity(), FileChooser.getPathFromUri(getContext(), data.getData()));
     }
 

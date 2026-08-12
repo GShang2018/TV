@@ -102,6 +102,19 @@
     <string name="subscribe_file_error">檔案讀取失敗</string>
     <string name="subscribe_empty">暫無訂閱</string>
     <string name="subscribe_positive">新增</string>
+    <string name="subscribe_menu_more">更多選項</string>
+    <string name="subscribe_menu_edit">編輯</string>
+    <string name="subscribe_menu_copy">複製位址</string>
+    <string name="subscribe_menu_delete">刪除</string>
+    <string name="subscribe_edit_title">編輯訂閱</string>
+    <string name="subscribe_copied">位址已複製</string>
+    <string name="subscribe_edit_empty">位址不能為空</string>
+    <string name="subscribe_line_edit_title">編輯線路</string>
+    <string name="subscribe_line_name">線路名稱</string>
+    <string name="subscribe_line_delete_title">刪除線路</string>
+    <string name="subscribe_line_delete">刪除此線路？</string>
+    <string name="subscribe_line_deleted">線路已刪除</string>
+    <string name="subscribe_line_updated">線路已更新</string>
 
     <!-- Detail -->
     <string name="detail_flag">線路</string>

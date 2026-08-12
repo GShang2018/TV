@@ -1,13 +1,12 @@
 package com.fongmi.android.tv.ui.adapter;
 
-import android.util.TypedValue;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
@@ -25,6 +24,7 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
 
     public SubscribeAdapter(OnClickListener listener) {
         this.mListener = listener;
+        setHasStableIds(true);
     }
 
     public interface OnClickListener {
@@ -34,6 +34,10 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
         void onLine(Config item);
 
         void onCustom(Config item);
+
+        void onEdit(Config item);
+
+        void onCopy(Config item);
 
         void onDelete(Config item);
     }
@@ -50,6 +54,11 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
         return mItems == null ? 0 : mItems.size();
     }
 
+    @Override
+    public long getItemId(int position) {
+        return mItems.get(position).getId();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -60,13 +69,12 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Config item = mItems.get(position);
         boolean checked = TextUtils.equals(active, item.getUrl());
-        holder.binding.radio.setColorFilter(checked ? getColor(holder, R.attr.colorControlActivated) : getColor(holder, R.attr.colorControlNormal));
-        holder.binding.radio.setAlpha(checked ? 1.0f : 0.3f);
         holder.binding.name.setText(item.getDesc());
         if (item.isCustom()) {
             holder.binding.url.setText(getString(holder, R.string.custom_site_list));
             holder.binding.source.setVisibility(View.GONE);
-            holder.binding.delete.setVisibility(View.GONE);
+            holder.binding.more.setVisibility(View.GONE);
+            holder.binding.switchBtn.setVisibility(View.VISIBLE);
             holder.binding.name.setOnClickListener(v -> mListener.onCustom(item));
             holder.binding.url.setOnClickListener(v -> mListener.onCustom(item));
         } else {
@@ -81,13 +89,17 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
             } else {
                 holder.binding.source.setVisibility(View.GONE);
             }
-            holder.binding.delete.setVisibility(View.VISIBLE);
+            holder.binding.more.setVisibility(View.VISIBLE);
+            holder.binding.switchBtn.setVisibility(View.VISIBLE);
             holder.binding.name.setOnClickListener(v -> onItemClick(item));
             holder.binding.url.setOnClickListener(v -> onItemClick(item));
+            holder.binding.more.setOnClickListener(v -> showMoreMenu(holder, item));
         }
-        holder.binding.radio.setOnClickListener(v -> mListener.onSelect(item));
-        holder.binding.delete.setOnClickListener(v -> mListener.onDelete(item));
-        holder.binding.divider.setVisibility(position == mItems.size() - 1 ? View.GONE : View.VISIBLE);
+        holder.binding.switchBtn.setOnCheckedChangeListener(null);
+        holder.binding.switchBtn.setChecked(checked);
+        holder.binding.switchBtn.setOnCheckedChangeListener((button, isChecked) -> {
+            if (isChecked && !checked) mListener.onSelect(item);
+        });
     }
 
     private void onItemClick(Config item) {
@@ -95,10 +107,24 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
         else mListener.onSelect(item);
     }
 
-    private int getColor(ViewHolder holder, int attr) {
-        TypedValue value = new TypedValue();
-        holder.itemView.getContext().getTheme().resolveAttribute(attr, value, true);
-        return value.resourceId != 0 ? ContextCompat.getColor(holder.itemView.getContext(), value.resourceId) : value.data;
+    private void showMoreMenu(ViewHolder holder, Config item) {
+        PopupMenu popup = new PopupMenu(holder.itemView.getContext(), holder.binding.more);
+        popup.inflate(R.menu.menu_subscribe_item);
+        popup.setOnMenuItemClickListener(menuItem -> {
+            int id = menuItem.getItemId();
+            if (id == R.id.action_edit) {
+                mListener.onEdit(item);
+                return true;
+            } else if (id == R.id.action_copy) {
+                mListener.onCopy(item);
+                return true;
+            } else if (id == R.id.action_delete) {
+                mListener.onDelete(item);
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     private String getString(ViewHolder holder, int resId, Object... args) {

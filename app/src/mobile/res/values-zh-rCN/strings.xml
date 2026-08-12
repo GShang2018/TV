@@ -111,6 +111,19 @@
     <string name="subscribe_file_error">文件读取失败</string>
     <string name="subscribe_empty">暂无订阅</string>
     <string name="subscribe_positive">添加</string>
+    <string name="subscribe_menu_more">更多选项</string>
+    <string name="subscribe_menu_edit">编辑</string>
+    <string name="subscribe_menu_copy">复制地址</string>
+    <string name="subscribe_menu_delete">删除</string>
+    <string name="subscribe_edit_title">编辑订阅</string>
+    <string name="subscribe_copied">地址已复制</string>
+    <string name="subscribe_edit_empty">地址不能为空</string>
+    <string name="subscribe_line_edit_title">编辑线路</string>
+    <string name="subscribe_line_name">线路名称</string>
+    <string name="subscribe_line_delete_title">删除线路</string>
+    <string name="subscribe_line_delete">删除此线路？</string>
+    <string name="subscribe_line_deleted">线路已删除</string>
+    <string name="subscribe_line_updated">线路已更新</string>
 
     <!-- Detail -->
     <string name="detail_flag">线路</string>

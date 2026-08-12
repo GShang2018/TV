@@ -27,6 +27,7 @@ import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.SubscribeDialog;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -40,6 +41,7 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
     private FragmentSubscribeBinding mBinding;
     private SubscribeAdapter mAdapter;
     private SubscribeDialog mDialog;
+    private LineSelectDialog mLineDialog;
 
     public static SubscribeFragment newInstance(int type) {
         Bundle args = new Bundle();
@@ -101,12 +103,24 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
 
     @Override
     public void onLine(Config item) {
-        LineSelectDialog.create(this, item).show(this);
+        mLineDialog = LineSelectDialog.create(this, item);
+        mLineDialog.show(this);
     }
 
     @Override
     public void onCustom(Config item) {
         CustomSiteListDialog.create(this).show();
+    }
+
+    @Override
+    public void onEdit(Config item) {
+        mDialog = SubscribeDialog.edit(this, getType(), item);
+        mDialog.show();
+    }
+
+    @Override
+    public void onCopy(Config item) {
+        Util.copy(item.getUrl());
     }
 
     @Override
@@ -131,6 +145,8 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
         String url = "file:/" + path.replace(Path.rootPath(), "");
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.setUrl(url);
+        } else if (mLineDialog != null && mLineDialog.isEditShowing()) {
+            mLineDialog.setUrl(url);
         } else {
             importConfig(path);
         }

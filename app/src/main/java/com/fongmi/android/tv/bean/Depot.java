@@ -36,4 +36,12 @@ public class Depot {
     public String getName() {
         return TextUtils.isEmpty(name) ? getUrl() : name;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 }

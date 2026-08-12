@@ -112,6 +112,19 @@
     <string name="subscribe_file_error">Failed to read file</string>
     <string name="subscribe_empty">No subscriptions yet</string>
     <string name="subscribe_positive">Add</string>
+    <string name="subscribe_menu_more">More options</string>
+    <string name="subscribe_menu_edit">Edit</string>
+    <string name="subscribe_menu_copy">Copy URL</string>
+    <string name="subscribe_menu_delete">Delete</string>
+    <string name="subscribe_edit_title">Edit Subscription</string>
+    <string name="subscribe_copied">URL copied</string>
+    <string name="subscribe_edit_empty">URL cannot be empty</string>
+    <string name="subscribe_line_edit_title">Edit Line</string>
+    <string name="subscribe_line_name">Line Name</string>
+    <string name="subscribe_line_delete_title">Delete Line</string>
+    <string name="subscribe_line_delete">Delete this line?</string>
+    <string name="subscribe_line_deleted">Line deleted</string>
+    <string name="subscribe_line_updated">Line updated</string>
 
     <!-- Detail -->
     <string name="detail_flag">Flag</string>

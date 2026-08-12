@@ -22,6 +22,7 @@ import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
@@ -30,17 +31,23 @@ public class SubscribeDialog {
     private final DialogSubscribeBinding binding;
     private final Fragment fragment;
     private AlertDialog dialog;
+    private Config editing;
     private boolean append;
     private boolean init;
     private int type;
 
     public static SubscribeDialog create(Fragment fragment, int type) {
-        return new SubscribeDialog(fragment, type);
+        return new SubscribeDialog(fragment, type, null);
     }
 
-    public SubscribeDialog(Fragment fragment, int type) {
+    public static SubscribeDialog edit(Fragment fragment, int type, Config config) {
+        return new SubscribeDialog(fragment, type, config);
+    }
+
+    public SubscribeDialog(Fragment fragment, int type, Config config) {
         this.fragment = fragment;
         this.type = type;
+        this.editing = config;
         this.binding = DialogSubscribeBinding.inflate(LayoutInflater.from(fragment.getContext()));
         this.append = true;
     }
@@ -60,14 +67,27 @@ public class SubscribeDialog {
         return dialog != null && dialog.isShowing();
     }
 
+    private boolean isEdit() {
+        return editing != null;
+    }
+
     private void initDialog() {
-        dialog = new MaterialAlertDialogBuilder(binding.getRoot().getContext()).setTitle(type == 0 ? R.string.subscribe_add_vod : R.string.subscribe_add_live).setView(binding.getRoot()).setPositiveButton(R.string.subscribe_positive, this::onPositive).setNegativeButton(R.string.dialog_negative, this::onNegative).create();
+        int titleRes = isEdit() ? R.string.subscribe_edit_title : (type == 0 ? R.string.subscribe_add_vod : R.string.subscribe_add_live);
+        int positiveRes = isEdit() ? R.string.dialog_edit : R.string.subscribe_positive;
+        dialog = new MaterialAlertDialogBuilder(binding.getRoot().getContext()).setTitle(titleRes).setView(binding.getRoot()).setPositiveButton(positiveRes, this::onPositive).setNegativeButton(R.string.dialog_negative, this::onNegative).create();
         dialog.getWindow().setDimAmount(0);
         dialog.show();
     }
 
     private void initView() {
         binding.epgInput.setVisibility(type == 1 ? View.VISIBLE : View.GONE);
+        binding.use.setChecked(!isEdit());
+        binding.use.setVisibility(isEdit() ? View.GONE : View.VISIBLE);
+        if (isEdit()) {
+            binding.name.setText(editing.getName());
+            binding.url.setText(editing.getUrl());
+            if (type == 1) binding.epg.setText(editing.getEpg());
+        }
     }
 
     private void initEvent() {
@@ -111,12 +131,21 @@ public class SubscribeDialog {
     private void onPositive(DialogInterface dialog, int which) {
         String url = UrlUtil.fixUrl(binding.url.getText().toString().trim());
         String name = binding.name.getText().toString().trim();
+        String epg = binding.epg.getText().toString().trim();
         if (url.isEmpty()) {
-            dialog.dismiss();
+            Notify.show(R.string.subscribe_edit_empty);
             return;
         }
+        if (isEdit()) {
+            onEditPositive(url, name, epg);
+        } else {
+            onAddPositive(url, name, epg);
+        }
+    }
+
+    private void onAddPositive(String url, String name, String epg) {
         Config config = Config.find(url, name, type);
-        if (type == 1) config.epg(binding.epg.getText().toString().trim());
+        if (type == 1) config.epg(epg);
         boolean use = binding.use.isChecked();
         if (use) config.update();
         else config.save();
@@ -124,6 +153,29 @@ public class SubscribeDialog {
         Util.hideKeyboard(binding.url);
         dialog.dismiss();
         probe(use, config);
+    }
+
+    private void onEditPositive(String url, String name, String epg) {
+        String oldUrl = editing.getUrl();
+        boolean wasActive = oldUrl.equals(Prefers.getString("config_" + type, null));
+        if (!url.equals(oldUrl)) {
+            Config.delete(oldUrl, type);
+            if (type == 0) Config.delete(oldUrl, 1);
+        }
+        Config config = Config.find(url, name, type);
+        if (type == 1) config.epg(epg);
+        if (wasActive) {
+            config.update();
+            Notify.progress(fragment.getContext());
+            Util.hideKeyboard(binding.url);
+            dialog.dismiss();
+            probe(true, config);
+        } else {
+            config.save();
+            Util.hideKeyboard(binding.url);
+            dialog.dismiss();
+            refresh();
+        }
     }
 
     private void probe(boolean use, Config config) {
@@ -162,7 +214,6 @@ public class SubscribeDialog {
 
     private void afterProbe(boolean use, Config config) {
         Notify.dismiss();
-        Notify.show(R.string.subscribe_added);
         if (use) load(config);
         else refresh();
     }
