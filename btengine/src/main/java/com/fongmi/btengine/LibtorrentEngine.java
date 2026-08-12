@@ -2,6 +2,8 @@ package com.fongmi.btengine;
 
 import android.util.Log;
 
+import com.github.catvod.utils.Prefers;
+
 import org.libtorrent4j.AlertListener;
 import org.libtorrent4j.SessionManager;
 import org.libtorrent4j.SessionParams;
@@ -22,6 +24,10 @@ import org.libtorrent4j.alerts.PortmapErrorAlert;
 import org.libtorrent4j.alerts.DhtGetPeersAlert;
 import org.libtorrent4j.alerts.DhtReplyAlert;
 import org.libtorrent4j.alerts.PeerConnectAlert;
+import org.libtorrent4j.alerts.TrackerAnnounceAlert;
+import org.libtorrent4j.alerts.TrackerReplyAlert;
+import org.libtorrent4j.alerts.TrackerErrorAlert;
+import org.libtorrent4j.alerts.TrackerWarningAlert;
 import org.libtorrent4j.swig.settings_pack;
 
 import java.io.File;
@@ -131,7 +137,23 @@ public class LibtorrentEngine {
             // ========== Peer settings ==========
             settings.setInteger(settings_pack.int_types.max_failcount.swigValue(), 3);
             settings.setInteger(settings_pack.int_types.peer_timeout.swigValue(), 30);
-            settings.setInteger(settings_pack.int_types.tick_interval.swigValue(), 100);
+            settings.setInteger(settings_pack.int_types.tick_interval.swigValue(), 1000);
+            settings.setInteger(settings_pack.int_types.inactivity_timeout.swigValue(), 60);
+
+            // ========== Tracker announce optimization (reference: libretorrent) ==========
+            // Announce to ALL trackers in ALL tiers simultaneously.
+            // Without this, libtorrent only announces to the first tracker in the first tier,
+            // wasting all additional trackers. This is THE key setting for tracker acceleration.
+            settings.setBoolean(settings_pack.bool_types.announce_to_all_trackers.swigValue(), true);
+            settings.setBoolean(settings_pack.bool_types.announce_to_all_tiers.swigValue(), true);
+            // Don't validate HTTPS tracker certificates (connect to more trackers)
+            settings.setBoolean(settings_pack.bool_types.validate_https_trackers.swigValue(), false);
+
+            // ========== Session optimization ==========
+            // Alert queue size (default is too small, may lose alerts)
+            settings.setInteger(settings_pack.int_types.alert_queue_size.swigValue(), 5000);
+            // Disable IP notifier (not needed on Android)
+            settings.setBoolean(settings_pack.bool_types.enable_ip_notifier.swigValue(), false);
 
             // ========== User agent ==========
             settings.setString(settings_pack.string_types.user_agent.swigValue(), "libtorrent4j/2.1.0");
@@ -157,7 +179,11 @@ public class LibtorrentEngine {
                             AlertType.PORTMAP_ERROR.swig(),
                             AlertType.DHT_GET_PEERS.swig(),
                             AlertType.DHT_REPLY.swig(),
-                            AlertType.PEER_CONNECT.swig()
+                            AlertType.PEER_CONNECT.swig(),
+                            AlertType.TRACKER_ANNOUNCE.swig(),
+                            AlertType.TRACKER_REPLY.swig(),
+                            AlertType.TRACKER_ERROR.swig(),
+                            AlertType.TRACKER_WARNING.swig()
                     };
                 }
 
@@ -225,6 +251,26 @@ public class LibtorrentEngine {
                         case PEER_CONNECT:
                             Log.e(TAG, "Peer connect: " + alert.message());
                             break;
+                        case TRACKER_ANNOUNCE: {
+                            TrackerAnnounceAlert a = (TrackerAnnounceAlert) alert;
+                            Log.e(TAG, "Tracker>> announce: " + a.trackerUrl());
+                            break;
+                        }
+                        case TRACKER_REPLY: {
+                            TrackerReplyAlert a = (TrackerReplyAlert) alert;
+                            Log.e(TAG, "Tracker<< reply: " + a.trackerUrl() + " peers=" + a.numPeers());
+                            break;
+                        }
+                        case TRACKER_ERROR: {
+                            TrackerErrorAlert a = (TrackerErrorAlert) alert;
+                            Log.e(TAG, "Tracker!! error: " + a.trackerUrl() + " msg=" + a.errorMessage());
+                            break;
+                        }
+                        case TRACKER_WARNING: {
+                            TrackerWarningAlert a = (TrackerWarningAlert) alert;
+                            Log.e(TAG, "Tracker!! warning: " + a.trackerUrl() + " msg=" + a.message());
+                            break;
+                        }
                     }
                 }
             });
@@ -257,6 +303,46 @@ public class LibtorrentEngine {
      */
     public static String[] getDefaultTrackers() {
         return DEFAULT_TRACKERS;
+    }
+
+    /**
+     * Whether announce_to_all_trackers is enabled (hardcoded true since this optimization).
+     * Used for logging so users can verify tracker acceleration is active.
+     */
+    public static boolean announceToAllEnabled() {
+        return true;
+    }
+
+    /**
+     * Parse tracker text: one URL per line, lines starting with # are ignored.
+     */
+    public static String[] parseTrackers(String text) {
+        if (text == null || text.trim().isEmpty()) return new String[0];
+        String[] lines = text.split("\n");
+        java.util.List<String> result = new java.util.ArrayList<>();
+        for (String line : lines) {
+            String t = line.trim();
+            if (!t.isEmpty() && !t.startsWith("#")) result.add(t);
+        }
+        return result.toArray(new String[0]);
+    }
+
+    /**
+     * Get trackers from user preferences (key="tracker_list"),
+     * falling back to DEFAULT_TRACKERS when user hasn't configured any.
+     * btengine reads the same SharedPreferences as Setting.getTrackerList() in app module.
+     */
+    public static String[] getTrackers() {
+        String text = Prefers.getString("tracker_list", "");
+        String[] parsed = parseTrackers(text);
+        return parsed.length > 0 ? parsed : DEFAULT_TRACKERS;
+    }
+
+    /**
+     * Get DEFAULT_TRACKERS as newline-separated text for UI fallback.
+     */
+    public static String getDefaultTrackersText() {
+        return String.join("\n", DEFAULT_TRACKERS);
     }
 
 

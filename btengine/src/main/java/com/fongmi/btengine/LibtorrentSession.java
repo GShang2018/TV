@@ -3,17 +3,19 @@ package com.fongmi.btengine;
 import android.util.Log;
 
 import org.libtorrent4j.AddTorrentParams;
+import org.libtorrent4j.Priority;
 import org.libtorrent4j.SessionManager;
 import org.libtorrent4j.Sha1Hash;
 import org.libtorrent4j.TorrentHandle;
 import org.libtorrent4j.TorrentInfo;
 import org.libtorrent4j.TorrentStatus;
-import org.libtorrent4j.swig.announce_entry;
 import org.libtorrent4j.swig.error_code;
 import org.libtorrent4j.swig.libtorrent;
+import org.libtorrent4j.swig.string_vector;
 import org.libtorrent4j.swig.torrent_flags_t;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * libtorrent4j magnet/torrent client.
@@ -82,6 +84,18 @@ public class LibtorrentSession {
         flags = flags.or_(libtorrent.getSequential_download());
         params.setFlags(flags);
 
+        // Preset trackers via add_torrent_params (reference: libretorrent addDefaultTrackers)
+        // Ensures all trackers are active before the first announce request,
+        // unlike torrent_handle.add_tracker() which misses the initial announce.
+        // Combined with session-level announce_to_all_trackers=true, all trackers
+        // receive announce requests simultaneously for maximum peer discovery.
+        String[] trackerArray = LibtorrentEngine.getTrackers();
+        string_vector trackers = new string_vector();
+        trackers.addAll(Arrays.asList(trackerArray));
+        params.swig().setTrackers(trackers);
+        Log.e(TAG, "Trackers preset: " + trackerArray.length + " trackers, announce_to_all="
+            + LibtorrentEngine.announceToAllEnabled());
+
         // Add the torrent via the native session and get the handle
         error_code ec = new error_code();
         org.libtorrent4j.swig.torrent_handle nativeHandle = session.swig().add_torrent(params.swig(), ec);
@@ -90,9 +104,6 @@ public class LibtorrentSession {
         }
 
         TorrentHandle handle = new TorrentHandle(nativeHandle);
-
-        // Add default trackers to this torrent for better peer discovery
-        addTrackersToTorrent(nativeHandle);
 
         // Wait for metadata to be received by polling
         long startTime = System.currentTimeMillis();
@@ -106,6 +117,9 @@ public class LibtorrentSession {
                     if (ti != null && ti.isValid()) {
                         infoHash = ti.infoHash();
                         Log.e(TAG, "Metadata received, infoHash: " + infoHash.toHex());
+                        // Set file priorities for streaming: only download the first file,
+                        // skip all others to save bandwidth (reference: libretorrent prioritizeFiles)
+                        prioritizeForStreaming(handle, ti);
                         break;
                     }
                 }
@@ -156,6 +170,11 @@ public class LibtorrentSession {
         flags = flags.or_(libtorrent.getSequential_download());
         params.setFlags(flags);
 
+        // Preset trackers via add_torrent_params (same as addMagnet)
+        string_vector trackers = new string_vector();
+        trackers.addAll(Arrays.asList(LibtorrentEngine.getTrackers()));
+        params.swig().setTrackers(trackers);
+
         // Add the torrent via the native session and get the handle
         error_code ec = new error_code();
         org.libtorrent4j.swig.torrent_handle nativeHandle = session.swig().add_torrent(params.swig(), ec);
@@ -165,12 +184,12 @@ public class LibtorrentSession {
 
         TorrentHandle handle = new TorrentHandle(nativeHandle);
 
-        // Add default trackers to this torrent for better peer discovery
-        addTrackersToTorrent(nativeHandle);
-
         // Get the info hash directly from TorrentInfo (already loaded from file)
         Sha1Hash infoHash = ti.infoHash();
         Log.e(TAG, "Torrent file added, infoHash: " + infoHash.toHex() + ", name: " + ti.name());
+
+        // Set file priorities for streaming: only download the first file
+        prioritizeForStreaming(handle, ti);
 
         return infoHash.toHex();
     }
@@ -224,12 +243,13 @@ public class LibtorrentSession {
                     File fullPath = new File(torrentDir, fileName);
                     Log.e(TAG, "Metadata available, expected file: " + fullPath.getAbsolutePath());
                     
-                    // If file already exists with data, return immediately
-                    if (fullPath.exists() && fullPath.length() > 0) {
+                    // If file already exists with data AND first piece is downloaded, return immediately
+                    // Checking havePiece(0) ensures the player can read valid data from the start
+                    if (fullPath.exists() && fullPath.length() > 0 && handle.havePiece(0)) {
                         Log.e(TAG, "File already available: " + fullPath.getAbsolutePath() + " (" + fullPath.length() + " bytes)");
                         return fullPath.getAbsolutePath();
                     }
-                    
+
                     // File doesn't exist yet, but we know the path - wait for it
                     Log.e(TAG, "Waiting for file to be created: " + fullPath.getAbsolutePath());
                     long startTime = System.currentTimeMillis();
@@ -240,11 +260,18 @@ public class LibtorrentSession {
                             Log.e(TAG, "Torrent handle became invalid while waiting");
                             return null;
                         }
-                        
-                        // Check if file exists now
-                        if (fullPath.exists() && fullPath.length() > 0) {
-                            Log.e(TAG, "File available after waiting: " + fullPath.getAbsolutePath() + " (" + fullPath.length() + " bytes)");
+
+                        // Check if first piece is downloaded - this is more reliable than
+                        // just checking file existence, as it guarantees valid data is available
+                        if (handle.havePiece(0)) {
+                            Log.e(TAG, "First piece downloaded, file available: " + fullPath.getAbsolutePath()
+                                + " (exists=" + fullPath.exists() + ", length=" + fullPath.length() + ")");
                             return fullPath.getAbsolutePath();
+                        }
+
+                        // Fallback: check if file exists with data (for pre-allocated files)
+                        if (fullPath.exists() && fullPath.length() > 0) {
+                            Log.e(TAG, "File exists but first piece not done yet, waiting for piece 0...");
                         }
                         
                         // Get current status for progress tracking
@@ -280,15 +307,13 @@ public class LibtorrentSession {
                                     + ", elapsed=" + (now - startTime)/1000 + "s");
                             }
                             
-                            // If downloading and has some progress, the file should exist
+                            // If downloading and has some progress, check if first piece is done
                             if (currentStatus.state() == TorrentStatus.State.DOWNLOADING && downloaded > 0) {
-                                // Re-check file existence
-                                if (fullPath.exists()) {
-                                    Log.e(TAG, "File appeared after download started: " + fullPath.getAbsolutePath() + " (" + fullPath.length() + " bytes)");
+                                // Only return when first piece is actually downloaded
+                                if (handle.havePiece(0)) {
+                                    Log.e(TAG, "First piece done after download started: " + fullPath.getAbsolutePath());
                                     return fullPath.getAbsolutePath();
                                 }
-                                // If file doesn't exist yet but we're downloading, wait a bit more
-                                // The file system might not have flushed yet
                             }
                             
                             // If we have peers connected and are downloading, the file should appear soon
@@ -362,18 +387,15 @@ public class LibtorrentSession {
                             File torrentDir = new File(saveDir, ti.name());
                             File fullPath = new File(torrentDir, fileName);
 
-                            // Check if file exists and has some data
-                            if (fullPath.exists() && fullPath.length() > 0) {
-                                Log.e(TAG, "File available: " + fullPath.getAbsolutePath() + " (" + fullPath.length() + " bytes)");
+                            // Check if first piece is downloaded (reliable indicator of playable data)
+                            if (handle.havePiece(0)) {
+                                Log.e(TAG, "First piece downloaded (fallback branch): " + fullPath.getAbsolutePath());
                                 return fullPath.getAbsolutePath();
                             }
 
-                            // Also check the save path from handle
-                            String statusPath = handle.savePath() + File.separator + ti.name() + File.separator + fileName;
-                            File statusFile = new File(statusPath);
-                            if (statusFile.exists() && statusFile.length() > 0) {
-                                Log.e(TAG, "File available (status path): " + statusPath);
-                                return statusPath;
+                            // Log file existence for debugging
+                            if (fullPath.exists() && fullPath.length() > 0) {
+                                Log.e(TAG, "File exists but first piece not done yet, waiting...");
                             }
                             
                             // Log progress
@@ -484,22 +506,47 @@ public class LibtorrentSession {
     }
 
     /**
-     * Add default trackers to a torrent handle for better peer discovery.
-     * In this version of libtorrent4j, trackers must be added per-torrent
-     * via torrent_handle.add_tracker(), not at the session level.
+     * Set file priorities for streaming: only download the first file at TOP_PRIORITY,
+     * skip all others (IGNORE). Also sets the first piece deadline for faster streaming start.
+     * Reference: libretorrent prioritizeFiles + setInterestedPieces
      */
-    private void addTrackersToTorrent(org.libtorrent4j.swig.torrent_handle nativeHandle) {
+    private void prioritizeForStreaming(TorrentHandle handle, TorrentInfo ti) {
         try {
-            String[] trackers = LibtorrentEngine.getDefaultTrackers();
-            for (String tracker : trackers) {
-                try {
-                    nativeHandle.add_tracker(new announce_entry(tracker));
-                } catch (Exception ignored) {
-                    // Skip invalid trackers
-                }
+            int numFiles = ti.numFiles();
+            if (numFiles <= 1) {
+                setFirstPiecePriority(handle, ti);
+                return;
             }
+            // Multi-file torrent: only download the first file, skip others
+            Priority[] priorities = new Priority[numFiles];
+            for (int i = 0; i < numFiles; i++) {
+                priorities[i] = (i == 0) ? Priority.TOP_PRIORITY : Priority.IGNORE;
+            }
+            handle.prioritizeFiles(priorities);
+            Log.e(TAG, "File priorities set: file[0]=TOP, others=IGNORE (" + numFiles + " files)");
+            setFirstPiecePriority(handle, ti);
         } catch (Exception e) {
-            Log.w(TAG, "Failed to add trackers to torrent", e);
+            Log.w(TAG, "Failed to set file priorities", e);
+        }
+    }
+
+    /**
+     * Set the first few pieces to TOP_PRIORITY with a deadline, ensuring the player
+     * can start reading data as soon as possible.
+     * Reference: libretorrent setInterestedPieces -> piecePriority(TOP) + setPieceDeadline
+     */
+    private void setFirstPiecePriority(TorrentHandle handle, TorrentInfo ti) {
+        try {
+            int numPieces = ti.numPieces();
+            if (numPieces <= 0) return;
+            int preloadCount = Math.min(3, numPieces);
+            for (int i = 0; i < preloadCount; i++) {
+                handle.piecePriority(i, Priority.TOP_PRIORITY);
+                handle.setPieceDeadline(i, 2000);
+            }
+            Log.e(TAG, "First " + preloadCount + " pieces set to TOP_PRIORITY with 2s deadline");
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to set first piece priority", e);
         }
     }
 }
