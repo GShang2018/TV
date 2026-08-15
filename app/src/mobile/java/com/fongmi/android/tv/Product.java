@@ -24,7 +24,7 @@ public class Product {
 
     public static int getListColumn(Context context) {
         int widthDp = ResUtil.getScreenWidth(context) / ResUtil.dp2px(1);
-        int column = widthDp / 420;
+        int column = widthDp / 600;
         return Math.max(1, column);
     }
 
