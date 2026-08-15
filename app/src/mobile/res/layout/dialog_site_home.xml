@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="left"
-            android:text="@string/site_choose_title"
+            android:text="@string/site_home_title"
             android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -92,44 +92,6 @@
 
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectAll"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="12dp"
-            android:minWidth="0dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:strokeColor="?attr/colorOutline"
-            android:text="@string/site_select_all"
-            android:textColor="@color/site_text_active"
-            android:textSize="14sp"
-            app:backgroundTint="@android:color/transparent"
-            app:cornerRadius="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/selectNone"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="8dp"
-            android:minWidth="0dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:strokeColor="?attr/colorOutline"
-            android:text="@string/site_select_none"
-            android:textColor="@color/site_text_active"
-            android:textSize="14sp"
-            app:backgroundTint="@android:color/transparent"
-            app:cornerRadius="8dp" />
-
     </LinearLayout>
 
     <com.fongmi.android.tv.ui.custom.CustomRecyclerView
@@ -144,6 +106,6 @@
         android:paddingRight="0dp"
         android:paddingBottom="16dp"
         app:maxHeight="376dp"
-        tools:listitem="@layout/adapter_site" />
+        tools:listitem="@layout/adapter_site_home" />
 
 </LinearLayout>

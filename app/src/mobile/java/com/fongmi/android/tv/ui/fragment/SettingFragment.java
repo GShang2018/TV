@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -111,7 +112,8 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
 
     @Override
     protected void initEvent() {
-        mBinding.subscribe.setOnClickListener(v -> SubscriptionActivity.start(getActivity()));
+        mBinding.subscribeVod.setOnClickListener(v -> SubscriptionActivity.start(getActivity(), 0, false));
+        mBinding.subscribeLive.setOnClickListener(v -> SubscriptionActivity.start(getActivity(), 1, false));
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
@@ -119,11 +121,11 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.transmit.setOnClickListener(this::onTransmit);
         mBinding.pull.setOnClickListener(this::onPull);
         mBinding.backup.setOnClickListener(this::onBackup);
+        mBinding.backupNow.setOnClickListener(this::onBackupNow);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
@@ -300,13 +302,20 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     }
 
     private void onCache(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                VodConfig.get().getConfig().json("").save();
-                setCacheText();
-            }
-        });
+        new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_cache_clear)
+                .setMessage(R.string.setting_cache_clear_msg)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    FileUtil.clearCache(new Callback() {
+                        @Override
+                        public void success() {
+                            VodConfig.get().getConfig().json("").save();
+                            setCacheText();
+                        }
+                    });
+                })
+                .show();
     }
 
     private boolean onCacheLongClick(View view) {
@@ -363,19 +372,30 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     }
 
     private void onBackup(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
-            @Override
-            public void success(String path) {
-                Notify.show(R.string.backed);
-            }
-        }));
+        new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_backup)
+                .setSingleChoiceItems(backup, Setting.getBackupMode(), (dialog, which) -> {
+                    Setting.putBackupMode(which);
+                    mBinding.backupText.setText(backup[which]);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.dialog_negative, null)
+                .show();
     }
 
-    private boolean onBackupMode(View view) {
-        int index = Setting.getBackupMode();
-        Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
-        mBinding.backupText.setText(backup[index]);
-        return true;
+    private void onBackupNow(View view) {
+        Toast.makeText(getActivity(), R.string.backup_in_progress, Toast.LENGTH_SHORT).show();
+        AppDatabase.backup(new Callback() {
+            @Override
+            public void success(String path) {
+                Toast.makeText(getActivity(), ResUtil.getString(R.string.backup_to, path), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void error(String msg) {
+                Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override

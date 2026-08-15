@@ -1,7 +1,9 @@
 package com.fongmi.android.tv.ui.adapter;
 
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -77,6 +79,7 @@ public class SourceChooseAdapter extends RecyclerView.Adapter<SourceChooseAdapte
         holder.binding.name.setText(item.getVodName());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.remark.setText(item.getVodRemarks());
+        holder.binding.remark.setVisibility(TextUtils.isEmpty(item.getVodRemarks()) ? View.GONE : View.VISIBLE);
         boolean isSelected = position == mSelectedPosition;
         // 背景交给 selector_item_bg 的 state_selected 自动切换：
         // 选中 = shape_item_selected（主题色 + padding 12/8/12/8 + 圆角），未选中 = shape_item

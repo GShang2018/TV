@@ -1,14 +1,12 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.content.res.ColorStateList;
-import android.content.res.TypedArray;
-import android.text.TextUtils;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
@@ -62,11 +60,12 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     public void keyword(String keyword) {
         mItems.clear();
-        if (TextUtils.isEmpty(keyword)) {
+        if (keyword == null || keyword.isEmpty()) {
             mItems.addAll(allItems);
         } else {
+            String lower = keyword.toLowerCase();
             for (Site site : allItems) {
-                if (site.getName().toLowerCase().contains(keyword.toLowerCase())) mItems.add(site);
+                if (site.getName().toLowerCase().contains(lower)) mItems.add(site);
             }
         }
         notifyDataSetChanged();
@@ -88,35 +87,32 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         Site item = mItems.get(position);
         boolean on = !search || change;
         holder.binding.text.setText(item.getName());
-        holder.binding.text.setEnabled(true);
-        holder.binding.text.setFocusable(true);
+
         if (search) {
-            // 搜索模式：点击站源切换是否参与检索
-            boolean searchable = item.isSearchable();
-            holder.binding.text.setSelected(searchable);
-            holder.binding.text.setActivated(searchable);
-            if (searchable) {
-                holder.binding.text.setStrokeColor(ColorStateList.valueOf(getOutlineColor(holder.itemView)));
-                holder.binding.text.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_text_active));
-            } else {
-                holder.binding.text.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_disabled_stroke)));
-                holder.binding.text.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.site_disabled_text));
-            }
-            holder.binding.text.setOnClickListener(v -> listener.onSearchClick(item));
+            // 搜索模式：用开关表示是否参与检索
+            int searchable = item.getSearchable();
+            boolean canSearch = searchable != 0;
+            boolean isActive = item.isSearchable();
+            holder.binding.switchBtn.setVisibility(View.VISIBLE);
+            holder.binding.switchBtn.setChecked(isActive);
+            holder.binding.switchBtn.setEnabled(canSearch);
+            holder.binding.switchBtn.setClickable(canSearch);
+            holder.binding.switchBtn.setFocusable(canSearch);
+            holder.binding.switchBtn.setThumbTintList(ColorStateList.valueOf(canSearch ? Color.WHITE : Color.argb(0x66, 0xFF, 0xFF, 0xFF)));
+            holder.binding.switchBtn.setOnClickListener(v -> listener.onSearchClick(item));
+            // 不支持搜索的站源：文字和开关处于禁用样式
+            boolean dimmed = !canSearch;
+            holder.binding.text.setEnabled(canSearch);
+            holder.binding.text.setAlpha(dimmed ? 0.4f : 1f);
+            holder.binding.text.setOnClickListener(canSearch ? v -> listener.onSearchClick(item) : null);
         } else {
             // 切换站源模式
+            holder.binding.switchBtn.setVisibility(View.GONE);
+            holder.binding.text.setEnabled(true);
+            holder.binding.text.setAlpha(1f);
             holder.binding.text.setSelected(on && item.isActivated());
             holder.binding.text.setActivated(on && item.isActivated());
             holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
-        }
-    }
-
-    private int getOutlineColor(View view) {
-        TypedArray a = view.getContext().obtainStyledAttributes(new int[]{com.google.android.material.R.attr.colorOutline});
-        try {
-            return a.getColor(0, ContextCompat.getColor(view.getContext(), R.color.site_stroke_active));
-        } finally {
-            a.recycle();
         }
     }
 

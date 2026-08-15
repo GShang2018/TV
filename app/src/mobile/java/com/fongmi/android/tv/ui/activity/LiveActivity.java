@@ -10,6 +10,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -100,6 +102,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private Group mGroup;
     private Runnable mR0;
     private Runnable mR1;
+    private boolean mControlHiding;
     private Runnable mR2;
     private Runnable mR3;
     private Clock mClock;
@@ -534,14 +537,32 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        mControlHiding = false;
+        mBinding.control.top.animate().cancel();
+        mBinding.control.bottom.animate().cancel();
+        mBinding.control.top.setTranslationY(-mBinding.control.top.getHeight());
+        mBinding.control.bottom.setTranslationY(mBinding.control.bottom.getHeight());
+        mBinding.control.top.animate().translationY(0).setDuration(300).setInterpolator(new DecelerateInterpolator());
+        mBinding.control.bottom.animate().translationY(0).setDuration(300).setInterpolator(new DecelerateInterpolator());
         setR1Callback();
         hideInfo();
         hideEpg();
     }
 
     private void hideControl() {
-        mBinding.control.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR1);
+        mControlHiding = false;
+        mBinding.control.top.animate().cancel();
+        mBinding.control.bottom.animate().cancel();
+        mControlHiding = true;
+        mBinding.control.top.animate().translationY(-mBinding.control.top.getHeight()).setDuration(300).setInterpolator(new AccelerateInterpolator());
+        mBinding.control.bottom.animate().translationY(mBinding.control.bottom.getHeight()).setDuration(300).setInterpolator(new AccelerateInterpolator()).withEndAction(() -> {
+            if (!mControlHiding) return;
+            mControlHiding = false;
+            mBinding.control.getRoot().setVisibility(View.GONE);
+            mBinding.control.top.setTranslationY(0);
+            mBinding.control.bottom.setTranslationY(0);
+        });
     }
 
     private void showDisplayInfo() {

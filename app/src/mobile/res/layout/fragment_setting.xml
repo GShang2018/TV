@@ -70,9 +70,9 @@
             android:paddingEnd="16dp"
             android:paddingBottom="16dp">
 
-            <!-- 订阅管理 -->
+            <!-- 点播订阅 -->
             <LinearLayout
-                android:id="@+id/subscribe"
+                android:id="@+id/subscribeVod"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="64dp"
@@ -87,7 +87,7 @@
                     android:layout_height="40dp"
                     android:padding="8dp"
                     android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_setting_subscribe"
+                    app:srcCompat="@drawable/ic_setting_subscribe_vod"
                     app:tint="@color/white" />
 
                 <LinearLayout
@@ -100,7 +100,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/setting_subscribe_manage"
+                        android:text="@string/setting_subscribe_vod"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp" />
 
@@ -108,7 +108,61 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="@string/setting_subscribe_desc"
+                        android:text="@string/setting_subscribe_vod_desc"
+                        android:textColor="@color/white_60"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_setting_arrow"
+                    app:tint="@color/white" />
+
+            </LinearLayout>
+
+            <!-- 直播订阅 -->
+            <LinearLayout
+                android:id="@+id/subscribeLive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:minHeight="64dp"
+                android:background="@drawable/shape_item"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_setting_subscribe_live"
+                    app:tint="@color/white" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_subscribe_live"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/setting_subscribe_live_desc"
                         android:textColor="@color/white_60"
                         android:textSize="12sp" />
 
@@ -520,6 +574,17 @@
                         tools:text="Auto" />
 
                 </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/backupNow"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_setting_backup_now"
+                    app:tint="@color/white" />
 
                 <ImageView
                     android:layout_width="24dp"

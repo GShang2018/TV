@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.DialogSourceChooseBinding;
 import com.fongmi.android.tv.ui.adapter.SourceChooseAdapter;
@@ -58,6 +59,7 @@ public class SourceChooseDialog extends BaseDialog implements SourceChooseAdapte
         // 初始无结果时展示加载动画，结果实时回填后由 refresh 切换
         setLoading(items == null || items.isEmpty());
         setActivated();
+        updateTitle();
     }
 
     /**
@@ -71,6 +73,7 @@ public class SourceChooseDialog extends BaseDialog implements SourceChooseAdapte
         adapter.addAll(items);
         setActivated();
         if (items != null && !items.isEmpty()) setLoading(false);
+        updateTitle();
     }
 
     /**
@@ -101,6 +104,16 @@ public class SourceChooseDialog extends BaseDialog implements SourceChooseAdapte
         binding.progress.setVisibility(loading ? View.VISIBLE : View.GONE);
         binding.empty.setVisibility(empty ? View.VISIBLE : View.GONE);
         binding.recycler.setVisibility(loading || empty ? View.GONE : View.VISIBLE);
+    }
+
+    private void updateTitle() {
+        if (binding == null) return;
+        int count = items == null ? 0 : items.size();
+        if (count > 0) {
+            binding.title.setText(getString(R.string.dialog_source_count, count));
+        } else {
+            binding.title.setText(R.string.dialog_source_choose);
+        }
     }
 
     @Override

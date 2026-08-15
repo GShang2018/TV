@@ -11,6 +11,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.WindowCompat;
 import androidx.viewbinding.ViewBinding;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -66,7 +67,8 @@ public abstract class BaseDialog extends BottomSheetDialogFragment {
             behavior.setSkipCollapsed(true);
         }
         if (dialog.getWindow() != null) {
-            dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            WindowCompat.setDecorFitsSystemWindows(dialog.getWindow(), false);
+            dialog.getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
         }
     }
 }

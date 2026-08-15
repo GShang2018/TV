@@ -16,6 +16,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.animation.ValueAnimator;
 import android.os.Build;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -194,6 +195,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private boolean mSavedFullscreen;
     private Runnable mR0;
     private Runnable mR1;
+    private boolean mControlHiding;
     private Runnable mR2;
     private Runnable mR3;
     private Runnable mR4;
@@ -1387,6 +1389,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        mControlHiding = false;
+        mBinding.control.top.animate().cancel();
+        mBinding.control.bottom.animate().cancel();
+        mBinding.control.top.setTranslationY(-mBinding.control.top.getHeight());
+        mBinding.control.bottom.setTranslationY(mBinding.control.bottom.getHeight());
+        mBinding.control.top.animate().translationY(0).setDuration(300).setInterpolator(new DecelerateInterpolator());
+        mBinding.control.bottom.animate().translationY(0).setDuration(300).setInterpolator(new DecelerateInterpolator());
         showDisplayInfo();
         checkPlayImg(mPlayers.isPlaying());
         checkBatteryImg();
@@ -1394,9 +1403,20 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void hideControl() {
-        mBinding.control.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR1);
-        showDisplayInfo();
+        mControlHiding = false;
+        mBinding.control.top.animate().cancel();
+        mBinding.control.bottom.animate().cancel();
+        mControlHiding = true;
+        mBinding.control.top.animate().translationY(-mBinding.control.top.getHeight()).setDuration(300).setInterpolator(new AccelerateInterpolator());
+        mBinding.control.bottom.animate().translationY(mBinding.control.bottom.getHeight()).setDuration(300).setInterpolator(new AccelerateInterpolator()).withEndAction(() -> {
+            if (!mControlHiding) return;
+            mControlHiding = false;
+            mBinding.control.getRoot().setVisibility(View.GONE);
+            mBinding.control.top.setTranslationY(0);
+            mBinding.control.bottom.setTranslationY(0);
+            showDisplayInfo();
+        });
     }
 
     private void hideSheet() {

@@ -63,19 +63,26 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public static void backup(com.fongmi.android.tv.impl.Callback callback) {
         App.execute(() -> {
-            File restore = Path.restore();
-            if (!restore.exists()) return;
-            File db = App.get().getDatabasePath(NAME).getAbsoluteFile();
-            File wal = App.get().getDatabasePath(NAME + "-wal").getAbsoluteFile();
-            File shm = App.get().getDatabasePath(NAME + "-shm").getAbsoluteFile();
-            if (db.exists()) Path.copy(db, new File(restore, db.getName()));
-            if (wal.exists()) Path.copy(wal, new File(restore, wal.getName()));
-            if (shm.exists()) Path.copy(shm, new File(restore, shm.getName()));
-            Prefers.backup(new File(restore, NAME + "-pref"));
-            String time = Util.format(new SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault()), (new File(restore, db.getName())).lastModified());
-            File file = new File(Path.tv(), time + "." + BACKUP_SUFFIX);
-            FileUtil.zipFolder(restore, file);
-            App.post(() -> callback.success(file.getAbsolutePath()));
+            try {
+                File restore = Path.restore();
+                if (!restore.exists()) {
+                    App.post(() -> callback.error("restore path not exists"));
+                    return;
+                }
+                File db = App.get().getDatabasePath(NAME).getAbsoluteFile();
+                File wal = App.get().getDatabasePath(NAME + "-wal").getAbsoluteFile();
+                File shm = App.get().getDatabasePath(NAME + "-shm").getAbsoluteFile();
+                if (db.exists()) Path.copy(db, new File(restore, db.getName()));
+                if (wal.exists()) Path.copy(wal, new File(restore, wal.getName()));
+                if (shm.exists()) Path.copy(shm, new File(restore, shm.getName()));
+                Prefers.backup(new File(restore, NAME + "-pref"));
+                String time = Util.format(new SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault()), (new File(restore, db.getName())).lastModified());
+                File file = new File(Path.tv(), time + "." + BACKUP_SUFFIX);
+                FileUtil.zipFolder(restore, file);
+                App.post(() -> callback.success(file.getAbsolutePath()));
+            } catch (Exception e) {
+                App.post(() -> callback.error(e.getMessage()));
+            }
         });
     }
 

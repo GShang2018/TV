@@ -108,12 +108,18 @@
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">Cache</string>
+    <string name="setting_cache_clear">Clear Cache</string>
+    <string name="setting_cache_clear_msg">This will clear image and network request cache data. Continue?</string>
     <string name="setting_backup">Backup</string>
     <string name="setting_restore">Restore</string>
     <string name="setting_version">Version</string>
     <string name="setting_about">About</string>
     <string name="setting_storage">Permission</string>
     <string name="setting_subscribe_desc">Manage VOD/Live/Wallpaper subscriptions</string>
+    <string name="setting_subscribe_vod">VOD Subscriptions</string>
+    <string name="setting_subscribe_live">Live Subscriptions</string>
+    <string name="setting_subscribe_vod_desc">Manage VOD site subscriptions</string>
+    <string name="setting_subscribe_live_desc">Manage live source subscriptions</string>
     <string name="setting_wall_desc">Customize app wallpaper</string>
     <string name="setting_player_desc">Player core, decode, render, etc.</string>
     <string name="setting_custom_desc">Image size, speed, language, etc.</string>
@@ -157,6 +163,8 @@
     <string name="site_switch_subscribe">Switch Subscription</string>
     <string name="site_select_all">Select All</string>
     <string name="site_select_none">Select None</string>
+    <string name="site_home_title">Choose Home Site</string>
+    <string name="site_search_name_hint">Search site name</string>
     <string name="search_record_clear">Clear</string>
 
     <!-- Dialog -->
@@ -209,6 +217,9 @@
     <!-- Hint -->
     <string name="copied">Copied</string>
     <string name="backed">Backup successful</string>
+    <string name="backup_to">Backup to: %1$s</string>
+    <string name="backup_in_progress">Backing up…</string>
+    <string name="backup_permission_denied">Storage permission denied</string>
     <string name="config_refreshed">Config rereshed</string>
 
     <!-- UNIT -->

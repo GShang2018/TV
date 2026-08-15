@@ -101,12 +101,18 @@
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">暫存</string>
+    <string name="setting_cache_clear">清除暫存</string>
+    <string name="setting_cache_clear_msg">該操作將清除圖片及網路請求暫存資料，確認清除？</string>
     <string name="setting_backup">備份</string>
     <string name="setting_restore">恢復</string>
     <string name="setting_version">版本</string>
     <string name="setting_about">關於</string>
     <string name="setting_storage">權限</string>
     <string name="setting_subscribe_desc">管理點播/直播/壁紙訂閱</string>
+    <string name="setting_subscribe_vod">點播訂閱</string>
+    <string name="setting_subscribe_live">直播訂閱</string>
+    <string name="setting_subscribe_vod_desc">管理點播站點訂閱</string>
+    <string name="setting_subscribe_live_desc">管理直播源訂閱</string>
     <string name="setting_wall_desc">自訂應用壁紙</string>
     <string name="setting_player_desc">播放核心、解碼、渲染等</string>
     <string name="setting_custom_desc">圖片尺寸、倍速、語言等</string>
@@ -150,6 +156,8 @@
     <string name="site_switch_subscribe">切換訂閱</string>
     <string name="site_select_all">全選</string>
     <string name="site_select_none">全不選</string>
+    <string name="site_home_title">選擇首頁站點</string>
+    <string name="site_search_name_hint">搜索站點名稱</string>
     <string name="search_record_clear">清空</string>
 
     <!-- Dialog -->
@@ -203,6 +211,9 @@
     <!-- Hint -->
     <string name="copied">已複製</string>
     <string name="backed">備份成功</string>
+    <string name="backup_to">已備份到：%1$s</string>
+    <string name="backup_in_progress">正在備份…</string>
+    <string name="backup_permission_denied">儲存權限被拒絕</string>
     <string name="config_refreshed">接口已刷新</string>
 
     <!-- UNIT -->

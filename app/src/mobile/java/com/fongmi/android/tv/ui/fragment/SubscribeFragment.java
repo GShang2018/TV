@@ -22,6 +22,7 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.SubscribeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.CustomSiteListDialog;
 import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.SubscribeDialog;
@@ -64,6 +65,7 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
     protected void initView() {
         mAdapter = new SubscribeAdapter(this);
         mBinding.recycler.setHasFixedSize(true);
+        mBinding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
         mBinding.recycler.setAdapter(mAdapter);
     }
 

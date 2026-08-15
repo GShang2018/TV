@@ -13,7 +13,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.ActivitySubscribeBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.SubscribeFragment;
-import com.google.android.material.tabs.TabLayoutMediator;
 
 public class SubscriptionActivity extends BaseActivity {
 
@@ -42,10 +41,12 @@ public class SubscriptionActivity extends BaseActivity {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        int type = getIntent().getIntExtra("type", 0);
         mFragments = new SubscribeFragment[]{SubscribeFragment.newInstance(0), SubscribeFragment.newInstance(1)};
         mBinding.pager.setAdapter(new PageAdapter());
-        new TabLayoutMediator(mBinding.tabs, mBinding.pager, (tab, position) -> tab.setText(position == 0 ? R.string.subscribe_vod : R.string.subscribe_live)).attach();
-        mBinding.pager.setCurrentItem(getIntent().getIntExtra("type", 0), false);
+        mBinding.pager.setUserInputEnabled(false);
+        mBinding.pager.setCurrentItem(type, false);
+        mBinding.title.setText(type == 0 ? R.string.setting_subscribe_vod : R.string.setting_subscribe_live);
     }
 
     @Override

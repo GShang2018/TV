@@ -312,12 +312,26 @@
 
             <TextView
                 android:id="@+id/backupText"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="end"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 tools:text="Auto" />
+
+            <ImageView
+                android:id="@+id/backupNow"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/selector_item"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="4dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_setting_backup_now"
+                android:tint="@color/white" />
 
         </LinearLayout>
 

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.viewbinding.ViewBinding;
 
@@ -44,6 +45,7 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -109,6 +111,7 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.backup.setOnClickListener(this::onBackup);
+        mBinding.backupNow.setOnClickListener(this::onBackupNow);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.danmu.setOnClickListener(this::onDanmu);
@@ -118,7 +121,6 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
         mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
@@ -325,13 +327,20 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     }
 
     private void onCache(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                VodConfig.get().getConfig().json("").save();
-                setCacheText();
-            }
-        });
+        new MaterialAlertDialogBuilder(getActivity())
+                .setTitle(R.string.setting_cache_clear)
+                .setMessage(R.string.setting_cache_clear_msg)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    FileUtil.clearCache(new Callback() {
+                        @Override
+                        public void success() {
+                            VodConfig.get().getConfig().json("").save();
+                            setCacheText();
+                        }
+                    });
+                })
+                .show();
     }
 
     private boolean onCacheLongClick(View view) {
@@ -375,19 +384,30 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     }
 
     private void onBackup(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
-            @Override
-            public void success(String path) {
-                Notify.show(R.string.backed);
-            }
-        }));
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.setting_backup)
+                .setSingleChoiceItems(backup, Setting.getBackupMode(), (dialog, which) -> {
+                    Setting.putBackupMode(which);
+                    mBinding.backupText.setText(backup[which]);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.dialog_negative, null)
+                .show();
     }
 
-    private boolean onBackupMode(View view) {
-        int index = Setting.getBackupMode();
-        Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
-        mBinding.backupText.setText(backup[index]);
-        return true;
+    private void onBackupNow(View view) {
+        Toast.makeText(this, R.string.backup_in_progress, Toast.LENGTH_SHORT).show();
+        AppDatabase.backup(new Callback() {
+            @Override
+            public void success(String path) {
+                Toast.makeText(SettingActivity.this, ResUtil.getString(R.string.backup_to, path), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void error(String msg) {
+                Toast.makeText(SettingActivity.this, msg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

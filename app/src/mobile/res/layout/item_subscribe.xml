@@ -2,83 +2,71 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:background="@drawable/shape_subscribe_item"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="4dp"
-        android:background="@drawable/shape_subscribe_item"
-        android:gravity="center_vertical"
-        android:minHeight="64dp"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="10dp">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="middle"
-                android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                tools:text="订阅名称" />
-
-            <TextView
-                android:id="@+id/url"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="middle"
-                android:singleLine="true"
-                android:textColor="@color/white_70"
-                android:textSize="12sp"
-                tools:text="https://example.com/api.json" />
-        </LinearLayout>
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/source"
-            android:layout_width="wrap_content"
+            android:id="@+id/name"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:ellipsize="end"
-            android:maxWidth="100dp"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            tools:text="订阅名称" />
+
+        <TextView
+            android:id="@+id/url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="middle"
             android:singleLine="true"
             android:textColor="@color/white_70"
-            android:textSize="11sp"
-            android:visibility="gone"
-            tools:text="来自: 订阅:线路" />
-
-        <ImageView
-            android:id="@+id/more"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/subscribe_menu_more"
-            android:padding="6dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_more_vert"
-            android:tint="@color/white_70" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            app:thumbTint="@color/white" />
-
+            android:textSize="12sp"
+            tools:text="https://example.com/api.json" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/source"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:ellipsize="end"
+        android:maxWidth="100dp"
+        android:singleLine="true"
+        android:textColor="@color/white_70"
+        android:textSize="11sp"
+        android:visibility="gone"
+        tools:text="来自: 订阅:线路" />
+
+    <ImageView
+        android:id="@+id/more"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/subscribe_menu_more"
+        android:padding="6dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_more_vert"
+        android:tint="@color/white_70" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switchBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:thumbTint="@color/white" />
 
 </LinearLayout>
