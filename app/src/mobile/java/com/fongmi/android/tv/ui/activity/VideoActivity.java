@@ -1325,6 +1325,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         Util.showSystemUI(this);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         App.post(mR3, 2000);
+        mBinding.setting.setVisibility(mHistory == null ? View.GONE : View.VISIBLE);
         hideControl();
     }
 

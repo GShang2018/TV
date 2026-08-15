@@ -113,6 +113,17 @@
     <string name="setting_version">Version</string>
     <string name="setting_about">About</string>
     <string name="setting_storage">Permission</string>
+    <string name="setting_subscribe_desc">Manage VOD/Live/Wallpaper subscriptions</string>
+    <string name="setting_wall_desc">Customize app wallpaper</string>
+    <string name="setting_player_desc">Player core, decode, render, etc.</string>
+    <string name="setting_custom_desc">Image size, speed, language, etc.</string>
+    <string name="setting_doh_desc">DNS over HTTPS</string>
+    <string name="setting_proxy_desc">HTTP/SOCKS proxy</string>
+    <string name="setting_cache_desc">Clear app cache</string>
+    <string name="setting_backup_desc">Backup config and data</string>
+    <string name="setting_restore_desc">Restore from backup</string>
+    <string name="setting_version_desc">Check for updates</string>
+    <string name="setting_about_desc">App information</string>
     <string name="setting_off">Off</string>
     <string name="setting_on">On</string>
 

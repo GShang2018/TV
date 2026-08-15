@@ -106,6 +106,17 @@
     <string name="setting_version">版本</string>
     <string name="setting_about">關於</string>
     <string name="setting_storage">權限</string>
+    <string name="setting_subscribe_desc">管理點播/直播/壁紙訂閱</string>
+    <string name="setting_wall_desc">自訂應用壁紙</string>
+    <string name="setting_player_desc">播放核心、解碼、渲染等</string>
+    <string name="setting_custom_desc">圖片尺寸、倍速、語言等</string>
+    <string name="setting_doh_desc">DNS over HTTPS</string>
+    <string name="setting_proxy_desc">HTTP/SOCKS代理</string>
+    <string name="setting_cache_desc">清理應用暫存</string>
+    <string name="setting_backup_desc">備份配置和資料</string>
+    <string name="setting_restore_desc">從備份恢復資料</string>
+    <string name="setting_version_desc">檢查更新</string>
+    <string name="setting_about_desc">應用資訊</string>
     <string name="setting_off">關閉</string>
     <string name="setting_on">開啟</string>
 

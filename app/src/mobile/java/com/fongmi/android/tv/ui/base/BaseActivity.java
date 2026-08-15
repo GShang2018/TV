@@ -18,12 +18,12 @@ import android.os.Bundle;
 import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -142,9 +142,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void setTransparent(Activity activity) {
-        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), false);
         activity.getWindow().setStatusBarColor(Color.TRANSPARENT);
     }
 
