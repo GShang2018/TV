@@ -19,11 +19,11 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.databinding.FragmentSubscribeBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.ui.activity.CustomSiteActivity;
 import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.SubscribeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
-import com.fongmi.android.tv.ui.dialog.CustomSiteListDialog;
 import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.SubscribeDialog;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -111,7 +111,7 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
 
     @Override
     public void onCustom(Config item) {
-        CustomSiteListDialog.create(this).show();
+        CustomSiteActivity.start(getActivity());
     }
 
     @Override

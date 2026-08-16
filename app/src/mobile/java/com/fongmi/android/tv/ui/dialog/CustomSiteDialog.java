@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -7,6 +8,7 @@ import android.view.inputmethod.EditorInfo;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -25,17 +27,25 @@ import java.util.UUID;
 public class CustomSiteDialog {
 
     private final DialogCustomSiteBinding binding;
-    private final Fragment fragment;
+    private final Context context;
     private final CustomSite custom;
     private AlertDialog dialog;
     private Runnable onSaved;
 
     public static CustomSiteDialog create(Fragment fragment) {
-        return new CustomSiteDialog(fragment, null);
+        return new CustomSiteDialog(fragment.requireContext(), null);
     }
 
     public static CustomSiteDialog create(Fragment fragment, CustomSite custom) {
-        return new CustomSiteDialog(fragment, custom);
+        return new CustomSiteDialog(fragment.requireContext(), custom);
+    }
+
+    public static CustomSiteDialog create(FragmentActivity activity) {
+        return new CustomSiteDialog(activity, null);
+    }
+
+    public static CustomSiteDialog create(FragmentActivity activity, CustomSite custom) {
+        return new CustomSiteDialog(activity, custom);
     }
 
     public CustomSiteDialog setOnSaved(Runnable onSaved) {
@@ -43,10 +53,10 @@ public class CustomSiteDialog {
         return this;
     }
 
-    public CustomSiteDialog(Fragment fragment, CustomSite custom) {
-        this.fragment = fragment;
+    private CustomSiteDialog(Context context, CustomSite custom) {
+        this.context = context;
         this.custom = custom;
-        this.binding = DialogCustomSiteBinding.inflate(LayoutInflater.from(fragment.getContext()));
+        this.binding = DialogCustomSiteBinding.inflate(LayoutInflater.from(context));
     }
 
     public void show() {

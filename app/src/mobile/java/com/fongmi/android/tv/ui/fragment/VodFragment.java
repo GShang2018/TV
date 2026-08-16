@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.widget.ImageView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -316,11 +316,12 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         LinearLayoutManager llm = (LinearLayoutManager) mBinding.type.getLayoutManager();
         int last = llm.findLastCompletelyVisibleItemPosition();
         int total = mAdapter.getItemCount() - 1;
-        mBinding.typeMore.setVisibility(last < total ? View.VISIBLE : View.GONE);
+        boolean overflow = last < total;
+        mBinding.typeMore.setVisibility(overflow ? View.VISIBLE : View.GONE);
     }
 
     private void onTypeMore(View view) {
-        TypeDialog.create(mAdapter.getItems(), mBinding.pager.getCurrentItem(), this).show(getChildFragmentManager(), null);
+        TypeDialog.create(mAdapter.getItems(), mBinding.pager.getCurrentItem(), this).show(getChildFragmentManager(), "typeDialog");
     }
 
     private void showProgress() {

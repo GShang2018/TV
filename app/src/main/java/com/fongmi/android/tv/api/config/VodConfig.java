@@ -225,7 +225,7 @@ public class VodConfig {
     private JsonObject getCustomObject() {
         JsonObject object = new JsonObject();
         JsonArray array = new JsonArray();
-        for (CustomSite custom : CustomSite.getAll()) array.add(App.gson().toJsonTree(custom.toSite()));
+        for (CustomSite custom : CustomSite.getAll()) if (custom.getEnabled()) array.add(App.gson().toJsonTree(custom.toSite()));
         object.add("sites", array);
         object.add("rules", new JsonArray());
         object.add("doh", new JsonArray());

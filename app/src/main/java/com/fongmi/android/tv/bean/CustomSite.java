@@ -45,6 +45,9 @@ public class CustomSite {
     @SerializedName("style")
     private Style style;
 
+    @SerializedName("enabled")
+    private Boolean enabled;
+
     public static File getFile() {
         return new File(Path.tv(), FILE_NAME);
     }
@@ -140,6 +143,14 @@ public class CustomSite {
 
     public void setStyle(Style style) {
         this.style = style;
+    }
+
+    public boolean getEnabled() {
+        return enabled == null || enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     public Site toSite() {

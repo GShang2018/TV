@@ -8,9 +8,9 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -34,6 +34,7 @@ import com.fongmi.android.tv.bean.Suggest;
 import com.fongmi.android.tv.bean.SuggestTwo;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityCollectBinding;
+import com.fongmi.android.tv.databinding.DialogTypeBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
@@ -52,6 +53,7 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.android.flexbox.FlexDirection;
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -271,39 +273,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         if (mRecordAdapter != null) mRecordAdapter.clear();
     }
 
-    private void onSiteMore(View view) {
-        showSiteFlexboxDialog(getCollectSites());
-    }
-
-    private void showSiteFlexboxDialog(List<Site> sites) {
-        if (sites.isEmpty()) return;
-        android.widget.LinearLayout layout = (android.widget.LinearLayout) LayoutInflater.from(this).inflate(R.layout.dialog_type, null);
-        com.google.android.flexbox.FlexboxLayout flexbox = layout.findViewById(R.id.flexbox);
-        flexbox.removeAllViews();
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(layout).create();
-        for (int i = 0; i < sites.size(); i++) {
-            Site site = sites.get(i);
-            android.widget.TextView textView = (android.widget.TextView) LayoutInflater.from(this).inflate(R.layout.adapter_type_dialog, flexbox, false);
-            textView.setText(site.getName());
-            textView.setSelected(site.isActivated());
-            textView.setOnClickListener(v -> {
-                setSite(site);
-                // 同步更新 CollectAdapter 的选中状态
-                for (int j = 0; j < mCollectAdapter.getItemCount(); j++) {
-                    Collect collect = mCollectAdapter.getItem(j);
-                    if (collect.getSite().getKey().equals(site.getKey())) {
-                        mCollectAdapter.setActivated(j);
-                        break;
-                    }
-                }
-                dialog.dismiss();
-            });
-            flexbox.addView(textView);
-        }
-        dialog.getWindow().setDimAmount(0);
-        dialog.show();
-    }
-
     private List<Site> getCollectSites() {
         List<Site> sites = new ArrayList<>();
         if (mCollectAdapter == null) return sites;
@@ -347,7 +316,33 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         LinearLayoutManager llm = (LinearLayoutManager) mBinding.siteRecycler.getLayoutManager();
         int last = llm.findLastCompletelyVisibleItemPosition();
         int total = mCollectAdapter.getItemCount() - 1;
-        mBinding.siteMore.setVisibility(last < total ? View.VISIBLE : View.GONE);
+        boolean overflow = last < total;
+        mBinding.siteMore.setVisibility(overflow ? View.VISIBLE : View.GONE);
+    }
+
+    private void onSiteMore(View view) {
+        showSiteFlexboxDialog();
+    }
+
+    private void showSiteFlexboxDialog() {
+        List<Site> sites = getCollectSites();
+        DialogTypeBinding binding = DialogTypeBinding.inflate(getLayoutInflater());
+        FlexboxLayout flexbox = binding.flexbox;
+        flexbox.removeAllViews();
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(binding.getRoot()).create();
+        for (int i = 0; i < sites.size(); i++) {
+            Site site = sites.get(i);
+            TextView textView = (TextView) LayoutInflater.from(this).inflate(R.layout.adapter_type_dialog, flexbox, false);
+            textView.setText(site.getName());
+            textView.setSelected(site.isActivated());
+            textView.setOnClickListener(v -> {
+                setSite(site);
+                dialog.dismiss();
+            });
+            flexbox.addView(textView);
+        }
+        dialog.getWindow().setDimAmount(0);
+        dialog.show();
     }
 
     @Override
