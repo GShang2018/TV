@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首页封面 Tag 布局说明</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #1a1a2e; color: #eee; padding: 30px; }
+  h1 { text-align: center; margin-bottom: 8px; font-size: 24px; }
+  .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 14px; }
+  .section { margin-bottom: 40px; }
+  .section-title { font-size: 18px; margin-bottom: 16px; padding-left: 12px; border-left: 4px solid #e94560; }
+
+  /* 通用：封面卡片容器 */
+  .card-row { display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* ====== 1. 海报式 Rect / Portrait ====== */
+  .poster-card {
+    position: relative;
+    width: 150px;
+  }
+  .poster-cover {
+    position: relative;
+    width: 150px;
+    height: 210px;
+    background: linear-gradient(135deg, #3a3a5c, #2a2a3e);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .poster-cover::before {
+    content: "image\n← vod_pic";
+    white-space: pre;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+  }
+  /* tag 胶囊样式 */
+  .tag {
+    position: absolute;
+    background: rgba(233, 69, 96, 0.9);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .tag-year  { top: 6px; left: 6px; }
+  .tag-site  { top: 6px; right: 6px; background: rgba(0, 168, 255, 0.9); }
+  .tag-remark{ bottom: 6px; left: 6px; background: rgba(0, 200, 83, 0.9); }
+  .poster-name {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #ccc;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px dashed #444;
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+
+  /* ====== 2. 横版小封面 One ====== */
+  .one-card {
+    position: relative;
+    width: 180px;
+  }
+  .one-cover {
+    position: relative;
+    width: 180px;
+    height: 120px;
+    background: linear-gradient(135deg, #3a3a5c, #2a2a3e);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .one-cover::before {
+    content: "image ← vod_pic (16:9)";
+    color: #666;
+    font-size: 13px;
+  }
+  .one-progress {
+    position: absolute;
+    bottom: 6px; left: 8px; right: 8px;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+  }
+  .one-progress::after {
+    content: "";
+    position: absolute;
+    width: 60%; height: 100%;
+    background: #e94560;
+    border-radius: 2px;
+  }
+  .tag-remark-one {
+    position: absolute;
+    bottom: 14px; left: 8px;
+    background: rgba(0, 200, 83, 0.9);
+    color: #fff; font-size: 11px;
+    padding: 3px 8px; border-radius: 12px;
+  }
+  .one-name {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #ccc;
+    border: 1px dashed #444;
+    padding: 4px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ====== 3. 列表模式 List ====== */
+  .list-card {
+    width: 380px;
+    display: flex;
+    background: #2a2a3e;
+    border-radius: 8px;
+    padding: 12px;
+    gap: 12px;
+  }
+  .list-cover {
+    width: 84px; height: 112px;
+    background: linear-gradient(135deg, #3a3a5c, #2a2a3e);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px; color: #666;
+  }
+  .list-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .list-info > div {
+    font-size: 13px;
+    color: #aaa;
+    border: 1px dashed #444;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .list-info > div:first-child { margin-top: 0; font-size: 15px; color: #ccc; }
+  .list-site { margin-top: auto; }
+
+  /* ====== 4. 圆形 Oval ====== */
+  .oval-card { width: 100px; text-align: center; }
+  .oval-cover {
+    width: 100px; height: 100px;
+    background: linear-gradient(135deg, #3a3a5c, #2a2a3e);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #666;
+  }
+  .oval-name {
+    margin-top: 8px;
+    font-size: 14px; color: #ccc;
+  }
+
+  /* 标签说明 */
+  .legend {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-dot.red    { background: rgba(233,69,96,0.9); }
+  .legend-dot.blue   { background: rgba(0,168,255,0.9); }
+  .legend-dot.green  { background: rgba(0,200,83,0.9); }
+  .legend-dot.dashed { border: 1px dashed #666; }
+
+  .arrow {
+    display: inline-block;
+    color: #555;
+    margin: 0 4px;
+  }
+  .note {
+    font-size: 12px;
+    color: #777;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>首页封面 Tag 布局位置说明</h1>
+<p class="subtitle">展示不同封面样式中各 tag 标签的位置分布</p>
+
+<!-- 图例 -->
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot red"></span> year ← <code>vod_year</code></div>
+  <div class="legend-item"><span class="legend-dot blue"></span> site ← <code>Site.getName()</code> (非vod字段)</div>
+  <div class="legend-item"><span class="legend-dot green"></span> remark ← <code>vod_remarks</code></div>
+  <div class="legend-item"><span class="legend-dot dashed"></span> name ← <code>vod_name</code> (普通文字, 无tag背景)</div>
+</div>
+
+<!-- ===== 1. 海报式 ===== -->
+<div class="section">
+  <div class="section-title">1. 海报式封面 (VodRectHolder / VodPortraitHolder)</div>
+  <div class="note">布局文件: adapter_vod_rect.xml / adapter_vod_portrait.xml — 全套标签</div>
+  <br>
+  <div class="card-row">
+    <!-- 竖版 -->
+    <div class="poster-card">
+      <div class="poster-cover">
+        <span class="tag tag-year">2022</span>
+        <span class="tag tag-site">泥巴</span>
+        <span class="tag tag-remark">更新至第10集</span>
+      </div>
+      <div class="poster-name">蜘蛛人：英雄归来</div>
+    </div>
+    <!-- 横版 -->
+    <div class="poster-card">
+      <div class="poster-cover" style="width:210px; height:150px;">
+        <span class="tag tag-year">2022</span>
+        <span class="tag tag-site">泥巴</span>
+        <span class="tag tag-remark">更新至第10集</span>
+      </div>
+      <div class="poster-name" style="width:210px;">蜘蛛人：英雄归来</div>
+    </div>
+  </div>
+  <div class="note">
+    year = 左上角 (alignStart + alignTop)<br>
+    site = 右上角 (alignEnd + alignTop)<br>
+    remark = 左下角 (alignStart + alignBottom)<br>
+    name = 封面图下方 (below image)
+  </div>
+</div>
+
+<!-- ===== 2. 横版小封面 ===== -->
+<div class="section">
+  <div class="section-title">2. 横版小封面 (VodOneHolder)</div>
+  <div class="note">布局文件: adapter_vod.xml — 无 year，有 progress 进度条</div>
+  <br>
+  <div class="card-row">
+    <div class="one-card">
+      <div class="one-cover">
+        <span class="tag tag-site">泥巴</span>
+        <span class="tag-remark-one">更新至第10集</span>
+        <div class="one-progress"></div>
+      </div>
+      <div class="one-name">蜘蛛人：英雄归来</div>
+    </div>
+  </div>
+  <div class="note">
+    site = 左上角 (alignStart + alignTop)<br>
+    remark = 进度条上方, 左下区域<br>
+    progress = 底部进度条 (观看历史)<br>
+    name = 封面图下方 (below image)<br>
+    <strong>无 year 标签</strong>
+  </div>
+</div>
+
+<!-- ===== 3. 列表模式 ===== -->
+<div class="section">
+  <div class="section-title">3. 列表模式 (VodListHolder)</div>
+  <div class="note">布局文件: adapter_vod_list.xml — 水平排列: 左图 + 右文</div>
+  <br>
+  <div class="card-row">
+    <div class="list-card">
+      <div class="list-cover">image<br>← vod_pic</div>
+      <div class="list-info">
+        <div>蜘蛛人：英雄归来 <span class="arrow">← name (vod_name)</span></div>
+        <div>2022 <span class="arrow">← year (vod_year)</span></div>
+        <div>1080P <span class="arrow">← remark (vod_remarks)</span></div>
+        <div class="list-site">哔哩 <span class="arrow">← site (底部对齐)</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    右侧文字区垂直排列: name → year → remark → site(底部)<br>
+    布局中有 year/site 的 TextView，但 VodListHolder 实际只绑定 name + remark + image
+  </div>
+</div>
+
+<!-- ===== 4. 圆形 ===== -->
+<div class="section">
+  <div class="section-title">4. 圆形头像 (VodOvalHolder)</div>
+  <div class="note">布局文件: adapter_vod_oval.xml — 最简样式，无任何 tag</div>
+  <br>
+  <div class="card-row">
+    <div class="oval-card">
+      <div class="oval-cover">image<br>← vod_pic</div>
+      <div class="oval-name">蜘蛛人</div>
+    </div>
+  </div>
+  <div class="note">
+    仅 image + name，无 year / site / remark 标签
+  </div>
+</div>
+
+<!-- ===== 汇总表 ===== -->
+<div class="section">
+  <div class="section-title">汇总对比</div>
+  <table style="width:100%; border-collapse:collapse; font-size:13px;">
+    <thead>
+      <tr style="background:#2a2a3e;">
+        <th style="padding:10px; border:1px solid #444; text-align:left;">标签</th>
+        <th style="padding:10px; border:1px solid #444; text-align:left;">vod_xx 字段</th>
+        <th style="padding:10px; border:1px solid #444;">Rect / Portrait</th>
+        <th style="padding:10px; border:1px solid #444;">One</th>
+        <th style="padding:10px; border:1px solid #444;">List</th>
+        <th style="padding:10px; border:1px solid #444;">Oval</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding:8px; border:1px solid #333; color:#e94560;">year</td>
+        <td style="padding:8px; border:1px solid #333;"><code>vod_year</code></td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">左上角</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center; color:#666;">—</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center; color:#888;">布局有/未绑定</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center; color:#666;">—</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #333; color:#00a8ff;">site</td>
+        <td style="padding:8px; border:1px solid #333;"><code>Site.getName()</code></td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">右上角</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">左上角</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center; color:#888;">布局有/未绑定</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center; color:#666;">—</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #333; color:#00c853;">remark</td>
+        <td style="padding:8px; border:1px solid #333;"><code>vod_remarks</code></td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">左下角</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">进度条上方</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">中间行</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center; color:#666;">—</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #333;">name</td>
+        <td style="padding:8px; border:1px solid #333;"><code>vod_name</code></td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">图下方</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">图下方</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">顶部</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">图下方居中</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #333;">image</td>
+        <td style="padding:8px; border:1px solid #333;"><code>vod_pic</code></td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">封面图</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">封面图</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">左侧</td>
+        <td style="padding:8px; border:1px solid #333; text-align:center;">圆形封面</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note" style="margin-top:12px;">
+    带胶囊背景 (shape_vod_tag) 的标签：<strong style="color:#e94560;">year</strong>、<strong style="color:#00a8ff;">site</strong>、<strong style="color:#00c853;">remark</strong><br>
+    name 为普通文字，无 tag 背景色。<br>
+    点击跳转使用 <code>vod_id</code>，不在封面上显示。
+  </div>
+</div>
+
+</body>
+</html>

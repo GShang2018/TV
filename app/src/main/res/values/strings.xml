@@ -17,9 +17,16 @@
     <string name="detail_year">Year: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_area">Area: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_type">Type: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_tv">Studio: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_series">Series: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_pubdate">Release Date: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_duration">Duration: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_score">Score:&#160;</string>
     <string name="detail_director">Director: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_actor">Actor: <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_content">Summary: <xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_director_title">Director</string>
+    <string name="detail_actor_title">Actor</string>
     <string name="detail_desc">Summary</string>
 
     <!-- Gallery -->

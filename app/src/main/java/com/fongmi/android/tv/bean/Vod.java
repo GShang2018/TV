@@ -64,6 +64,26 @@ public class Vod implements Parcelable {
     @SerializedName("vod_content")
     private String vodContent;
 
+    @Element(name = "tv", required = false)
+    @SerializedName("vod_tv")
+    private String vodTv;
+
+    @Element(name = "class", required = false)
+    @SerializedName("vod_class")
+    private String vodClass;
+
+    @Element(name = "pubdate", required = false)
+    @SerializedName("vod_pubdate")
+    private String vodPubdate;
+
+    @Element(name = "duration", required = false)
+    @SerializedName("vod_duration")
+    private String vodDuration;
+
+    @Element(name = "score", required = false)
+    @SerializedName("vod_score")
+    private String vodScore;
+
     @SerializedName("vod_play_from")
     private String vodPlayFrom;
 
@@ -165,6 +185,26 @@ public class Vod implements Parcelable {
 
     public String getVodContent() {
         return TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
+    }
+
+    public String getVodTv() {
+        return TextUtils.isEmpty(vodTv) ? "" : vodTv.trim();
+    }
+
+    public String getVodClass() {
+        return TextUtils.isEmpty(vodClass) ? "" : vodClass.trim();
+    }
+
+    public String getVodPubdate() {
+        return TextUtils.isEmpty(vodPubdate) ? "" : vodPubdate.trim();
+    }
+
+    public String getVodDuration() {
+        return TextUtils.isEmpty(vodDuration) ? "" : vodDuration.trim();
+    }
+
+    public String getVodScore() {
+        return TextUtils.isEmpty(vodScore) ? "" : vodScore.trim();
     }
 
     public String getVodPlayFrom() {
@@ -313,6 +353,11 @@ public class Vod implements Parcelable {
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
+        if (vodTv != null) this.vodTv = Trans.s2t(vodTv);
+        if (vodClass != null) this.vodClass = Trans.s2t(vodClass);
+        if (vodPubdate != null) this.vodPubdate = Trans.s2t(vodPubdate);
+        if (vodDuration != null) this.vodDuration = Trans.s2t(vodDuration);
+        if (vodScore != null) this.vodScore = Trans.s2t(vodScore);
     }
 
     public void setVodFlags() {
@@ -355,6 +400,11 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodDirector);
         dest.writeString(this.vodActor);
         dest.writeString(this.vodContent);
+        dest.writeString(this.vodTv);
+        dest.writeString(this.vodClass);
+        dest.writeString(this.vodPubdate);
+        dest.writeString(this.vodDuration);
+        dest.writeString(this.vodScore);
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
         dest.writeString(this.vodTag);
@@ -382,6 +432,11 @@ public class Vod implements Parcelable {
         this.vodDirector = in.readString();
         this.vodActor = in.readString();
         this.vodContent = in.readString();
+        this.vodTv = in.readString();
+        this.vodClass = in.readString();
+        this.vodPubdate = in.readString();
+        this.vodDuration = in.readString();
+        this.vodScore = in.readString();
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();
         this.vodTag = in.readString();

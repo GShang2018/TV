@@ -17,9 +17,16 @@
     <string name="detail_year">年份：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_area">地区：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_type">类型：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_tv">发行商：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_series">系列：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_pubdate">上映时间：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_duration">片长：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_score">评分：&#160;</string>
     <string name="detail_director">导演：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_actor">演员：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_content">简介：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_director_title">导演</string>
+    <string name="detail_actor_title">演员</string>
     <string name="detail_desc">简介</string>
 
     <!-- Keep -->

@@ -35,6 +35,7 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -70,10 +71,12 @@ import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.danmu.Parser;
+import com.fongmi.android.tv.ui.adapter.PersonAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
+import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.DescDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog;
 import com.fongmi.android.tv.ui.dialog.FileChooserDialog;
@@ -141,6 +144,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private ArrayObjectAdapter mPartAdapter;
     private QualityAdapter mQualityAdapter;
     private ArrayObjectAdapter mGalleryAdapter;
+    private PersonAdapter mDirectorAdapter;
+    private PersonAdapter mActorAdapter;
     private GalleryPresenter mGalleryPresenter;
     private DanmakuContext mDanmakuContext;
     private ArrayPresenter mArrayPresenter;
@@ -457,6 +462,16 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.gallery.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.gallery.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.gallery.setAdapter(new ItemBridgeAdapter(mGalleryAdapter = new ArrayObjectAdapter(mGalleryPresenter = new GalleryPresenter(url -> openGallery(mGalleryAdapter, url)))));
+        mBinding.directorList.setHasFixedSize(true);
+        mBinding.directorList.setItemAnimator(null);
+        mBinding.directorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.directorList.addItemDecoration(new SpaceItemDecoration(8));
+        mBinding.directorList.setAdapter(mDirectorAdapter = new PersonAdapter(result -> VodActivity.start(getActivity(), getKey(), result)));
+        mBinding.actorList.setHasFixedSize(true);
+        mBinding.actorList.setItemAnimator(null);
+        mBinding.actorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.actorList.addItemDecoration(new SpaceItemDecoration(8));
+        mBinding.actorList.setAdapter(mActorAdapter = new PersonAdapter(result -> VodActivity.start(getActivity(), getKey(), result)));
         mBinding.control.parse.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.control.parse.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.control.parse.setAdapter(new ItemBridgeAdapter(mParseAdapter = new ArrayObjectAdapter(new ParsePresenter(this::setParseActivated))));
@@ -624,10 +639,25 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.year, R.string.detail_year, item.getVodYear());
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
         setText(mBinding.type, R.string.detail_type, item.getTypeName());
+        setText(mBinding.tv, R.string.detail_tv, item.getVodTv());
+        setText(mBinding.series, R.string.detail_series, item.getVodClass());
+        setText(mBinding.pubdate, R.string.detail_pubdate, item.getVodPubdate());
+        setText(mBinding.duration, R.string.detail_duration, item.getVodDuration());
+        String score = item.getVodScore();
+        if (!score.isEmpty()) {
+            try {
+                mBinding.scoreStars.setRating(Float.parseFloat(score) / 2f);
+                mBinding.score.setText(score);
+                mBinding.scoreLayout.setVisibility(View.VISIBLE);
+            } catch (NumberFormatException e) {
+                mBinding.scoreLayout.setVisibility(View.GONE);
+            }
+        } else {
+            mBinding.scoreLayout.setVisibility(View.GONE);
+        }
         setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(removeImg(item.getVodActor())).toString());
         setText(mBinding.content, R.string.detail_content, Html.fromHtml(removeImg(item.getVodContent())).toString());
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(removeImg(item.getVodDirector())).toString());
+        setPersons(item);
         mFlagAdapter.setItems(item.getVodFlags(), null);
         setGallery(item);
         mBinding.video.requestFocus();
@@ -677,6 +707,42 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private String removeImg(String text) {
         if (TextUtils.isEmpty(text)) return text;
         return text.replaceAll("(?i)<img[^>]*>", "");
+    }
+
+    private void setPersons(Vod item) {
+        List<PersonAdapter.Person> directors = parsePersons(item.getVodDirector());
+        List<PersonAdapter.Person> actors = parsePersons(item.getVodActor());
+        if (directors.isEmpty()) {
+            mBinding.directorLayout.setVisibility(View.GONE);
+        } else {
+            mDirectorAdapter.setItems(directors);
+            mBinding.directorLayout.setVisibility(View.VISIBLE);
+        }
+        if (actors.isEmpty()) {
+            mBinding.actorLayout.setVisibility(View.GONE);
+        } else {
+            mActorAdapter.setItems(actors);
+            mBinding.actorLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private List<PersonAdapter.Person> parsePersons(String text) {
+        List<PersonAdapter.Person> persons = new ArrayList<>();
+        if (TextUtils.isEmpty(text)) return persons;
+        text = removeImg(text);
+        Map<String, Result> linkMap = new HashMap<>();
+        Matcher m = Sniffer.CLICKER.matcher(text);
+        while (m.find()) {
+            String name = m.group(2).trim();
+            linkMap.put(name, Result.type(m.group(1)));
+            text = text.replace(m.group(), name);
+        }
+        for (String name : text.split("[,，、/\\\\\\s]+")) {
+            name = name.trim();
+            if (TextUtils.isEmpty(name)) continue;
+            persons.add(new PersonAdapter.Person(name, linkMap.get(name)));
+        }
+        return persons;
     }
 
     private SpannableStringBuilder getSpan(int resId, String text) {

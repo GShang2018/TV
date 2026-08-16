@@ -52,6 +52,7 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -96,6 +97,7 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
 import com.fongmi.android.tv.ui.adapter.GalleryAdapter;
+import com.fongmi.android.tv.ui.adapter.PersonAdapter;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
@@ -174,6 +176,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private SiteViewModel mViewModel;
     private FlagAdapter mFlagAdapter;
     private GalleryAdapter mGalleryAdapter;
+    private PersonAdapter mDirectorAdapter;
+    private PersonAdapter mActorAdapter;
     private List<Dialog> mDialogs;
     private List<String> mBroken;
     private History mHistory;
@@ -510,6 +514,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.gallery.setItemAnimator(null);
         mBinding.gallery.addItemDecoration(new SpaceItemDecoration(8));
         mBinding.gallery.setAdapter(mGalleryAdapter = new GalleryAdapter(position -> openGallery(mGalleryAdapter.getItems(), position)));
+        mBinding.directorList.setHasFixedSize(true);
+        mBinding.directorList.setItemAnimator(null);
+        mBinding.directorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.directorList.addItemDecoration(new SpaceItemDecoration(8));
+        mBinding.directorList.setAdapter(mDirectorAdapter = new PersonAdapter(result -> FolderActivity.start(getActivity(), getKey(), result)));
+        mBinding.actorList.setHasFixedSize(true);
+        mBinding.actorList.setItemAnimator(null);
+        mBinding.actorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.actorList.addItemDecoration(new SpaceItemDecoration(8));
+        mBinding.actorList.setAdapter(mActorAdapter = new PersonAdapter(result -> FolderActivity.start(getActivity(), getKey(), result)));
         mBinding.control.parse.setHasFixedSize(true);
         mBinding.control.parse.setItemAnimator(null);
         mBinding.control.parse.addItemDecoration(new SpaceItemDecoration(8));
@@ -682,8 +696,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setText(mBinding.remark, 0, item.getVodRemarks());
         mBinding.currentSite.setText(getSite().getName());
         setText(mBinding.content, 0, Html.fromHtml(removeImg(item.getVodContent())));
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(removeImg(item.getVodActor())));
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(removeImg(item.getVodDirector())));
+        setPersons(item);
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(item);
@@ -706,7 +719,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setText(TextView view, int resId, CharSequence text) {
-        if (TextUtils.isEmpty(text)) text = getString(R.string.detail_na);
+        if (TextUtils.isEmpty(text)) { view.setVisibility(View.GONE); return; }
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(View.VISIBLE);
         view.setLinkTextColor(Color.WHITE);
@@ -718,6 +731,42 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private String removeImg(String text) {
         if (TextUtils.isEmpty(text)) return text;
         return text.replaceAll("(?i)<img[^>]*>", "");
+    }
+
+    private void setPersons(Vod item) {
+        List<PersonAdapter.Person> directors = parsePersons(item.getVodDirector());
+        List<PersonAdapter.Person> actors = parsePersons(item.getVodActor());
+        if (directors.isEmpty()) {
+            mBinding.directorLayout.setVisibility(View.GONE);
+        } else {
+            mDirectorAdapter.setItems(directors);
+            mBinding.directorLayout.setVisibility(View.VISIBLE);
+        }
+        if (actors.isEmpty()) {
+            mBinding.actorLayout.setVisibility(View.GONE);
+        } else {
+            mActorAdapter.setItems(actors);
+            mBinding.actorLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private List<PersonAdapter.Person> parsePersons(String text) {
+        List<PersonAdapter.Person> persons = new ArrayList<>();
+        if (TextUtils.isEmpty(text)) return persons;
+        text = removeImg(text);
+        Map<String, Result> linkMap = new HashMap<>();
+        Matcher m = Sniffer.CLICKER.matcher(text);
+        while (m.find()) {
+            String name = m.group(2).trim();
+            linkMap.put(name, Result.type(m.group(1)));
+            text = text.replace(m.group(), name);
+        }
+        for (String name : text.split("[,，、/\\\\\\s]+")) {
+            name = name.trim();
+            if (TextUtils.isEmpty(name)) continue;
+            persons.add(new PersonAdapter.Person(name, linkMap.get(name)));
+        }
+        return persons;
     }
 
     private SpannableStringBuilder getSpan(int resId, CharSequence text) {
@@ -761,6 +810,22 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setText(mBinding.otherYear, R.string.detail_year, item.getVodYear());
         setText(mBinding.otherArea, R.string.detail_area, item.getVodArea());
         setText(mBinding.otherType, R.string.detail_type, item.getTypeName());
+        setText(mBinding.otherTv, R.string.detail_tv, item.getVodTv());
+        setText(mBinding.otherSeries, R.string.detail_series, item.getVodClass());
+        setText(mBinding.otherPubdate, R.string.detail_pubdate, item.getVodPubdate());
+        setText(mBinding.otherDuration, R.string.detail_duration, item.getVodDuration());
+        String score = item.getVodScore();
+        if (!score.isEmpty()) {
+            try {
+                mBinding.scoreStars.setRating(Float.parseFloat(score) / 2f);
+                mBinding.otherScore.setText(score);
+                mBinding.scoreLayout.setVisibility(View.VISIBLE);
+            } catch (NumberFormatException e) {
+                mBinding.scoreLayout.setVisibility(View.GONE);
+            }
+        } else {
+            mBinding.scoreLayout.setVisibility(View.GONE);
+        }
     }
 
     private void setGallery(Vod item) {
