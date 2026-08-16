@@ -82,6 +82,22 @@
     <string name="dialog_custom_site_style_oval">圓形</string>
     <string name="dialog_custom_site_style_list">列表</string>
     <string name="dialog_custom_site_ratio">封面比例</string>
+    <string name="custom_site_share">分享站點</string>
+    <string name="custom_site_share_file">儲存到本地檔案</string>
+    <string name="custom_site_share_clipboard">複製到剪貼簿</string>
+    <string name="custom_site_share_success">已複製到剪貼簿</string>
+    <string name="custom_site_share_fail">分享失敗</string>
+    <string name="custom_site_import">匯入站點</string>
+    <string name="custom_site_import_clipboard">從剪貼簿匯入</string>
+    <string name="custom_site_import_url">從網路位址匯入</string>
+    <string name="custom_site_import_file">從本地檔案匯入</string>
+    <string name="custom_site_import_url_hint">請輸入網路位址</string>
+    <string name="custom_site_import_success">匯入成功</string>
+    <string name="custom_site_import_fail">匯入失敗，格式不正確</string>
+    <string name="custom_site_import_empty">剪貼簿內容為空</string>
+    <string name="custom_site_check">檢測站點可用性</string>
+    <string name="custom_site_checking">正在檢測站點可用性…</string>
+    <string name="custom_site_check_done">檢測完成，可用 %1$d 個，不可用 %2$d 個</string>
 
     <!-- 訂閱 -->
     <string name="setting_subscribe_manage">訂閱管理</string>

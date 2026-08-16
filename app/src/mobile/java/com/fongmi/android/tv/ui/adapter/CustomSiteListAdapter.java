@@ -13,12 +13,19 @@ import com.fongmi.android.tv.bean.CustomSite;
 import com.fongmi.android.tv.databinding.ItemCustomSiteListBinding;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CustomSiteListAdapter extends RecyclerView.Adapter<CustomSiteListAdapter.ViewHolder> {
 
+    public static final int STATUS_UNKNOWN = 0;
+    public static final int STATUS_AVAILABLE = 1;
+    public static final int STATUS_UNAVAILABLE = 2;
+
     private final OnClickListener mListener;
     private List<CustomSite> mItems;
+    private final Map<String, Integer> mStatus = new HashMap<>();
 
     public CustomSiteListAdapter(OnClickListener listener) {
         this.mListener = listener;
@@ -38,8 +45,25 @@ public class CustomSiteListAdapter extends RecyclerView.Adapter<CustomSiteListAd
 
     public CustomSiteListAdapter addAll(List<CustomSite> items) {
         mItems = new ArrayList<>(items);
+        mStatus.clear();
         notifyDataSetChanged();
         return this;
+    }
+
+    public void setStatus(String key, int status) {
+        if (mItems == null) return;
+        mStatus.put(key, status);
+        for (int i = 0; i < mItems.size(); i++) {
+            if (mItems.get(i).getKey().equals(key)) {
+                notifyItemChanged(i, "status");
+                break;
+            }
+        }
+    }
+
+    public void clearStatus() {
+        mStatus.clear();
+        if (mItems != null) notifyDataSetChanged();
     }
 
     public int remove(CustomSite item) {
@@ -73,6 +97,31 @@ public class CustomSiteListAdapter extends RecyclerView.Adapter<CustomSiteListAd
         holder.binding.switchBtn.setOnCheckedChangeListener(null);
         holder.binding.switchBtn.setChecked(item.getEnabled());
         holder.binding.switchBtn.setOnCheckedChangeListener((button, isChecked) -> mListener.onToggle(item, isChecked));
+        updateDot(holder, item.getKey());
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        super.onBindViewHolder(holder, position, payloads);
+        if (payloads.contains("status")) {
+            updateDot(holder, mItems.get(position).getKey());
+        }
+    }
+
+    private void updateDot(ViewHolder holder, String key) {
+        Integer status = mStatus.get(key);
+        if (status == null) status = STATUS_UNKNOWN;
+        switch (status) {
+            case STATUS_AVAILABLE:
+                holder.binding.dot.setBackgroundResource(R.drawable.shape_dot_green);
+                break;
+            case STATUS_UNAVAILABLE:
+                holder.binding.dot.setBackgroundResource(R.drawable.shape_dot_red);
+                break;
+            default:
+                holder.binding.dot.setBackgroundResource(R.drawable.shape_dot_gray);
+                break;
+        }
     }
 
     private void showMoreMenu(ViewHolder holder, CustomSite item) {

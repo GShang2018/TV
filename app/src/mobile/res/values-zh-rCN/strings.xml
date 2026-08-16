@@ -91,6 +91,22 @@
     <string name="dialog_custom_site_style_oval">圆形</string>
     <string name="dialog_custom_site_style_list">列表</string>
     <string name="dialog_custom_site_ratio">封面比例</string>
+    <string name="custom_site_share">分享站点</string>
+    <string name="custom_site_share_file">保存到本地文件</string>
+    <string name="custom_site_share_clipboard">复制到剪切板</string>
+    <string name="custom_site_share_success">已复制到剪切板</string>
+    <string name="custom_site_share_fail">分享失败</string>
+    <string name="custom_site_import">导入站点</string>
+    <string name="custom_site_import_clipboard">从剪切板导入</string>
+    <string name="custom_site_import_url">从网络地址导入</string>
+    <string name="custom_site_import_file">从本地文件导入</string>
+    <string name="custom_site_import_url_hint">请输入网络地址</string>
+    <string name="custom_site_import_success">导入成功</string>
+    <string name="custom_site_import_fail">导入失败，格式不正确</string>
+    <string name="custom_site_import_empty">剪切板内容为空</string>
+    <string name="custom_site_check">检测站点可用性</string>
+    <string name="custom_site_checking">正在检测站点可用性…</string>
+    <string name="custom_site_check_done">检测完成，可用 %1$d 个，不可用 %2$d 个</string>
 
     <!-- 订阅 -->
     <string name="setting_subscribe_manage">订阅管理</string>
