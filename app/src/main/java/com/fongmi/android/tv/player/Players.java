@@ -85,6 +85,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private IjkVideoView ijkPlayer;
     private DanmakuView danmuView;
     private ExoPlayer exoPlayer;
+    private PlayerView exoView;
     private ParseJob parseJob;
     private List<Sub> subs;
     private String format;
@@ -101,6 +102,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private int retry;
 
     private boolean autoReady;
+    private boolean wasProxy;
     private int rebufferCount;
     private long rebufferTotalMs;
     private long rebufferStartMs;
@@ -154,6 +156,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void init(PlayerView exo, IjkVideoView ijk) {
+        ExoPerformanceSetting.setProxyMode(false);
+        wasProxy = false;
         releaseExo();
         releaseIjk();
         initExo(exo);
@@ -161,6 +165,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void initExo(PlayerView view) {
+        this.exoView = view;
         // AUTO 自适应基线须在构建 LoadControl 前就位（DefaultLoadControl 阈值在构建时固定）
         ExoPerformanceSetting.beginAutoSession();
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
@@ -472,6 +477,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (isIjk()) releaseIjk();
         if (haveDanmu()) danmuView.release();
         removeTimeoutCheck();
+        ExoPerformanceSetting.setProxyMode(false);
+        wasProxy = false;
+        exoView = null;
         Server.get().setPlayer(null);
         App.execute(() -> Source.get().stop());
     }
@@ -598,6 +606,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (isExo() && exoPlayer != null) {
             // 结束上一会话并开始新会话：上报上一段播放表现，读取本次自适应缓冲基线
             recordAutoSession();
+            // 磁力/本地代理播放时重建 ExoPlayer，使用更低的重缓冲恢复阈值（1000ms），
+            // 避免网速恢复到可播放条件后仍长时间卡在 STATE_BUFFERING 无法恢复播放
+            boolean isProxy = isLocalProxyUrl(url);
+            if (isProxy != wasProxy) {
+                wasProxy = isProxy;
+                ExoPerformanceSetting.setProxyMode(isProxy);
+                releaseExo();
+                initExo(exoView);
+            }
             ExoPerformanceSetting.beginAutoSession();
             exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         }

@@ -21,8 +21,18 @@ public final class ExoPerformanceSetting {
     private static final String KEY_AUTO_CLEAN_STREAK = "exo_auto_clean_streak";
 
     private static volatile int autoSessionRebufferMs = AutoRebufferPolicy.DEFAULT_REBUFFER_MS;
+    /** 磁力/本地代理播放模式：降低重缓冲恢复阈值，避免网速恢复后仍卡在缓冲态 */
+    private static volatile boolean sProxyMode;
 
     private ExoPerformanceSetting() {
+    }
+
+    public static void setProxyMode(boolean enabled) {
+        sProxyMode = enabled;
+    }
+
+    public static boolean isProxyMode() {
+        return sProxyMode;
     }
 
     // ---------- 持续缓冲档位（minBufferMs/maxBufferMs 乘数，1-10） ----------
@@ -91,8 +101,8 @@ public final class ExoPerformanceSetting {
 
     /** 实际生效的起播阈值（AUTO 时跟随会话基线，手动时为用户设定值） */
     public static int getEffectiveStartBufferMs() {
-        if (isAutoStartBuffer()) return getAutoSessionStartBufferMs();
-        return getStartBufferMs();
+        int ms = isAutoStartBuffer() ? getAutoSessionStartBufferMs() : getStartBufferMs();
+        return sProxyMode ? Math.min(ms, 1_000) : ms;
     }
 
     public static int nextStartBufferMs() {
@@ -118,6 +128,12 @@ public final class ExoPerformanceSetting {
     public static int getRebufferMs() {
         if (isAutoRebuffer()) return AutoRebufferPolicy.normalize(autoSessionRebufferMs);
         return normalizeRebuffer(Prefers.getInt(KEY_REBUFFER_MS, AutoRebufferPolicy.DEFAULT_REBUFFER_MS));
+    }
+
+    /** 代理模式（磁力链接）下，重缓冲恢复阈值封顶 1000ms，网速恢复即可尽快恢复播放 */
+    public static int getEffectiveRebufferMs() {
+        int ms = getRebufferMs();
+        return sProxyMode ? Math.min(ms, 1_000) : ms;
     }
 
     public static void putRebufferMs(int value) {

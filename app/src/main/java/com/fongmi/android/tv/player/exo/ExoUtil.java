@@ -43,7 +43,7 @@ public class ExoUtil {
         int buffer = ExoPerformanceSetting.getEffectiveBuffer();
         // AUTO 模式下起播阈值/重缓冲恢复由自适应策略决定（会话内基线），手动模式使用用户细调值
         int startBufferMs = ExoPerformanceSetting.getEffectiveStartBufferMs();
-        int rebufferMs = ExoPerformanceSetting.getRebufferMs();
+        int rebufferMs = ExoPerformanceSetting.getEffectiveRebufferMs();
         return new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
                         /* minBufferMs */ DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * buffer,
