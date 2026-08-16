@@ -20,6 +20,8 @@ import com.fongmi.android.tv.databinding.FragmentSubscribeBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.CustomSiteActivity;
+import com.fongmi.android.tv.ui.activity.LineListActivity;
+import com.fongmi.android.tv.ui.activity.SiteListActivity;
 import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.SubscribeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
@@ -104,9 +106,12 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
     }
 
     @Override
-    public void onLine(Config item) {
-        mLineDialog = LineSelectDialog.create(this, item);
-        mLineDialog.show(this);
+    public void onView(Config item) {
+        if (item.isDepot()) {
+            LineListActivity.start(getActivity(), item.getUrl(), getType(), item.getDesc());
+        } else {
+            SiteListActivity.start(getActivity(), item.getUrl(), getType(), item.getDesc());
+        }
     }
 
     @Override

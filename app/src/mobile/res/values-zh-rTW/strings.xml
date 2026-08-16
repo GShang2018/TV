@@ -98,6 +98,11 @@
     <string name="custom_site_check">檢測站點可用性</string>
     <string name="custom_site_checking">正在檢測站點可用性…</string>
     <string name="custom_site_check_done">檢測完成，可用 %1$d 個，不可用 %2$d 個</string>
+    <string name="site_list_title">站點列表</string>
+    <string name="site_list_empty">暫無站點</string>
+    <string name="site_list_load_fail">載入失敗</string>
+    <string name="line_list_title">線路列表</string>
+    <string name="line_list_empty">暫無線路</string>
 
     <!-- 訂閱 -->
     <string name="setting_subscribe_manage">訂閱管理</string>

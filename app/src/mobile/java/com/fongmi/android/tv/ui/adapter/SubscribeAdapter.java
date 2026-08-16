@@ -31,7 +31,7 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
 
         void onSelect(Config item);
 
-        void onLine(Config item);
+        void onView(Config item);
 
         void onCustom(Config item);
 
@@ -103,8 +103,7 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
     }
 
     private void onItemClick(Config item) {
-        if (item.isDepot()) mListener.onLine(item);
-        else mListener.onSelect(item);
+        mListener.onView(item);
     }
 
     private void showMoreMenu(ViewHolder holder, Config item) {

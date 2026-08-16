@@ -107,6 +107,11 @@
     <string name="custom_site_check">检测站点可用性</string>
     <string name="custom_site_checking">正在检测站点可用性…</string>
     <string name="custom_site_check_done">检测完成，可用 %1$d 个，不可用 %2$d 个</string>
+    <string name="site_list_title">站点列表</string>
+    <string name="site_list_empty">暂无站点</string>
+    <string name="site_list_load_fail">加载失败</string>
+    <string name="line_list_title">线路列表</string>
+    <string name="line_list_empty">暂无线路</string>
 
     <!-- 订阅 -->
     <string name="setting_subscribe_manage">订阅管理</string>

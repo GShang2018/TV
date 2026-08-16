@@ -23,13 +23,16 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Prefers;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class LiveConfig {
 
@@ -205,9 +208,11 @@ public class LiveConfig {
 
     private void initLive(JsonObject object) {
         String spider = Json.safeString(object, "spider");
+        Set<String> disabled = getDisabledKeys();
         for (JsonElement element : Json.safeListElement(object, "lives")) {
             Live live = Live.objectFrom(element);
             if (live.isEmpty() || lives.contains(live)) continue;
+            if (disabled.contains(live.getName())) continue;
             live.setApi(parseApi(live.getApi()));
             live.setExt(parseExt(live.getExt()));
             live.setJar(parseJar(live, spider));
@@ -219,6 +224,20 @@ public class LiveConfig {
                 setHome(live, true);
             }
         }
+    }
+
+    private Set<String> getDisabledKeys() {
+        String json = Prefers.getString("site_disabled_" + config.getLoadUrl());
+        Set<String> set = new HashSet<>();
+        if (TextUtils.isEmpty(json)) return set;
+        try {
+            for (JsonElement element : Json.parse(json).getAsJsonArray()) {
+                set.add(element.getAsString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return set;
     }
 
     private void initOther(JsonObject object) {
@@ -316,6 +335,30 @@ public class LiveConfig {
 
     public List<Live> getLives() {
         return lives == null ? lives = new ArrayList<>() : lives;
+    }
+
+    public void removeLiveByName(String name) {
+        if (lives == null) return;
+        for (int i = 0; i < lives.size(); i++) {
+            Live live = lives.get(i);
+            if (live.getName().equals(name)) {
+                lives.remove(i);
+                if (home != null && home.getName().equals(name)) {
+                    setHome(lives.isEmpty() ? new Live() : lives.get(0), true);
+                }
+                break;
+            }
+        }
+    }
+
+    public void addLiveFromJson(JsonElement element, String spider) {
+        Live live = Live.objectFrom(element);
+        if (live.isEmpty() || lives.contains(live)) return;
+        live.setApi(parseApi(live.getApi()));
+        live.setExt(parseExt(live.getExt()));
+        live.setJar(parseJar(live, spider));
+        if (live.getEpg().isEmpty()) live.setEpg(config.getEpg());
+        lives.add(live.sync());
     }
 
     public Config getConfig() {

@@ -108,6 +108,11 @@
     <string name="custom_site_check">Check Site Availability</string>
     <string name="custom_site_checking">Checking site availability…</string>
     <string name="custom_site_check_done">Check done, %1$d available, %2$d unavailable</string>
+    <string name="site_list_title">Site List</string>
+    <string name="site_list_empty">No sites</string>
+    <string name="site_list_load_fail">Load failed</string>
+    <string name="line_list_title">Line List</string>
+    <string name="line_list_empty">No lines</string>
 
     <!-- Subscribe -->
     <string name="setting_subscribe_manage">Subscription Management</string>

@@ -18,13 +18,16 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Prefers;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VodConfig {
 
@@ -207,9 +210,11 @@ public class VodConfig {
             return;
         }
         String spider = Json.safeString(object, "spider");
+        Set<String> disabled = getDisabledKeys();
         for (JsonElement element : Json.safeListElement(object, "sites")) {
             Site site = Site.objectFrom(element);
             if (sites.contains(site)) continue;
+            if (disabled.contains(site.getKey())) continue;
             site.setApi(parseApi(site.getApi()));
             site.setExt(parseExt(site.getExt()));
             site.setJar(parseJar(site, spider));
@@ -220,6 +225,20 @@ public class VodConfig {
                 setHome(site);
             }
         }
+    }
+
+    private Set<String> getDisabledKeys() {
+        String json = Prefers.getString("site_disabled_" + config.getLoadUrl());
+        Set<String> set = new HashSet<>();
+        if (TextUtils.isEmpty(json)) return set;
+        try {
+            for (JsonElement element : Json.parse(json).getAsJsonArray()) {
+                set.add(element.getAsString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return set;
     }
 
     private JsonObject getCustomObject() {
@@ -302,6 +321,29 @@ public class VodConfig {
 
     public List<Site> getSites() {
         return sites == null ? Collections.emptyList() : sites;
+    }
+
+    public void removeSiteByKey(String key) {
+        if (sites == null) return;
+        for (int i = 0; i < sites.size(); i++) {
+            Site site = sites.get(i);
+            if (site.getKey().equals(key)) {
+                sites.remove(i);
+                if (home != null && home.getKey().equals(key)) {
+                    setHome(sites.isEmpty() ? new Site() : sites.get(0));
+                }
+                break;
+            }
+        }
+    }
+
+    public void addSiteFromJson(JsonElement element, String spider) {
+        Site site = Site.objectFrom(element);
+        if (sites.contains(site)) return;
+        site.setApi(parseApi(site.getApi()));
+        site.setExt(parseExt(site.getExt()));
+        site.setJar(parseJar(site, spider));
+        sites.add(site.trans().sync());
     }
 
     public List<Parse> getParses() {
