@@ -44,13 +44,18 @@ public class ExoUtil {
         // AUTO 模式下起播阈值/重缓冲恢复由自适应策略决定（会话内基线），手动模式使用用户细调值
         int startBufferMs = ExoPerformanceSetting.getEffectiveStartBufferMs();
         int rebufferMs = ExoPerformanceSetting.getEffectiveRebufferMs();
-        return new DefaultLoadControl.Builder()
+        DefaultLoadControl control = new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
                         /* minBufferMs */ DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * buffer,
                         /* maxBufferMs */ DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * buffer,
                         /* bufferForPlaybackMs */ startBufferMs,
                         /* bufferForPlaybackAfterRebufferMs */ rebufferMs)
                 .build();
+        // 代理模式（磁力链接）：用 ProxyLoadControl 包装，根据网速动态调整 rebuffer 恢复阈值
+        if (ExoPerformanceSetting.isProxyMode()) {
+            return new ProxyLoadControl(control);
+        }
+        return control;
     }
 
     public static TrackSelector buildTrackSelector() {

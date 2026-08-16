@@ -7,6 +7,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -21,6 +23,7 @@ import androidx.media3.common.Format;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.LoadControl;
 import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 
@@ -39,6 +42,7 @@ import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.player.exo.ProxyLoadControl;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.setting.ExoPerformanceSetting;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -103,6 +107,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private boolean autoReady;
     private boolean wasProxy;
+    private ProxyLoadControl proxyLoadControl;
+    private final Handler speedHandler = new Handler(Looper.getMainLooper());
+    private long lastBufferLevelMs;
+    private long lastSpeedCheckMs;
     private int rebufferCount;
     private long rebufferTotalMs;
     private long rebufferStartMs;
@@ -168,7 +176,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         this.exoView = view;
         // AUTO 自适应基线须在构建 LoadControl 前就位（DefaultLoadControl 阈值在构建时固定）
         ExoPerformanceSetting.beginAutoSession();
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        LoadControl loadControl = ExoUtil.buildLoadControl();
+        if (loadControl instanceof ProxyLoadControl) {
+            proxyLoadControl = (ProxyLoadControl) loadControl;
+        }
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(loadControl).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
@@ -178,6 +190,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
         view.setPlayer(exoPlayer);
+        startSpeedTracking();
     }
 
     private void initIjk(IjkVideoView view) {
@@ -540,11 +553,50 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void releaseExo() {
+        stopSpeedTracking();
+        proxyLoadControl = null;
         if (exoPlayer == null) return;
         exoPlayer.removeListener(this);
         exoPlayer.release();
         exoPlayer = null;
     }
+
+    private void startSpeedTracking() {
+        if (proxyLoadControl == null) return;
+        lastBufferLevelMs = 0;
+        lastSpeedCheckMs = 0;
+        speedHandler.removeCallbacks(speedRunnable);
+        speedHandler.post(speedRunnable);
+    }
+
+    private void stopSpeedTracking() {
+        speedHandler.removeCallbacks(speedRunnable);
+    }
+
+    private final Runnable speedRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (exoPlayer == null || proxyLoadControl == null) return;
+            long bufferedPos = exoPlayer.getBufferedPosition();
+            long currentPos = exoPlayer.getCurrentPosition();
+            long bufferLevel;
+            if (bufferedPos == C.TIME_END_OF_SOURCE) {
+                bufferLevel = 100_000;
+            } else {
+                bufferLevel = bufferedPos - currentPos;
+                if (bufferLevel < 0) bufferLevel = 0;
+            }
+            long now = SystemClock.elapsedRealtime();
+            if (lastSpeedCheckMs > 0 && now > lastSpeedCheckMs) {
+                long delta = bufferLevel - lastBufferLevelMs;
+                long elapsed = now - lastSpeedCheckMs;
+                proxyLoadControl.onBufferSample(delta, elapsed);
+            }
+            lastBufferLevelMs = bufferLevel;
+            lastSpeedCheckMs = now;
+            speedHandler.postDelayed(this, 2000);
+        }
+    };
 
     private void releaseIjk() {
         if (ijkPlayer == null) return;

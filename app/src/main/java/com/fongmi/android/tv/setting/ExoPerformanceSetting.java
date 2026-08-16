@@ -62,8 +62,9 @@ public final class ExoPerformanceSetting {
 
     /** 实际生效的缓冲档位（AUTO 时由会话基线映射，手动时为用户设定值） */
     public static int getEffectiveBuffer() {
-        if (isAutoBuffer()) return getAutoSessionBuffer();
-        return Setting.getBuffer();
+        int buffer = isAutoBuffer() ? getAutoSessionBuffer() : Setting.getBuffer();
+        // 代理模式（磁力链接）下提高持续缓冲水位，增加预加载量，避免网速波动导致卡顿
+        return sProxyMode ? Math.max(buffer, 6) : buffer;
     }
 
     // ---------- 起播阈值（bufferForPlaybackMs） ----------
