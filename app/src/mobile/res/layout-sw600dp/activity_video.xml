@@ -124,12 +124,12 @@
 
                             <TextView
                                 android:id="@+id/name"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ellipsize="end"
                                 android:maxLines="2"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="20sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold"
                                 tools:text="慶餘年第二季" />
 
@@ -138,9 +138,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:singleLine="true"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="更新到第二季" />
 
                             <TextView
@@ -148,9 +147,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:singleLine="true"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="年份：2022" />
 
                             <TextView
@@ -158,9 +156,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:singleLine="true"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="地区：台湾" />
 
                             <TextView
@@ -168,9 +165,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:singleLine="true"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="类型：科幻" />
 
                             <TextView
@@ -178,9 +174,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:singleLine="true"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="導演：FongMi" />
 
                             <TextView
@@ -188,10 +183,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:ellipsize="end"
-                                android:maxLines="1"
                                 android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 tools:text="演員：FongMi" />
 
                         </LinearLayout>
@@ -570,11 +563,9 @@
                             android:layout_marginTop="8dp"
                             android:layout_marginEnd="16dp"
                             android:layout_marginBottom="8dp"
-                            android:ellipsize="end"
                             android:lineSpacingExtra="4dp"
-                            android:maxLines="2"
                             android:textColor="?attr/colorOnSurface"
-                            android:textSize="14sp"
+                            android:textSize="13sp"
                             tools:text="一個身世神秘的少年范閒（張若昀飾），因對自身身世的好奇而離開故鄉澹州，前赴南慶京都。范閒在京中各大勢力之間遊走，以探查自己屢遭刺殺的原因。其間結識靖王世子、二皇子，與太子、長公主等人對抗，並遊歷四方、闖蕩江湖，卻意外發現這世界隱藏著的秘密。" />
 
                     </LinearLayout>

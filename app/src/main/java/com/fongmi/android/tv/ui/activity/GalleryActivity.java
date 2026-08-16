@@ -31,8 +31,8 @@ import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.ActivityGalleryBinding;
 import com.fongmi.android.tv.databinding.ItemGalleryThumbBinding;
-import com.fongmi.android.tv.ui.custom.TouchImageView;
 import com.fongmi.android.tv.utils.ImgUtil;
+import com.lxj.xpopup.photoview.PhotoView;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -156,37 +156,28 @@ public class GalleryActivity extends AppCompatActivity {
         if (mExecutor != null) mExecutor.shutdown();
     }
 
-    /**
-     * 在 Activity 层面拦截 Ctrl + 鼠标滚轮事件并转发给当前显示的 TouchImageView。
-     * 因为 ViewPager2 内部的 RecyclerView 会拦截滚轮事件用于翻页，导致 TouchImageView
-     * 的 dispatchGenericMotionEvent 收不到，所以必须在更上层处理。
-     */
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_SCROLL
                 && (event.getMetaState() & KeyEvent.META_CTRL_ON) != 0
                 && event.getAxisValue(MotionEvent.AXIS_VSCROLL) != 0f) {
-            TouchImageView image = getCurrentImage();
+            PhotoView image = getCurrentImage();
             if (image != null) {
                 float scroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
-                // 与 PiliPlus 一致：scaleChange = exp(-scrollDelta / scaleFactor)，scaleFactor = 200
                 float scaleChange = (float) Math.exp(-scroll / 200f);
-                // 将 Activity 窗口坐标转换为 TouchImageView 局部坐标
+                float newScale = image.getScale() * scaleChange;
                 int[] loc = new int[2];
                 image.getLocationOnScreen(loc);
                 float localX = event.getRawX() - loc[0];
                 float localY = event.getRawY() - loc[1];
-                image.zoomByScroll(scaleChange, localX, localY);
+                image.setScale(newScale, localX, localY, true);
                 return true;
             }
         }
         return super.dispatchGenericMotionEvent(event);
     }
 
-    /**
-     * 获取 ViewPager2 当前显示页的 TouchImageView。
-     */
-    private TouchImageView getCurrentImage() {
+    private PhotoView getCurrentImage() {
         if (mBinding.pager.getChildCount() == 0) return null;
         View child = mBinding.pager.getChildAt(0);
         if (!(child instanceof RecyclerView)) return null;
@@ -202,19 +193,24 @@ public class GalleryActivity extends AppCompatActivity {
         @NonNull
         @Override
         public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            TouchImageView image = new TouchImageView(parent.getContext());
+            PhotoView image = new PhotoView(parent.getContext());
             image.setBackgroundResource(R.color.black_20);
             image.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            image.setZoomable(true);
+            image.setOnMatrixChangeListener(rect -> {
+                // 图片放大时禁用 ViewPager2 滑动，避免手势冲突导致不跟手
+                mBinding.pager.setUserInputEnabled(image.getScale() <= 1.0f);
+            });
             return new Holder(image);
         }
 
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             String url = mUrls.get(position);
+            holder.image.setImageDrawable(null);
             Glide.with(GalleryActivity.this).asBitmap().load(ImgUtil.getUrl(url)).into(new CustomTarget<Bitmap>() {
                 @Override
                 public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                    holder.image.setOrigSize(resource.getWidth(), resource.getHeight());
                     holder.image.setImageBitmap(resource);
                 }
 
@@ -230,9 +226,9 @@ public class GalleryActivity extends AppCompatActivity {
         }
 
         class Holder extends RecyclerView.ViewHolder {
-            TouchImageView image;
+            PhotoView image;
 
-            Holder(TouchImageView image) {
+            Holder(PhotoView image) {
                 super(image);
                 this.image = image;
             }

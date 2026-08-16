@@ -46,6 +46,36 @@ public class SiteListAdapter extends RecyclerView.Adapter<SiteListAdapter.ViewHo
         return this;
     }
 
+    public SiteListAdapter addItems(List<SiteItem> items) {
+        if (mItems == null) mItems = new ArrayList<>();
+        int start = mItems.size();
+        mItems.addAll(items);
+        notifyItemRangeInserted(start, items.size());
+        return this;
+    }
+
+    public void switchSelection(String key) {
+        if (mItems == null) return;
+        // 清除旧选中项，只通知变化的条目
+        for (int i = 0; i < mItems.size(); i++) {
+            String k = mItems.get(i).getKey();
+            if (mSelected.contains(k) && !k.equals(key)) {
+                mSelected.remove(k);
+                notifyItemChanged(i, "status");
+            }
+        }
+        // 设置新选中项
+        if (!mSelected.contains(key)) {
+            mSelected.add(key);
+            for (int i = 0; i < mItems.size(); i++) {
+                if (mItems.get(i).getKey().equals(key)) {
+                    notifyItemChanged(i, "status");
+                    break;
+                }
+            }
+        }
+    }
+
     public List<SiteItem> getItems() {
         return mItems == null ? new ArrayList<>() : mItems;
     }

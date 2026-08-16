@@ -630,7 +630,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(removeImg(item.getVodDirector())).toString());
         mFlagAdapter.setItems(item.getVodFlags(), null);
         setGallery(item);
-        mBinding.content.setMaxLines(getMaxLines());
         mBinding.video.requestFocus();
         setArtwork(item.getVodPic());
         getPart(item.getVodName());
@@ -664,14 +663,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             urls.add(item);
         }
         GalleryActivity.start(this, new ArrayList<>(urls), position);
-    }
-
-    private int getMaxLines() {
-        int lines = 1;
-        if (isGone(mBinding.actor)) ++lines;
-        if (isGone(mBinding.remark)) ++lines;
-        if (isGone(mBinding.director)) ++lines;
-        return lines;
     }
 
     private void setText(TextView view, int resId, String text) {

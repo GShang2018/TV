@@ -132,12 +132,12 @@
 
                                     <TextView
                                         android:id="@+id/name"
-                                        android:layout_width="wrap_content"
+                                        android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:ellipsize="end"
                                         android:maxLines="2"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="20sp"
+                                        android:textSize="18sp"
                                         android:textStyle="bold"
                                         tools:text="慶餘年第二季" />
 
@@ -146,9 +146,8 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:singleLine="true"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="更新到第二季" />
 
                                     <TextView
@@ -156,9 +155,8 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:singleLine="true"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="年份：2022" />
 
                                     <TextView
@@ -166,9 +164,8 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:singleLine="true"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="地区：台湾" />
 
                                     <TextView
@@ -176,9 +173,8 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:singleLine="true"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="类型：科幻" />
 
                                     <TextView
@@ -186,9 +182,8 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:singleLine="true"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="導演：FongMi" />
 
                                     <TextView
@@ -196,10 +191,8 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_marginTop="4dp"
-                                        android:ellipsize="end"
-                                        android:maxLines="1"
                                         android:textColor="?attr/colorOnSurface"
-                                        android:textSize="14sp"
+                                        android:textSize="13sp"
                                         tools:text="演員：FongMi" />
 
                                 </LinearLayout>
@@ -578,11 +571,9 @@
                                     android:layout_marginTop="8dp"
                                     android:layout_marginEnd="16dp"
                                     android:layout_marginBottom="8dp"
-                                    android:ellipsize="end"
                                     android:lineSpacingExtra="4dp"
-                                    android:maxLines="2"
                                     android:textColor="?attr/colorOnSurface"
-                                    android:textSize="14sp"
+                                    android:textSize="13sp"
                                     tools:text="Sample" />
 
                             </LinearLayout>

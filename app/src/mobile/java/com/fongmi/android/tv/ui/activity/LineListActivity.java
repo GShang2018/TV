@@ -17,11 +17,15 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.bean.SiteItem;
 import com.fongmi.android.tv.databinding.ActivitySiteListBinding;
 import com.fongmi.android.tv.databinding.DialogLinkBinding;
+import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.adapter.SiteListAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
@@ -154,12 +158,39 @@ public class LineListActivity extends BaseActivity implements SiteListAdapter.On
             mAdapter.setSelected(item.getUrl(), true);
             return;
         }
-        // 选中该线路
-        mAdapter.clearSelected();
-        mAdapter.setSelected(item.getUrl(), true);
+        // 选中该线路（高效更新，避免全量刷新）
+        mAdapter.switchSelection(item.getKey());
         App.execute(() -> {
             mConfig.setLine(item.getUrl());
             mConfig.save();
+            // 同步首页配置
+            if (mType == 0) {
+                VodConfig.load(mConfig, new Callback() {
+                    @Override
+                    public void success() {
+                        App.post(() -> { RefreshEvent.video(); RefreshEvent.config(); });
+                    }
+                    @Override
+                    public void success(String result) {
+                        App.post(() -> { RefreshEvent.video(); RefreshEvent.config(); });
+                    }
+                    @Override
+                    public void error(String msg) {}
+                });
+            } else {
+                LiveConfig.load(mConfig, new Callback() {
+                    @Override
+                    public void success() {
+                        App.post(RefreshEvent::live);
+                    }
+                    @Override
+                    public void success(String result) {
+                        App.post(RefreshEvent::live);
+                    }
+                    @Override
+                    public void error(String msg) {}
+                });
+            }
         });
     }
 
@@ -316,7 +347,7 @@ public class LineListActivity extends BaseActivity implements SiteListAdapter.On
                 }
 
                 List<Depot> existing = new ArrayList<>(mConfig.getLineList());
-                int added = 0;
+                List<SiteItem> newItems = new ArrayList<>();
                 for (JsonElement element : array) {
                     if (!element.isJsonObject()) continue;
                     JsonObject obj = element.getAsJsonObject();
@@ -329,17 +360,24 @@ public class LineListActivity extends BaseActivity implements SiteListAdapter.On
                         if (d.getUrl().equals(url)) { found = true; break; }
                     }
                     if (found) continue;
-                    existing.add(new Depot(url, name));
-                    added++;
+                    Depot depot = new Depot(url, name);
+                    existing.add(depot);
+                    JsonObject jsonObj = new JsonObject();
+                    jsonObj.addProperty("url", depot.getUrl());
+                    jsonObj.addProperty("name", depot.getName());
+                    newItems.add(new SiteItem(depot.getName(), depot.getUrl(), depot.getUrl(), jsonObj));
                 }
-                if (added == 0) {
+                if (newItems.isEmpty()) {
                     App.post(() -> Notify.show(R.string.custom_site_import_fail));
                     return;
                 }
                 mConfig.lines(existing).save();
                 App.post(() -> {
                     Notify.show(R.string.custom_site_import_success);
-                    loadLines();
+                    mAdapter.addItems(newItems);
+                    mBinding.empty.setVisibility(View.GONE);
+                    // 只检测新增的线路
+                    checkItems(newItems);
                 });
             } catch (Exception e) {
                 App.post(() -> Notify.show(R.string.custom_site_import_fail));
@@ -350,13 +388,21 @@ public class LineListActivity extends BaseActivity implements SiteListAdapter.On
     // ==================== 检测可用性 ====================
 
     private void startCheck(boolean manual) {
-        List<SiteItem> items = mAdapter.getItems();
+        checkItems(mAdapter.getItems(), manual);
+    }
+
+    private void checkItems(List<SiteItem> items) {
+        checkItems(items, false);
+    }
+
+    private void checkItems(List<SiteItem> items, boolean manual) {
         if (items.isEmpty()) return;
         if (manual) {
             Notify.progress(this);
-            Notify.show(R.string.custom_site_checking);
         }
-        mAdapter.clearStatus();
+        for (SiteItem item : items) {
+            mAdapter.setStatus(item.getKey(), SiteListAdapter.STATUS_UNKNOWN);
+        }
 
         int total = items.size();
         int poolSize = Math.min(total, 32);
@@ -370,15 +416,14 @@ public class LineListActivity extends BaseActivity implements SiteListAdapter.On
                 boolean ok = checkSite(item.getUrl());
                 if (ok) {
                     available.incrementAndGet();
-                    App.post(() -> mAdapter.setStatus(item.getUrl(), SiteListAdapter.STATUS_AVAILABLE));
+                    App.post(() -> mAdapter.setStatus(item.getKey(), SiteListAdapter.STATUS_AVAILABLE));
                 } else {
                     unavailable.incrementAndGet();
-                    App.post(() -> mAdapter.setStatus(item.getUrl(), SiteListAdapter.STATUS_UNAVAILABLE));
+                    App.post(() -> mAdapter.setStatus(item.getKey(), SiteListAdapter.STATUS_UNAVAILABLE));
                 }
                 if (done.incrementAndGet() == total) {
                     App.post(() -> {
                         if (manual) Notify.dismiss();
-                        Notify.show(getString(R.string.custom_site_check_done, available.get(), unavailable.get()));
                     });
                     executor.shutdown();
                 }

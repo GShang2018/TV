@@ -359,9 +359,10 @@ public class SiteListActivity extends BaseActivity implements SiteListAdapter.On
         if (items.isEmpty()) return;
         if (manual) {
             Notify.progress(this);
-            Notify.show(R.string.custom_site_checking);
         }
-        mAdapter.clearStatus();
+        for (SiteItem item : items) {
+            mAdapter.setStatus(item.getKey(), SiteListAdapter.STATUS_UNKNOWN);
+        }
 
         int total = items.size();
         int poolSize = Math.min(total, 32);
@@ -383,7 +384,6 @@ public class SiteListActivity extends BaseActivity implements SiteListAdapter.On
                 if (done.incrementAndGet() == total) {
                     App.post(() -> {
                         if (manual) Notify.dismiss();
-                        Notify.show(getString(R.string.custom_site_check_done, available.get(), unavailable.get()));
                     });
                     executor.shutdown();
                 }

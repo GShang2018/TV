@@ -35,6 +35,7 @@ import android.view.ViewOutlineProvider;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -445,8 +446,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void initEvent() {
         mBinding.poster.setOnClickListener(view -> showPoster());
         mBinding.more.setOnClickListener(view -> onMore());
-        mBinding.actor.setOnClickListener(view -> onActor());
-        mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.download.setOnClickListener(view -> onDownload());
         mBinding.currentSite.setOnClickListener(view -> onSource());
@@ -963,14 +962,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onDownload() {
         EpisodeGridDialog.create().reverse(mHistory.isRevSort()).episodes(mEpisodeAdapter.getItems()).download(true).show(this);
-    }
-
-    private void onActor() {
-        mBinding.actor.setMaxLines(mBinding.actor.getMaxLines() == 1 ? Integer.MAX_VALUE : 1);
-    }
-
-    private void onContent() {
-        mBinding.content.setMaxLines(mBinding.content.getMaxLines() == 2 ? Integer.MAX_VALUE : 2);
     }
 
     private void onReverse() {

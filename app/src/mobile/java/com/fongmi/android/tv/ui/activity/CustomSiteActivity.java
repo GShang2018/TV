@@ -315,7 +315,6 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
         // 手动检测显示提示，自动检测静默执行
         if (manual) {
             Notify.progress(this);
-            Notify.show(R.string.custom_site_checking);
         }
         mAdapter.clearStatus();
 
@@ -340,9 +339,6 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
                 if (done.incrementAndGet() == total) {
                     App.post(() -> {
                         if (manual) Notify.dismiss();
-                        if (manual || available.get() + unavailable.get() > 0) {
-                            Notify.show(getString(R.string.custom_site_check_done, available.get(), unavailable.get()));
-                        }
                     });
                     executor.shutdown();
                 }
