@@ -202,6 +202,10 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
         int viewType = Setting.getCategoryViewType();
         if (viewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) return Style.rect();
         if (viewType == com.fongmi.android.tv.ui.base.ViewType.LIST) return Style.list();
+        if (viewType == com.fongmi.android.tv.ui.base.ViewType.CONFIG) {
+            // CONFIG: 使用配置中的布局
+            return isFolder() ? Style.list() : getSite().getStyle(mPages.isEmpty() ? mStyle : getLastPage().getStyle());
+        }
         return Style.land();
     }
 

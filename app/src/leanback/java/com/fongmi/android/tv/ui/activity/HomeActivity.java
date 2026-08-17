@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -314,34 +315,34 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getHomeViewType();
-        if (viewType == ViewType.PORTRAIT) {
-            viewType = ViewType.GRID;
-        } else if (viewType == ViewType.GRID) {
-            viewType = ViewType.LIST;
-        } else {
-            viewType = ViewType.PORTRAIT;
+        PopupMenu popup = new PopupMenu(this, view);
+        popup.inflate(R.menu.menu_view_type);
+        try {
+            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            Object menuPopup = field.get(popup);
+            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
+        } catch (Exception e) {
+            // ignore
         }
-        Setting.putHomeViewType(viewType);
-        // 首页切换按钮同时控制分类页（VodFragment）的布局
-        Setting.putCategoryViewType(viewType);
-        updateViewIcon();
-        // 刷新所有 fragment 的封面样式
-        refreshAllFragments();
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            int viewType;
+            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
+            else if (id == R.id.view_grid) viewType = ViewType.GRID;
+            else if (id == R.id.view_list) viewType = ViewType.LIST;
+            else if (id == R.id.view_config) viewType = ViewType.CONFIG;
+            else return false;
+            Setting.putHomeViewType(viewType);
+            Setting.putCategoryViewType(viewType);
+            refreshAllFragments();
+            return true;
+        });
+        popup.show();
     }
 
     private void updateViewIcon() {
-        switch (Setting.getHomeViewType()) {
-            case ViewType.PORTRAIT:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-                break;
-            case ViewType.LIST:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
-                break;
-            default:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
-                break;
-        }
+        mBinding.viewToggle.setImageResource(R.drawable.ic_action_view);
     }
 
     private Style getHomeViewStyle() {
@@ -350,6 +351,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 return Style.rect();
             case ViewType.LIST:
                 return Style.list();
+            case ViewType.CONFIG:
+                // CONFIG: 使用站点配置的布局
+                Style configStyle = getHome().getStyle();
+                return configStyle != null ? configStyle : Style.rect();
             default:
                 return Style.land();
         }

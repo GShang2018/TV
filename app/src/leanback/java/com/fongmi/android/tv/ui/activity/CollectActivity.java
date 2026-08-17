@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Parcelable;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -141,17 +142,28 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getCollectViewType();
-        if (viewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
-            Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.GRID);
-        } else if (viewType == com.fongmi.android.tv.ui.base.ViewType.GRID) {
-            Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.LIST);
-        } else {
-            Setting.putCollectViewType(com.fongmi.android.tv.ui.base.ViewType.PORTRAIT);
+        PopupMenu popup = new PopupMenu(this, view);
+        popup.inflate(R.menu.menu_view_type_simple);
+        try {
+            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            Object menuPopup = field.get(popup);
+            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
+        } catch (Exception e) {
+            // ignore
         }
-        updateViewIcon();
-        // 刷新所有 fragment 的封面样式
-        refreshAllFragments();
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            int viewType;
+            if (id == R.id.view_portrait) viewType = com.fongmi.android.tv.ui.base.ViewType.PORTRAIT;
+            else if (id == R.id.view_grid) viewType = com.fongmi.android.tv.ui.base.ViewType.GRID;
+            else if (id == R.id.view_list) viewType = com.fongmi.android.tv.ui.base.ViewType.LIST;
+            else return false;
+            Setting.putCollectViewType(viewType);
+            refreshAllFragments();
+            return true;
+        });
+        popup.show();
     }
 
     private void refreshAllFragments() {
@@ -168,14 +180,7 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void updateViewIcon() {
-        int viewType = Setting.getCollectViewType();
-        if (viewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-        } else if (viewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
-        } else {
-            mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
-        }
+        mBinding.viewToggle.setImageResource(R.drawable.ic_action_view);
     }
 
     private void stop() {

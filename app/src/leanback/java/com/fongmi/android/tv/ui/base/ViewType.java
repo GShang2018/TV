@@ -7,4 +7,5 @@ public class ViewType {
     public static final int LIST = 2;
     public static final int GRID = 3;
     public static final int PORTRAIT = 4;
+    public static final int CONFIG = 5;
 }

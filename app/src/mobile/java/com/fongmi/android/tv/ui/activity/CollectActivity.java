@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -166,13 +167,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         int[] spec = Product.getSpec(this, style);
         mSearchAdapter.setSize(spec);
         ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(count);
-        if (viewType == ViewType.PORTRAIT) {
-            mBinding.view.setImageResource(R.drawable.ic_action_grid);
-        } else if (viewType == ViewType.LIST) {
-            mBinding.view.setImageResource(R.drawable.ic_action_list);
-        } else {
-            mBinding.view.setImageResource(R.drawable.ic_action_portrait);
-        }
+        mBinding.view.setImageResource(R.drawable.ic_action_view);
         // 强制刷新列表
         mSearchAdapter.notifyDataSetChanged();
     }
@@ -296,8 +291,27 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void toggleView(View view) {
-        int viewType = mSearchAdapter.isPortrait() ? ViewType.GRID : mSearchAdapter.isGrid() ? ViewType.LIST : ViewType.PORTRAIT;
-        setViewType(viewType);
+        PopupMenu popup = new PopupMenu(this, view);
+        popup.inflate(R.menu.menu_view_type_simple);
+        try {
+            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            Object menuPopup = field.get(popup);
+            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
+        } catch (Exception e) {
+            // ignore
+        }
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            int viewType;
+            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
+            else if (id == R.id.view_grid) viewType = ViewType.GRID;
+            else if (id == R.id.view_list) viewType = ViewType.LIST;
+            else return false;
+            setViewType(viewType);
+            return true;
+        });
+        popup.show();
     }
 
     private void showAgent() {

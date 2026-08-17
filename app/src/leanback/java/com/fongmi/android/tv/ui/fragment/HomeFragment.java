@@ -128,12 +128,18 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         mResult = result;
         int index = getRecommendIndex();
         if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
-        Style style = result.getStyle(getHome().getStyle());
         int homeViewType = Setting.getHomeViewType();
+        Style style;
         if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             style = Style.rect();
         } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {
             style = Style.list();
+        } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.CONFIG) {
+            // CONFIG: 使用配置中的布局
+            style = result.getStyle(getHome().getStyle());
+        } else {
+            // GRID: 锁定为横版布局
+            style = Style.land();
         }
         for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
             ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
@@ -150,6 +156,9 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
             style = Style.rect();
         } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {
             style = Style.list();
+        } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.CONFIG) {
+            // CONFIG: 使用配置中的布局
+            style = mResult.getStyle(getHome().getStyle());
         } else {
             style = Style.land();
         }

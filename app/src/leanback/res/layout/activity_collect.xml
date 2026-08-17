@@ -35,7 +35,7 @@
             android:focusable="true"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_action_grid" />
+            android:src="@drawable/ic_action_view" />
 
     </LinearLayout>
 

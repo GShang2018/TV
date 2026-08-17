@@ -28,6 +28,7 @@ import com.fongmi.android.tv.ui.activity.DetailActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 
 import java.io.Serializable;
@@ -67,8 +68,13 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     private Style getStyle() {
         if (isFolder()) return Style.list();
-        Style style = getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
-        if (style != null) return style;
+        int viewType = Setting.getHomeViewType();
+        // CONFIG 模式：使用配置中的布局（站点/分类配置优先）
+        if (viewType == ViewType.CONFIG) {
+            Style style = getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
+            if (style != null) return style;
+        }
+        // 非 CONFIG 模式：锁定用户选择的布局，不被配置覆盖
         VodFragment parent = getParent();
         return parent != null ? parent.getHomeViewStyle() : Style.rect();
     }
@@ -174,7 +180,14 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void addVideo(Result result) {
-        Style style = result.getList().get(0).getStyle(getStyle());
+        Style style;
+        if (Setting.getHomeViewType() == ViewType.CONFIG) {
+            // CONFIG 模式：允许 Vod 自身的 style 覆盖
+            style = result.getList().get(0).getStyle(getStyle());
+        } else {
+            // 非 CONFIG 模式：锁定用户选择的布局，不被 Vod 数据覆盖
+            style = getStyle();
+        }
         if (!style.equals(mAdapter.getStyle())) setStyle(style);
         mAdapter.addAll(result.getList());
     }

@@ -44,7 +44,7 @@
             android:layout_height="24dp"
             android:layout_marginStart="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_action_grid" />
+            android:src="@drawable/ic_action_view" />
 
         <ImageView
             android:id="@+id/delete"

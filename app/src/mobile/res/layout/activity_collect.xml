@@ -65,7 +65,7 @@
             android:layout_marginStart="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="4dp"
-            android:src="@drawable/ic_action_list"
+            android:src="@drawable/ic_action_view"
             android:visibility="gone"
             tools:visibility="visible" />
 

@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
+import android.widget.PopupMenu;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
@@ -53,41 +54,42 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getHistoryViewType();
-        if (viewType == ViewType.PORTRAIT) {
-            Setting.putHistoryViewType(ViewType.GRID);
-        } else if (viewType == ViewType.GRID) {
-            Setting.putHistoryViewType(ViewType.LIST);
-        } else {
-            Setting.putHistoryViewType(ViewType.PORTRAIT);
+        PopupMenu popup = new PopupMenu(this, view);
+        popup.inflate(R.menu.menu_view_type_simple);
+        try {
+            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            Object menuPopup = field.get(popup);
+            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
+        } catch (Exception e) {
+            // ignore
         }
-        updateViewIcon();
-        // 刷新封面样式
-        if (mAdapter != null) {
-            Style style = getViewStyle();
-            int column = Product.getColumn(style);
-            mAdapter.setStyle(style);
-            mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
-            while (mBinding.recycler.getItemDecorationCount() > 0) {
-                mBinding.recycler.removeItemDecorationAt(0);
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            int viewType;
+            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
+            else if (id == R.id.view_grid) viewType = ViewType.GRID;
+            else if (id == R.id.view_list) viewType = ViewType.LIST;
+            else return false;
+            Setting.putHistoryViewType(viewType);
+            if (mAdapter != null) {
+                Style style = getViewStyle();
+                int column = Product.getColumn(style);
+                mAdapter.setStyle(style);
+                mBinding.recycler.setLayoutManager(new GridLayoutManager(this, column));
+                while (mBinding.recycler.getItemDecorationCount() > 0) {
+                    mBinding.recycler.removeItemDecorationAt(0);
+                }
+                mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
+                mAdapter.notifyDataSetChanged();
             }
-            mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
-            mAdapter.notifyDataSetChanged();
-        }
+            return true;
+        });
+        popup.show();
     }
 
     private void updateViewIcon() {
-        switch (Setting.getHistoryViewType()) {
-            case ViewType.PORTRAIT:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-                break;
-            case ViewType.LIST:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
-                break;
-            default:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
-                break;
-        }
+        mBinding.viewToggle.setImageResource(R.drawable.ic_action_view);
     }
 
     private Style getViewStyle() {

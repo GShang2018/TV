@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -91,30 +92,32 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void toggleView(View view) {
-        int viewType = Setting.getKeepViewType();
-        if (viewType == ViewType.PORTRAIT) {
-            Setting.putKeepViewType(ViewType.GRID);
-        } else if (viewType == ViewType.GRID) {
-            Setting.putKeepViewType(ViewType.LIST);
-        } else {
-            Setting.putKeepViewType(ViewType.PORTRAIT);
+        PopupMenu popup = new PopupMenu(this, view);
+        popup.inflate(R.menu.menu_view_type_simple);
+        try {
+            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            Object menuPopup = field.get(popup);
+            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
+        } catch (Exception e) {
+            // ignore
         }
-        updateViewIcon();
-        refreshStyle();
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            int viewType;
+            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
+            else if (id == R.id.view_grid) viewType = ViewType.GRID;
+            else if (id == R.id.view_list) viewType = ViewType.LIST;
+            else return false;
+            Setting.putKeepViewType(viewType);
+            refreshStyle();
+            return true;
+        });
+        popup.show();
     }
 
     private void updateViewIcon() {
-        switch (Setting.getKeepViewType()) {
-            case ViewType.PORTRAIT:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_action_grid);
-                break;
-            case ViewType.LIST:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_site_list);
-                break;
-            default:
-                mBinding.viewToggle.setImageResource(R.drawable.ic_action_portrait);
-                break;
-        }
+        mBinding.viewToggle.setImageResource(R.drawable.ic_action_view);
     }
 
     private void refreshStyle() {
