@@ -31,6 +31,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
@@ -76,7 +77,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Headers;
@@ -195,7 +198,30 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private Result handle(Result result) {
-        for (Class type : result.getTypes()) if (result.getFilters().containsKey(type.getTypeId())) type.setFilters(result.getFilters().get(type.getTypeId()));
+        // 按 type_pid 区分顶级分类与子分类，子分类转为标准 filter 加入 filters 映射
+        Map<String, List<Class>> subs = new HashMap<>();
+        List<Class> tops = new ArrayList<>();
+        for (Class type : result.getTypes()) {
+            String pid = type.getTypePid();
+            if (pid.isEmpty() || "0".equals(pid)) tops.add(type);
+            else subs.computeIfAbsent(pid, k -> new ArrayList<>()).add(type);
+        }
+        for (Class top : tops) {
+            List<Class> children = subs.get(top.getTypeId());
+            if (children != null && !children.isEmpty()) {
+                List<Value> values = new ArrayList<>();
+                values.add(new Value("全部", top.getTypeId()));
+                for (Class c : children) values.add(new Value(c.getTypeName(), c.getTypeId()));
+                Filter cate = new Filter();
+                cate.setKey("cate");
+                cate.setName("分类");
+                cate.setValue(values);
+                result.getFilters().computeIfAbsent(top.getTypeId(), k -> new ArrayList<>()).add(0, cate);
+            }
+            List<Filter> filters = result.getFilters().get(top.getTypeId());
+            if (filters != null && !filters.isEmpty()) top.setFilters(filters);
+        }
+        result.setTypes(tops);
         List<String> categories = getSite().getCategories();
         if (categories.isEmpty()) return result;
         List<Class> types = new ArrayList<>();

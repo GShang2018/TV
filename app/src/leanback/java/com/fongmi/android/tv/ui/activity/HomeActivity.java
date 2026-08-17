@@ -43,6 +43,7 @@ import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Style;
+import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.databinding.ActivityHomeBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.CastEvent;
@@ -78,6 +79,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -220,9 +222,38 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     public void setTypes(Result result) {
+        // 按 type_pid 区分顶级分类与子分类，子分类转为标准 filter 加入 filters 映射
+        Map<String, List<Class>> subs = new HashMap<>();
+        List<Class> tops = new ArrayList<>();
+        for (Class item : result.getTypes()) {
+            String pid = item.getTypePid();
+            if (pid.isEmpty() || "0".equals(pid)) tops.add(item);
+            else subs.computeIfAbsent(pid, k -> new ArrayList<>()).add(item);
+        }
+        result.setTypes(tops);
         result.setTypes(getTypes(result));
-        for (Map.Entry<String, List<Filter>> entry : result.getFilters().entrySet()) Prefers.put("filter_" + getKey() + "_" + entry.getKey(), App.gson().toJson(entry.getValue()));
-        for (Class item : result.getTypes()) item.setFilters(getFilter(item.getTypeId()));
+        // 将子分类转为标准 filter，加入 filters 映射
+        for (Class item : result.getTypes()) {
+            List<Class> children = subs.get(item.getTypeId());
+            if (children != null && !children.isEmpty()) {
+                List<Value> values = new ArrayList<>();
+                values.add(new Value("全部", item.getTypeId()));
+                for (Class c : children) values.add(new Value(c.getTypeName(), c.getTypeId()));
+                Filter cate = new Filter();
+                cate.setKey("cate");
+                cate.setName("分类");
+                cate.setValue(values);
+                result.getFilters().computeIfAbsent(item.getTypeId(), k -> new ArrayList<>()).add(0, cate);
+            }
+        }
+        // 持久化所有 filters（含子分类筛选）
+        for (Map.Entry<String, List<Filter>> entry : result.getFilters().entrySet())
+            Prefers.put("filter_" + getKey() + "_" + entry.getKey(), App.gson().toJson(entry.getValue()));
+        // 设置 Class 对象的 filters
+        for (Class item : result.getTypes()) {
+            List<Filter> filters = new ArrayList<>(getFilter(item.getTypeId()));
+            if (!filters.isEmpty()) item.setFilters(filters);
+        }
         if (mAdapter.size() > 1) mAdapter.removeItems(1, mAdapter.size() - 1);
         if (result.getTypes().size() > 0) mAdapter.addAll(1, result.getTypes());
         setPager();

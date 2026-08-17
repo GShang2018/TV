@@ -45,16 +45,32 @@ public class Filter implements Parcelable {
         return key;
     }
 
+    public void setKey(String key) {
+        this.key = key;
+    }
+
     public String getName() {
         return TextUtils.isEmpty(name) ? "" : name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getInit() {
         return init;
     }
 
+    public void setInit(String init) {
+        this.init = init;
+    }
+
     public List<Value> getValue() {
         return value == null ? Collections.emptyList() : value;
+    }
+
+    public void setValue(List<Value> value) {
+        this.value = value;
     }
 
     public String setActivated(String v) {

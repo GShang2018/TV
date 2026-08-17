@@ -171,7 +171,8 @@ public class Result implements Parcelable {
     }
 
     public LinkedHashMap<String, List<Filter>> getFilters() {
-        return filters == null ? new LinkedHashMap<>() : filters;
+        if (filters == null) filters = new LinkedHashMap<>();
+        return filters;
     }
 
     public Url getUrl() {

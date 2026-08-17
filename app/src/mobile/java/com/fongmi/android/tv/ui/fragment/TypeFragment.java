@@ -155,6 +155,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void getVideo(String typeId, String page) {
+        if (mExtends.containsKey("cate")) typeId = mExtends.get("cate");
         if ("1".equals(page)) mAdapter.clear();
         if ("1".equals(page) && !mBinding.swipeLayout.isRefreshing()) mBinding.progressLayout.showProgress();
         if (isHome() && "1".equals(page)) setAdapter(getParent().getResult());

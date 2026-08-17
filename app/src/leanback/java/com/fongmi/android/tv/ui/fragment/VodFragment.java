@@ -180,6 +180,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     }
 
     private void getVideo(String typeId, String page) {
+        if (mExtends.containsKey("cate")) typeId = mExtends.get("cate");
         boolean first = "1".equals(page);
         if (first) mLast = null;
         if (first) showProgress();

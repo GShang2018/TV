@@ -25,6 +25,7 @@ import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Style;
+import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.databinding.ActivityVodBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
@@ -34,6 +35,7 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Prefers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -116,8 +118,35 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
 
     private void setTypes() {
         Result result = getResult();
+        // 按 type_pid 区分顶级分类与子分类，子分类转为标准 filter
+        Map<String, List<Class>> subs = new HashMap<>();
+        List<Class> tops = new ArrayList<>();
+        for (Class item : result.getTypes()) {
+            String pid = item.getTypePid();
+            if (pid.isEmpty() || "0".equals(pid)) tops.add(item);
+            else subs.computeIfAbsent(pid, k -> new ArrayList<>()).add(item);
+        }
+        result.setTypes(tops);
         result.setTypes(getTypes(result));
-        for (Class item : result.getTypes()) item.setFilters(getFilter(item.getTypeId()));
+        // 将子分类转为标准 filter，合并到已有 filters 并持久化
+        for (Class item : result.getTypes()) {
+            List<Filter> filters = new ArrayList<>(getFilter(item.getTypeId()));
+            List<Class> children = subs.get(item.getTypeId());
+            if (children != null && !children.isEmpty()) {
+                List<Value> values = new ArrayList<>();
+                values.add(new Value("全部", item.getTypeId()));
+                for (Class c : children) values.add(new Value(c.getTypeName(), c.getTypeId()));
+                Filter cate = new Filter();
+                cate.setKey("cate");
+                cate.setName("分类");
+                cate.setValue(values);
+                filters.add(0, cate);
+            }
+            if (!filters.isEmpty()) {
+                item.setFilters(filters);
+                Prefers.put("filter_" + getKey() + "_" + item.getTypeId(), App.gson().toJson(filters));
+            }
+        }
         mAdapter.setItems(result.getTypes(), null);
     }
 

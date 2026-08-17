@@ -28,6 +28,10 @@ public class Class implements Parcelable {
     @SerializedName(value = "type_name", alternate = "name")
     private String typeName;
 
+    @Attribute(name = "pid", required = false)
+    @SerializedName(value = "type_pid", alternate = "pid")
+    private String typePid;
+
     @SerializedName("type_flag")
     private String typeFlag;
 
@@ -67,6 +71,14 @@ public class Class implements Parcelable {
 
     public void setTypeName(String typeName) {
         this.typeName = typeName;
+    }
+
+    public String getTypePid() {
+        return TextUtils.isEmpty(typePid) ? "" : typePid;
+    }
+
+    public void setTypePid(String typePid) {
+        this.typePid = typePid;
     }
 
     public String getTypeFlag() {
@@ -156,6 +168,7 @@ public class Class implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.typeId);
         dest.writeString(this.typeName);
+        dest.writeString(this.typePid);
         dest.writeString(this.typeFlag);
         dest.writeList(this.filters);
         dest.writeValue(this.filter);
@@ -168,6 +181,7 @@ public class Class implements Parcelable {
     protected Class(Parcel in) {
         this.typeId = in.readString();
         this.typeName = in.readString();
+        this.typePid = in.readString();
         this.typeFlag = in.readString();
         this.filters = new ArrayList<>();
         in.readList(this.filters, Filter.class.getClassLoader());
