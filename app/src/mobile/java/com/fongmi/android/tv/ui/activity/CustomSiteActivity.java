@@ -238,7 +238,8 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
             Notify.show(R.string.custom_site_import_empty);
             return;
         }
-        ensurePermission(() -> doImport(clipText.toString()));
+        String text = clipText.toString();
+        ensurePermission(() -> doImport(text));
     }
 
     private void importFromUrl() {
