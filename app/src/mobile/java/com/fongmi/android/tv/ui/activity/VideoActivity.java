@@ -811,7 +811,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setPosterOutline() {
         mBinding.poster.setClipToOutline(true);
-        mBinding.poster.setElevation(ResUtil.dp2px(8));
+        mBinding.poster.setElevation(ResUtil.dp2px(10));
         mBinding.poster.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {

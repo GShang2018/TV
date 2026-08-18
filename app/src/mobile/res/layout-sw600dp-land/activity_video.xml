@@ -135,8 +135,170 @@
                                 android:id="@+id/playTab"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
                                 android:orientation="vertical"
                                 android:visibility="visible">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:clipChildren="false"
+                                    android:clipToPadding="false"
+                                    android:gravity="top"
+                                    android:orientation="horizontal"
+                                    android:paddingStart="16dp"
+                                    android:paddingTop="8dp"
+                                    android:paddingEnd="16dp"
+                                    android:paddingBottom="4dp">
+
+                                    <FrameLayout
+                                        android:layout_width="120dp"
+                                        android:layout_height="156dp"
+                                        android:clipChildren="false"
+                                        android:clipToPadding="false"
+                                        android:padding="6dp">
+
+                                        <ImageView
+                                            android:id="@+id/poster"
+                                            android:layout_width="108dp"
+                                            android:layout_height="144dp"
+                                            android:clickable="true"
+                                            android:focusable="true"
+                                            android:scaleType="centerCrop"
+                                            android:contentDescription="@string/detail_poster"
+                                            tools:ignore="ContentDescription" />
+                                    </FrameLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="16dp"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:id="@+id/name"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:ellipsize="end"
+                                            android:maxLines="2"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="18sp"
+                                            android:textStyle="bold"
+                                            tools:text="慶餘年第二季" />
+
+                                        <TextView
+                                            android:id="@+id/remark"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="更新到第二季" />
+
+                                        <LinearLayout
+                                            android:id="@+id/scoreLayout"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:gravity="center_vertical"
+                                            android:orientation="horizontal"
+                                            android:visibility="gone"
+                                            tools:visibility="visible">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/detail_score"
+                                                android:textColor="?attr/colorOnSurface"
+                                                android:textSize="13sp" />
+
+                                            <RatingBar
+                                                android:id="@+id/scoreStars"
+                                                style="?android:attr/ratingBarStyleSmall"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:isIndicator="true"
+                                                android:numStars="5"
+                                                android:stepSize="0.1" />
+
+                                            <TextView
+                                                android:id="@+id/otherScore"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginStart="4dp"
+                                                android:textColor="?attr/colorOnSurface"
+                                                android:textSize="13sp"
+                                                tools:text="9.5" />
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:id="@+id/otherYear"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="年份：2022" />
+
+                                        <TextView
+                                            android:id="@+id/otherPubdate"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="上映时间：2022-01-01" />
+
+                                        <TextView
+                                            android:id="@+id/otherArea"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="地区：台湾" />
+
+                                        <TextView
+                                            android:id="@+id/otherSeries"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="系列：漫威" />
+
+                                        <TextView
+                                            android:id="@+id/otherType"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="类型：科幻" />
+
+                                        <TextView
+                                            android:id="@+id/otherTv"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="发行商：Netflix" />
+
+                                        <TextView
+                                            android:id="@+id/otherDuration"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="4dp"
+                                            android:textColor="?attr/colorOnSurface"
+                                            android:textSize="13sp"
+                                            tools:text="片长：120分钟" />
+
+                                    </LinearLayout>
+                                </LinearLayout>
 
                             <LinearLayout
                                 android:id="@+id/actionBar"
@@ -434,161 +596,6 @@
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
                                 android:visibility="gone">
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:clipChildren="false"
-                                    android:gravity="top"
-                                    android:orientation="horizontal"
-                                    android:paddingStart="16dp"
-                                    android:paddingTop="16dp"
-                                    android:paddingEnd="16dp">
-
-                                    <FrameLayout
-                                        android:layout_width="108dp"
-                                        android:layout_height="144dp">
-
-                                        <ImageView
-                                            android:id="@+id/poster"
-                                            android:layout_width="108dp"
-                                            android:layout_height="144dp"
-                                            android:clickable="true"
-                                            android:focusable="true"
-                                            android:scaleType="centerCrop"
-                                            android:contentDescription="@string/detail_poster"
-                                            tools:ignore="ContentDescription" />
-                                    </FrameLayout>
-
-                                    <LinearLayout
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginStart="16dp"
-                                        android:layout_weight="1"
-                                        android:orientation="vertical">
-
-                                        <TextView
-                                            android:id="@+id/name"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:ellipsize="end"
-                                            android:maxLines="2"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="18sp"
-                                            android:textStyle="bold"
-                                            tools:text="慶餘年第二季" />
-
-                                        <TextView
-                                            android:id="@+id/remark"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="更新到第二季" />
-
-                                        <LinearLayout
-                                            android:id="@+id/scoreLayout"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:gravity="center_vertical"
-                                            android:orientation="horizontal"
-                                            android:visibility="gone"
-                                            tools:visibility="visible">
-
-                                            <TextView
-                                                android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:text="@string/detail_score"
-                                                android:textColor="?attr/colorOnSurface"
-                                                android:textSize="13sp" />
-
-                                            <RatingBar
-                                                android:id="@+id/scoreStars"
-                                                style="?android:attr/ratingBarStyleSmall"
-                                                android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:isIndicator="true"
-                                                android:numStars="5"
-                                                android:stepSize="0.1" />
-
-                                            <TextView
-                                                android:id="@+id/otherScore"
-                                                android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:layout_marginStart="4dp"
-                                                android:textColor="?attr/colorOnSurface"
-                                                android:textSize="13sp"
-                                                tools:text="9.5" />
-
-                                        </LinearLayout>
-
-                                        <TextView
-                                            android:id="@+id/otherYear"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="年份：2022" />
-
-                                        <TextView
-                                            android:id="@+id/otherPubdate"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="上映时间：2022-01-01" />
-
-                                        <TextView
-                                            android:id="@+id/otherArea"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="地区：台湾" />
-
-                                        <TextView
-                                            android:id="@+id/otherSeries"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="系列：漫威" />
-
-                                        <TextView
-                                            android:id="@+id/otherType"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="类型：科幻" />
-
-                                        <TextView
-                                            android:id="@+id/otherTv"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="发行商：Netflix" />
-
-                                        <TextView
-                                            android:id="@+id/otherDuration"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_marginTop="4dp"
-                                            android:textColor="?attr/colorOnSurface"
-                                            android:textSize="13sp"
-                                            tools:text="片长：120分钟" />
-
-                                    </LinearLayout>
-                                </LinearLayout>
 
                                 <LinearLayout
                                     android:id="@+id/content_layout"
