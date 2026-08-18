@@ -72,9 +72,10 @@ public class CustomSiteDialog {
     }
 
     private void initDialog() {
-        dialog = new MaterialAlertDialogBuilder(binding.getRoot().getContext()).setTitle(custom == null ? R.string.setting_custom_vod : R.string.setting_edit_custom_site).setView(binding.getRoot()).setPositiveButton(R.string.dialog_positive, this::onPositive).setNegativeButton(R.string.dialog_negative, null).create();
+        dialog = new MaterialAlertDialogBuilder(binding.getRoot().getContext()).setTitle(custom == null ? R.string.setting_custom_vod : R.string.setting_edit_custom_site).setView(binding.getRoot()).setPositiveButton(R.string.dialog_positive, null).setNegativeButton(R.string.dialog_negative, null).create();
         dialog.getWindow().setDimAmount(0);
         dialog.show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> onPositive());
     }
 
     private void initEvent() {
@@ -84,7 +85,7 @@ public class CustomSiteDialog {
         });
     }
 
-    private void onPositive(DialogInterface dialog, int which) {
+    private void onPositive() {
         String name = binding.name.getText().toString().trim();
         String api = binding.api.getText().toString().trim();
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(api)) {

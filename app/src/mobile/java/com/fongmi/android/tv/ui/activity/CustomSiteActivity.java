@@ -214,7 +214,12 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     }
 
     private void importFromClipboard() {
-        CharSequence clipText = Util.getClipText();
+        android.content.ClipboardManager manager = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+        android.content.ClipData clipData = manager == null ? null : manager.getPrimaryClip();
+        CharSequence clipText = "";
+        if (clipData != null && clipData.getItemCount() > 0) {
+            clipText = clipData.getItemAt(0).coerceToText(this);
+        }
         if (TextUtils.isEmpty(clipText)) {
             Notify.show(R.string.custom_site_import_empty);
             return;

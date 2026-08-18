@@ -1,13 +1,20 @@
 package com.fongmi.android.tv.ui.adapter;
 
+import android.graphics.Color;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Depot;
@@ -79,6 +86,11 @@ public class LineSelectAdapter extends RecyclerView.Adapter<LineSelectAdapter.Vi
     private void showMoreMenu(ViewHolder holder, Depot item) {
         PopupMenu popup = new PopupMenu(holder.itemView.getContext(), holder.binding.more);
         popup.inflate(R.menu.menu_subscribe_item);
+        forceShowIcons(popup);
+        MenuItem deleteItem = popup.getMenu().findItem(R.id.action_delete);
+        SpannableString redText = new SpannableString(deleteItem.getTitle());
+        redText.setSpan(new ForegroundColorSpan(Color.parseColor("#C0392B")), 0, redText.length(), 0);
+        deleteItem.setTitle(redText);
         popup.setOnMenuItemClickListener(menuItem -> {
             int id = menuItem.getItemId();
             if (id == R.id.action_edit) {
@@ -94,6 +106,18 @@ public class LineSelectAdapter extends RecyclerView.Adapter<LineSelectAdapter.Vi
             return false;
         });
         popup.show();
+    }
+
+    private void forceShowIcons(PopupMenu popup) {
+        try {
+            Field field = popup.getClass().getDeclaredField("mPopup");
+            field.setAccessible(true);
+            Object menuPopupHelper = field.get(popup);
+            Method setForceShowIcon = menuPopupHelper.getClass().getMethod("setForceShowIcon", boolean.class);
+            setForceShowIcon.invoke(menuPopupHelper, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
