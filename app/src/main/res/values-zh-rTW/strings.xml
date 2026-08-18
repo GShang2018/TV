@@ -217,6 +217,7 @@
     <string name="crash_details">錯誤訊息</string>
     <string name="crash_details_title">錯誤訊息</string>
     <string name="crash_details_close">關閉</string>
+    <string name="crash_details_copy">複製</string>
 
     <!-- Hint -->
     <string name="copied">已複製</string>

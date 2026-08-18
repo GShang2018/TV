@@ -162,6 +162,9 @@
     <string name="detail_source">播放源</string>
     <string name="detail_cast">投屏</string>
     <string name="detail_info">信息</string>
+    <string name="detail_details">详情</string>
+    <string name="tab_play">播放</string>
+    <string name="tab_detail">详情</string>
     <string name="detail_share">分享</string>
     <string name="detail_keep">收藏</string>
     <string name="detail_setting">设置</string>

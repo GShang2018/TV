@@ -163,6 +163,9 @@
     <string name="detail_source">Play Source</string>
     <string name="detail_cast">Cast</string>
     <string name="detail_info">Info</string>
+    <string name="detail_details">Details</string>
+    <string name="tab_play">Play</string>
+    <string name="tab_detail">Details</string>
     <string name="detail_share">Share</string>
     <string name="detail_keep">Keep</string>
     <string name="detail_setting">Setting</string>

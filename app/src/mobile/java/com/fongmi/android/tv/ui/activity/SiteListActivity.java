@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -33,6 +34,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
+import com.permissionx.guolindev.PermissionX;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Prefers;
@@ -259,13 +261,25 @@ public class SiteListActivity extends BaseActivity implements SiteListAdapter.On
             }).show();
     }
 
+    private void ensurePermission(Runnable action) {
+        if (!PermissionX.isGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .request((allGranted, grantedList, deniedList) -> {
+                    if (allGranted) action.run();
+                    else Notify.show(R.string.custom_site_import_fail);
+                });
+        } else {
+            action.run();
+        }
+    }
+
     private void importFromClipboard() {
         CharSequence clipText = Util.getClipText();
         if (TextUtils.isEmpty(clipText)) {
             Notify.show(R.string.custom_site_import_empty);
             return;
         }
-        doImport(clipText.toString());
+        ensurePermission(() -> doImport(clipText.toString()));
     }
 
     private void importFromUrl() {
@@ -278,13 +292,13 @@ public class SiteListActivity extends BaseActivity implements SiteListAdapter.On
             .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
                 String url = binding.text.getText().toString().trim();
                 if (TextUtils.isEmpty(url)) return;
-                App.execute(() -> {
+                ensurePermission(() -> App.execute(() -> {
                     String content = OkHttp.string(url);
                     App.post(() -> {
                         if (TextUtils.isEmpty(content)) Notify.show(R.string.custom_site_import_fail);
                         else doImport(content);
                     });
-                });
+                }));
             }).show();
     }
 

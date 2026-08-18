@@ -27,6 +27,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -97,8 +98,8 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
 import com.fongmi.android.tv.ui.adapter.GalleryAdapter;
-import com.fongmi.android.tv.ui.adapter.PersonAdapter;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
+import com.fongmi.android.tv.ui.adapter.PersonAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -133,6 +134,7 @@ import com.github.bassaer.library.MDColor;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.tabs.TabLayout;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -178,6 +180,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private GalleryAdapter mGalleryAdapter;
     private PersonAdapter mDirectorAdapter;
     private PersonAdapter mActorAdapter;
+    private Vod mVod;
+    private GestureDetector mGestureDetector;
     private List<Dialog> mDialogs;
     private List<String> mBroken;
     private History mHistory;
@@ -372,26 +376,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return 0;
     }
 
-    private void setPosterOutline() {
-        // 利用 Android 原生阴影机制：elevation + ViewOutlineProvider。
-        // 系统根据 outline 自动绘制柔和的弥散阴影，无需手动叠加渐变或半透明 View。
-        // setClipToOutline(true) 仅将海报内容裁剪为圆角，不影响阴影绘制。
-        mBinding.poster.setClipToOutline(true);
-        mBinding.poster.setElevation(ResUtil.dp2px(8));
-        mBinding.poster.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
-                int radius = ResUtil.dp2px(8);
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
-            }
-        });
-        // API 28+ 可自定义阴影颜色，加深阴影（默认阴影偏浅）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            mBinding.poster.setOutlineAmbientShadowColor(Color.BLACK);
-            mBinding.poster.setOutlineSpotShadowColor(Color.BLACK);
-        }
-    }
-
     @Override
     protected void initView(Bundle savedInstanceState) {
         // 旋转重建后，恢复销毁前同步保存的播放位置（onTimeChanged 落库是异步的，销毁瞬间可能尚未写入）
@@ -401,7 +385,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mFrameParams = mBinding.video.getLayoutParams();
         getWindow().setStatusBarColor(Color.BLACK);
         mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
-        setPosterOutline();
         if (isPort()) {
             mBinding.video.post(() -> {
                 int width = mBinding.video.getWidth();
@@ -449,6 +432,40 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.poster.setOnClickListener(view -> showPoster());
+        mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                boolean isPlay = tab.getPosition() == 0;
+                mBinding.playTab.setVisibility(isPlay ? View.VISIBLE : View.GONE);
+                mBinding.detailTab.setVisibility(isPlay ? View.GONE : View.VISIBLE);
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+        mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffX = e2.getX() - e1.getX();
+                float diffY = e2.getY() - e1.getY();
+                if (Math.abs(diffX) > Math.abs(diffY) * 2 && Math.abs(diffX) > 120) {
+                    int pos = mBinding.tabLayout.getSelectedTabPosition();
+                    if (diffX < 0 && pos == 0) {
+                        mBinding.tabLayout.getTabAt(1).select();
+                    } else if (diffX > 0 && pos == 1) {
+                        mBinding.tabLayout.getTabAt(0).select();
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+        mBinding.scroll.setOnTouchListener((v, event) -> {
+            mGestureDetector.onTouchEvent(event);
+            return false;
+        });
         mBinding.more.setOnClickListener(view -> onMore());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.download.setOnClickListener(view -> onDownload());
@@ -513,17 +530,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.gallery.setHasFixedSize(true);
         mBinding.gallery.setItemAnimator(null);
         mBinding.gallery.addItemDecoration(new SpaceItemDecoration(8));
-        mBinding.gallery.setAdapter(mGalleryAdapter = new GalleryAdapter(position -> openGallery(mGalleryAdapter.getItems(), position)));
+        mBinding.gallery.setAdapter(mGalleryAdapter = new GalleryAdapter(position -> GalleryActivity.start(this, new ArrayList<>(mGalleryAdapter.getItems()), position)));
         mBinding.directorList.setHasFixedSize(true);
         mBinding.directorList.setItemAnimator(null);
-        mBinding.directorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mBinding.directorList.addItemDecoration(new SpaceItemDecoration(8));
-        mBinding.directorList.setAdapter(mDirectorAdapter = new PersonAdapter(result -> FolderActivity.start(getActivity(), getKey(), result)));
+        mBinding.directorList.setAdapter(mDirectorAdapter = new PersonAdapter(result -> FolderActivity.start(this, getKey(), result)));
         mBinding.actorList.setHasFixedSize(true);
         mBinding.actorList.setItemAnimator(null);
-        mBinding.actorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mBinding.actorList.addItemDecoration(new SpaceItemDecoration(8));
-        mBinding.actorList.setAdapter(mActorAdapter = new PersonAdapter(result -> FolderActivity.start(getActivity(), getKey(), result)));
+        mBinding.actorList.setAdapter(mActorAdapter = new PersonAdapter(result -> FolderActivity.start(this, getKey(), result)));
         mBinding.control.parse.setHasFixedSize(true);
         mBinding.control.parse.setItemAnimator(null);
         mBinding.control.parse.addItemDecoration(new SpaceItemDecoration(8));
@@ -687,21 +702,23 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setDetail(Vod item) {
         mBinding.progressLayout.showContent();
+        mVod = item;
         if (isFromDownload()) item.setVodName("");
         if (isFromDownload()) item.setVodPic("");
         mBinding.video.setTag(item.getVodPic(getPic()));
+        ImgUtil.loadPoster("", item.getVodPic(getPic()), mBinding.poster);
         mBinding.name.setText(item.getVodName(getName()));
         Downloader.get().image(item.getVodPic());
-        setPoster(item.getVodPic());
         setText(mBinding.remark, 0, item.getVodRemarks());
         mBinding.currentSite.setText(getSite().getName());
         setText(mBinding.content, 0, Html.fromHtml(removeImg(item.getVodContent())));
-        setPersons(item);
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(item);
-        setArtwork(item.getVodPic());
+        setPosterOutline();
+        setPersons(item);
         setGallery(item);
+        setArtwork(item.getVodPic());
         App.removeCallbacks(mR4);
         checkHistory(item);
         checkFlag(item);
@@ -731,42 +748,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private String removeImg(String text) {
         if (TextUtils.isEmpty(text)) return text;
         return text.replaceAll("(?i)<img[^>]*>", "");
-    }
-
-    private void setPersons(Vod item) {
-        List<PersonAdapter.Person> directors = parsePersons(item.getVodDirector());
-        List<PersonAdapter.Person> actors = parsePersons(item.getVodActor());
-        if (directors.isEmpty()) {
-            mBinding.directorLayout.setVisibility(View.GONE);
-        } else {
-            mDirectorAdapter.setItems(directors);
-            mBinding.directorLayout.setVisibility(View.VISIBLE);
-        }
-        if (actors.isEmpty()) {
-            mBinding.actorLayout.setVisibility(View.GONE);
-        } else {
-            mActorAdapter.setItems(actors);
-            mBinding.actorLayout.setVisibility(View.VISIBLE);
-        }
-    }
-
-    private List<PersonAdapter.Person> parsePersons(String text) {
-        List<PersonAdapter.Person> persons = new ArrayList<>();
-        if (TextUtils.isEmpty(text)) return persons;
-        text = removeImg(text);
-        Map<String, Result> linkMap = new HashMap<>();
-        Matcher m = Sniffer.CLICKER.matcher(text);
-        while (m.find()) {
-            String name = m.group(2).trim();
-            linkMap.put(name, Result.type(m.group(1)));
-            text = text.replace(m.group(), name);
-        }
-        for (String name : text.split("[,，、/\\\\\\s]+")) {
-            name = name.trim();
-            if (TextUtils.isEmpty(name)) continue;
-            persons.add(new PersonAdapter.Person(name, linkMap.get(name)));
-        }
-        return persons;
     }
 
     private SpannableStringBuilder getSpan(int resId, CharSequence text) {
@@ -828,6 +809,54 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         }
     }
 
+    private void setPosterOutline() {
+        mBinding.poster.setClipToOutline(true);
+        mBinding.poster.setElevation(ResUtil.dp2px(8));
+        mBinding.poster.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int radius = ResUtil.dp2px(8);
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+            }
+        });
+    }
+
+    private void setPersons(Vod item) {
+        List<PersonAdapter.Person> directors = parsePersons(item.getVodDirector());
+        List<PersonAdapter.Person> actors = parsePersons(item.getVodActor());
+        if (directors.isEmpty()) {
+            mBinding.directorLayout.setVisibility(View.GONE);
+        } else {
+            mDirectorAdapter.setItems(directors);
+            mBinding.directorLayout.setVisibility(View.VISIBLE);
+        }
+        if (actors.isEmpty()) {
+            mBinding.actorLayout.setVisibility(View.GONE);
+        } else {
+            mActorAdapter.setItems(actors);
+            mBinding.actorLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private List<PersonAdapter.Person> parsePersons(String text) {
+        List<PersonAdapter.Person> persons = new ArrayList<>();
+        if (TextUtils.isEmpty(text)) return persons;
+        text = removeImg(text);
+        Map<String, Result> linkMap = new HashMap<>();
+        Matcher m = Sniffer.CLICKER.matcher(text);
+        while (m.find()) {
+            String name = m.group(2).trim();
+            linkMap.put(name, Result.type(m.group(1)));
+            text = text.replace(m.group(), name);
+        }
+        for (String name : text.split("[,，、/\\\\\\s]+")) {
+            name = name.trim();
+            if (TextUtils.isEmpty(name)) continue;
+            persons.add(new PersonAdapter.Person(name, linkMap.get(name)));
+        }
+        return persons;
+    }
+
     private void setGallery(Vod item) {
         List<String> items = item.getGallery();
         if (items.isEmpty()) {
@@ -842,19 +871,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         }
     }
 
-    private void openGallery(List<String> items, int position) {
-        GalleryActivity.start(this, new ArrayList<>(items), position);
-    }
-
-    private void setPoster(String url) {
-        ImgUtil.loadPoster("", url, mBinding.poster);
-    }
-
     private void showPoster() {
-        String url = Objects.toString(mBinding.video.getTag(), "");
-        if (!TextUtils.isEmpty(url)) {
+        String posterUrl = Objects.toString(mBinding.video.getTag(), "");
+        if (!TextUtils.isEmpty(posterUrl)) {
             ArrayList<String> urls = new ArrayList<>();
-            urls.add(url);
+            urls.add(posterUrl);
             GalleryActivity.start(this, urls, 0, mBinding.name.getText().toString());
         }
     }

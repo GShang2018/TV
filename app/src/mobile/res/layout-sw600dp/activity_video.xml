@@ -72,329 +72,68 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/scroll"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:fillViewport="true">
+                android:orientation="vertical">
 
-                <LinearLayout
+                <!-- TabLayout -->
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@null"
+                    app:tabBackground="@null"
+                    app:tabGravity="fill"
+                    app:tabIndicatorColor="@android:color/white"
+                    app:tabMode="fixed"
+                    app:tabRippleColor="@null"
+                    app:tabSelectedTextColor="@android:color/white"
+                    app:tabTextColor="#80FFFFFF">
+
+                    <com.google.android.material.tabs.TabItem
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tab_play" />
+
+                    <com.google.android.material.tabs.TabItem
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tab_detail" />
+
+                </com.google.android.material.tabs.TabLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="#33FFFFFF" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scroll"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:clipChildren="false"
                     android:clipToPadding="false"
-                    android:orientation="vertical"
-                    android:paddingTop="16dp"
-                    android:paddingBottom="8dp">
+                    android:fillViewport="true">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:clipChildren="false"
                         android:clipToPadding="false"
-                        android:gravity="top"
-                        android:orientation="horizontal"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp">
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
 
-                        <!-- 海报容器：海报自身通过 elevation + ViewOutlineProvider 产生原生柔和阴影 -->
-                        <FrameLayout
-                            android:layout_width="120dp"
-                            android:layout_height="160dp">
-
-                            <ImageView
-                                android:id="@+id/poster"
-                                android:layout_width="120dp"
-                                android:layout_height="160dp"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:scaleType="centerCrop"
-                                android:contentDescription="@string/detail_poster"
-                                tools:ignore="ContentDescription" />
-                        </FrameLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/name"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:ellipsize="end"
-                                android:maxLines="2"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                tools:text="慶餘年第二季" />
-
-                            <TextView
-                                android:id="@+id/remark"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="更新到第二季" />
-
-                            <LinearLayout
-                                android:id="@+id/scoreLayout"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:visibility="gone"
-                                tools:visibility="visible">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/detail_score"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="13sp" />
-
-                                <RatingBar
-                                    android:id="@+id/scoreStars"
-                                    style="?android:attr/ratingBarStyleSmall"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:isIndicator="true"
-                                    android:numStars="5"
-                                    android:stepSize="0.1" />
-
-                                <TextView
-                                    android:id="@+id/otherScore"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="4dp"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="13sp"
-                                    tools:text="9.5" />
-
-                            </LinearLayout>
-
-                            <TextView
-                                android:id="@+id/otherYear"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="年份：2022" />
-
-                            <TextView
-                                android:id="@+id/otherPubdate"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="上映时间：2022-01-01" />
-
-                            <TextView
-                                android:id="@+id/otherArea"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="地区：台湾" />
-
-                            <TextView
-                                android:id="@+id/otherSeries"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="系列：漫威" />
-
-                            <TextView
-                                android:id="@+id/otherType"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="类型：科幻" />
-
-                            <TextView
-                                android:id="@+id/otherTv"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="发行商：Netflix" />
-
-                            <TextView
-                                android:id="@+id/otherDuration"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="13sp"
-                                tools:text="片长：120分钟" />
-
-                        </LinearLayout>
-                    </LinearLayout>
-
+                    <!-- 播放 Tab -->
                     <LinearLayout
-                        android:id="@+id/content_layout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="@string/detail_content"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/content"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:layout_marginBottom="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="13sp"
-                            tools:text="一個身世神秘的少年范閒（張若昀飾），因對自身身世的好奇而離開故鄉澹州，前赴南慶京都。范閒在京中各大勢力之間遊走，以探查自己屢遭刺殺的原因。其間結識靖王世子、二皇子，與太子、長公主等人對抗，並遊歷四方、闖蕩江湖，卻意外發現這世界隱藏著的秘密。" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/director_layout"
+                        android:id="@+id/playTab"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="@string/detail_director_title"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/director_list"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:clipChildren="false"
-                            android:nestedScrollingEnabled="false"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="12dp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/actor_layout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="@string/detail_actor_title"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/actor_list"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:clipChildren="false"
-                            android:nestedScrollingEnabled="false"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="12dp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/gallery_layout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        tools:visibility="visible">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:paddingStart="16dp"
-                            android:paddingEnd="12dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/detail_gallery"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                            <TextView
-                                android:id="@+id/gallery_all"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="14sp"
-                                android:visibility="gone"
-                                app:drawableEndCompat="@drawable/ic_detail_more"
-                                app:drawableTint="?attr/colorOnSurface"
-                                tools:text="全部 12"
-                                tools:visibility="visible" />
-
-                        </LinearLayout>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/gallery"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="16dp"
-                            android:clipChildren="false"
-                            android:clipToPadding="false"
-                            android:nestedScrollingEnabled="false"
-                            android:orientation="horizontal"
-                            android:paddingStart="16dp"
-                            android:paddingEnd="16dp"
-                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                            tools:visibility="visible" />
-
-                    </LinearLayout>
+                        android:visibility="visible">
 
                     <LinearLayout
                         android:id="@+id/actionBar"
@@ -683,8 +422,339 @@
                         android:paddingEnd="16dp"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
+                    </LinearLayout>
+
+                    <!-- 详情 Tab -->
+                    <LinearLayout
+                        android:id="@+id/detailTab"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clipChildren="false"
+                            android:gravity="top"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingTop="16dp"
+                            android:paddingEnd="16dp">
+
+                            <FrameLayout
+                                android:layout_width="108dp"
+                                android:layout_height="144dp">
+
+                                <ImageView
+                                    android:id="@+id/poster"
+                                    android:layout_width="108dp"
+                                    android:layout_height="144dp"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:scaleType="centerCrop"
+                                    android:contentDescription="@string/detail_poster"
+                                    tools:ignore="ContentDescription" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/name"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:ellipsize="end"
+                                    android:maxLines="2"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold"
+                                    tools:text="慶餘年第二季" />
+
+                                <TextView
+                                    android:id="@+id/remark"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="更新到第二季" />
+
+                                <LinearLayout
+                                    android:id="@+id/scoreLayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:visibility="gone"
+                                    tools:visibility="visible">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/detail_score"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="13sp" />
+
+                                    <RatingBar
+                                        android:id="@+id/scoreStars"
+                                        style="?android:attr/ratingBarStyleSmall"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:isIndicator="true"
+                                        android:numStars="5"
+                                        android:stepSize="0.1" />
+
+                                    <TextView
+                                        android:id="@+id/otherScore"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="4dp"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="13sp"
+                                        tools:text="9.5" />
+
+                                </LinearLayout>
+
+                                <TextView
+                                    android:id="@+id/otherYear"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="年份：2022" />
+
+                                <TextView
+                                    android:id="@+id/otherPubdate"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="上映时间：2022-01-01" />
+
+                                <TextView
+                                    android:id="@+id/otherArea"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="地区：台湾" />
+
+                                <TextView
+                                    android:id="@+id/otherSeries"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="系列：漫威" />
+
+                                <TextView
+                                    android:id="@+id/otherType"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="类型：科幻" />
+
+                                <TextView
+                                    android:id="@+id/otherTv"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="发行商：Netflix" />
+
+                                <TextView
+                                    android:id="@+id/otherDuration"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="13sp"
+                                    tools:text="片长：120分钟" />
+
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/content_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginEnd="16dp"
+                                android:text="@string/detail_content"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/content"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginEnd="16dp"
+                                android:layout_marginBottom="8dp"
+                                android:lineSpacingExtra="4dp"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="13sp"
+                                tools:text="Sample" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/director_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginEnd="16dp"
+                                android:text="@string/detail_director_title"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/director_list"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:nestedScrollingEnabled="false"
+                                android:orientation="horizontal"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/actor_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginEnd="16dp"
+                                android:text="@string/detail_actor_title"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/actor_list"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:layout_marginBottom="8dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:nestedScrollingEnabled="false"
+                                android:orientation="horizontal"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/gallery_layout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/detail_gallery"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1" />
+
+                                <TextView
+                                    android:id="@+id/gallery_all"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp"
+                                    android:visibility="gone"
+                                    app:drawableEndCompat="@drawable/ic_detail_more"
+                                    app:drawableTint="?attr/colorOnSurface"
+                                    tools:text="全部 12"
+                                    tools:visibility="visible" />
+
+                            </LinearLayout>
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/gallery"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginBottom="16dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:nestedScrollingEnabled="false"
+                                android:orientation="horizontal"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                tools:visibility="visible" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
+
+            </LinearLayout>
         </com.fongmi.android.tv.ui.custom.ProgressLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </RelativeLayout>
