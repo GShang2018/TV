@@ -1166,7 +1166,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onTrack(View view) {
-        TrackDialog.create().player(mPlayers).vod(true).type(Integer.parseInt(view.getTag().toString())).show(this);
+        TrackDialog.create().player(mPlayers).name(mHistory.getVodName()).vod(true).type(Integer.parseInt(view.getTag().toString())).show(this);
         hideControl();
     }
 

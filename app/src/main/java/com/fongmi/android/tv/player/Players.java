@@ -107,6 +107,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private boolean autoReady;
     private boolean wasProxy;
+    private boolean ijkPrepared;
     private ProxyLoadControl proxyLoadControl;
     private final Handler speedHandler = new Handler(Looper.getMainLooper());
     private long lastBufferLevelMs;
@@ -651,6 +652,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
+        ijkPrepared = false;
         if (isIjk() && ijkPlayer != null) {
             ijkPlayer.setCacheOptions(Setting.getCacheTime());
             ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
@@ -891,11 +893,18 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void onInfo(IMediaPlayer mp, int what, int extra) {
         switch (what) {
             case IMediaPlayer.MEDIA_INFO_BUFFERING_START:
-                PlayerEvent.state(Player.STATE_BUFFERING);
+                // 纯音频内容：IjkPlayer 可能不发 BUFFERING_END，导致加载图标永久显示
+                // onPrepared 之后若视频尺寸为 0，说明是纯音频，跳过 BUFFERING 状态
+                if (ijkPrepared && mp.getVideoWidth() == 0 && mp.getVideoHeight() == 0) {
+                    Logger.t(TAG).d("audio-only: skip BUFFERING_START");
+                } else {
+                    PlayerEvent.state(Player.STATE_BUFFERING);
+                }
                 break;
             case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
             case IMediaPlayer.MEDIA_INFO_VIDEO_SEEK_RENDERING_START:
             case IMediaPlayer.MEDIA_INFO_AUDIO_SEEK_RENDERING_START:
+            case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START:
                 PlayerEvent.state(Player.STATE_READY);
                 break;
         }
@@ -910,6 +919,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     @Override
     public void onPrepared(IMediaPlayer mp) {
+        ijkPrepared = true;
         PlayerEvent.state(Player.STATE_READY);
     }
 

@@ -445,9 +445,17 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     private void updateForCurrentTrackSelections() {
-        if (mPlayer == null || mPlayer.getTrackInfo().isEmpty()) return;
-        int select = getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO);
-        if (select >= 0) {
+        if (mPlayer == null) return;
+        boolean hasVideo = false;
+        if (!mPlayer.getTrackInfo().isEmpty()) {
+            int select = getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO);
+            hasVideo = select >= 0;
+        }
+        // 纯音频内容可能没有轨道信息，通过视频尺寸判断
+        if (!hasVideo && mVideoWidth > 0 && mVideoHeight > 0) {
+            hasVideo = true;
+        }
+        if (hasVideo) {
             mArtworkView.setVisibility(GONE);
             setRenderView(mCurrentRender);
         } else {
@@ -517,12 +525,12 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     public void onPrepared(IMediaPlayer mp) {
         setPreferredTextLanguage();
         mCurrentState = STATE_PREPARED;
+        mVideoWidth = mp.getVideoWidth();
+        mVideoHeight = mp.getVideoHeight();
         updateForCurrentTrackSelections();
         if (mCurrentSpeed > 0) setSpeed(mCurrentSpeed);
         if (mStartPosition > 0) seekTo(mStartPosition);
         mListener.onPrepared(mPlayer);
-        mVideoWidth = mp.getVideoWidth();
-        mVideoHeight = mp.getVideoHeight();
         if (mTargetState == STATE_PLAYING) start();
     }
 

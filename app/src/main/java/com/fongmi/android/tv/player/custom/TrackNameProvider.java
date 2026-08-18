@@ -35,7 +35,7 @@ public class TrackNameProvider {
         } else {
             trackName = joinWithSeparator(buildLanguageString(format), buildLabelString(format));
         }
-        return TextUtils.isEmpty(trackName) ? resources.getString(R.string.exo_track_unknown) : joinWithSeparator(trackName, buildFrameRateString(format.frameRate), buildMimeString(format));
+        return TextUtils.isEmpty(trackName) ? "" : joinWithSeparator(trackName, buildFrameRateString(format.frameRate), buildMimeString(format));
     }
 
     public String getTrackName(ITrackInfo trackInfo) {
@@ -48,7 +48,7 @@ public class TrackNameProvider {
         } else {
             trackName = joinWithSeparator(buildLanguageString(trackInfo.getLanguage()));
         }
-        return TextUtils.isEmpty(trackName) ? resources.getString(R.string.exo_track_unknown) : joinWithSeparator(trackName, buildFrameRateString(trackInfo.getFps()), buildMimeString(trackInfo.getMimeType()));
+        return TextUtils.isEmpty(trackName) ? "" : joinWithSeparator(trackName, buildFrameRateString(trackInfo.getFps()), buildMimeString(trackInfo.getMimeType()));
     }
 
     private String buildResolutionString(Format format) {

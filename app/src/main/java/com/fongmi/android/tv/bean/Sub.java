@@ -27,6 +27,16 @@ public class Sub {
     @SerializedName("flag")
     private int flag;
 
+    public static Sub create(String url, String name, String lang) {
+        Sub sub = new Sub();
+        sub.url = url;
+        sub.name = name;
+        sub.lang = lang;
+        sub.flag = C.SELECTION_FLAG_FORCED;
+        sub.format = ExoUtil.getMimeType(name);
+        return sub;
+    }
+
     public static Sub from(String path) {
         if (path.startsWith("http")) {
             return http(path);

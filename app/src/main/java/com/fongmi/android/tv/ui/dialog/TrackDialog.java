@@ -40,6 +40,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     private Listener listener;
     private ChooserListener cListener;
     private Players player;
+    private String name;
     private boolean vod;
     private int type;
 
@@ -59,6 +60,11 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
 
     public TrackDialog player(Players player) {
         this.player = player;
+        return this;
+    }
+
+    public TrackDialog name(String name) {
+        this.name = name;
         return this;
     }
 
@@ -91,6 +97,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelected()));
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
         binding.choose.setVisibility(type == C.TRACK_TYPE_TEXT && player.isExo() && vod ? View.VISIBLE : View.GONE);
+        binding.search.setVisibility(type == C.TRACK_TYPE_TEXT && player.isExo() && vod ? View.VISIBLE : View.GONE);
         binding.subtitle.setVisibility(type == C.TRACK_TYPE_TEXT ? View.VISIBLE : View.GONE);
         binding.title.setText(ResUtil.getStringArray(R.array.select_track)[type - 1]);
     }
@@ -98,7 +105,16 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     @Override
     protected void initEvent() {
         binding.choose.setOnClickListener(this::showChooser);
+        binding.search.setOnClickListener(this::onSearch);
         binding.subtitle.setOnClickListener(this::onSubtitle);
+    }
+
+    private void onSearch(View view) {
+        player.pause();
+        FragmentActivity activity = requireActivity();
+        dismiss();
+        activity.getSupportFragmentManager().executePendingTransactions();
+        SubtitleSearchDialog.create().player(player).name(name).show(activity);
     }
 
     private void onSubtitle(View view) {
@@ -125,7 +141,9 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
             Tracks.Group trackGroup = groups.get(i);
             if (trackGroup.getType() != type) continue;
             for (int j = 0; j < trackGroup.length; j++) {
-                Track item = new Track(type, provider.getTrackName(trackGroup.getTrackFormat(j)));
+                String name = provider.getTrackName(trackGroup.getTrackFormat(j));
+                if (name.isEmpty()) continue;
+                Track item = new Track(type, name);
                 item.setAdaptive(trackGroup.isAdaptiveSupported());
                 item.setSelected(trackGroup.isTrackSelected(j));
                 item.setPlayer(player.getPlayer());
@@ -142,7 +160,9 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         for (int i = 0; i < trackInfos.size(); i++) {
             ITrackInfo trackInfo = trackInfos.get(i);
             if (trackInfo.getTrackType() != type) continue;
-            Track item = new Track(type, provider.getTrackName(trackInfo));
+            String name = provider.getTrackName(trackInfo);
+            if (name.isEmpty()) continue;
+            Track item = new Track(type, name);
             item.setPlayer(player.getPlayer());
             item.setSelected(track == i);
             item.setTrack(i);
