@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
+        android:elevation="6dp"
         android:background="@color/black_20"
         android:foreground="@drawable/shape_vod_oval"
         android:scaleType="center"

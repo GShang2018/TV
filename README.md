@@ -1,181 +1,147 @@
-# 影視
+# 開發者文件
 
-### 基於 CatVod 項目
+基於 [CatVod](https://github.com/CatVodTVOfficial/CatVodTVJarLoader) 的開源 Android 影音應用程式，同時支援 **Android TV 大螢幕**與**手機**兩種使用情境，並且透過外部配置靈活擴展內容。
 
-https://github.com/CatVodTVOfficial/CatVodTVJarLoader
+[討論群組](https://t.me/fongmi_official) | [發布頻道](https://t.me/fongmi_release)
 
-### 點播欄位
+[![Star History Chart](https://api.star-history.com/svg?repos=FongMi/TV&type=Date)](https://www.star-history.com/#FongMi/TV&Date)
 
-| 欄位名稱       | 預設值  | 說明   | 其他               |
-|------------|------|------|------------------|
-| searchable | 1    | 是否搜索 | 0：關閉；1：啟用        |
-| changeable | 1    | 是否換源 | 0：關閉；1：啟用        |
-| playerType | none | 播放器  | 0：系統；1：IJK；2：EXO |
-| timeout    | 15   | 播放超時 | 單位：秒             |
-| header     | none | 請求標頭 | 格式：json          |
-| click      | none | 點擊js | javascript       |
+---
 
-### 直播欄位
+## 目錄
 
-| 欄位名稱       | 預設值   | 說明    | 其他               |
-|------------|-------|-------|------------------|
-| ua         | none  | 用戶代理  |                  |
-| origin     | none  | 來源    |                  |
-| referer    | none  | 參照地址  |                  |
-| epg        | none  | 節目地址  | &serverTimeZone  |
-| logo       | none  | 台標地址  |                  |
-| pass       | false | 是否免密碼 |                  |
-| boot       | false | 是否自啟動 |                  |
-| playerType | none  | 播放器   | 0：系統；1：IJK；2：EXO |
-| timeout    | 15    | 播放超時  | 單位：秒             |
-| header     | none  | 請求標頭  | 格式：json          |
-| click      | none  | 點擊js  | javascript       |
-| catchup    | none  | 回看參數  |                  |
+- [專案架構](#專案架構)
+- [播放器](#播放器)
+- [點播功能](#點播功能)
+- [直播功能](#直播功能)
+- [爬蟲引擎](#爬蟲引擎)
+- [網路功能](#網路功能)
+- [DLNA 投放](#dlna-投放)
+- [Android Auto](#android-auto)
+- [遠端控制](#遠端控制)
+- [配置說明](#配置說明)
+- [延伸閱讀](#延伸閱讀)
 
-### 樣式
+---
 
-| 欄位名稱  | 值    | 說明  |
-|-------|------|-----|
-| type  | rect | 矩形  |
-|       | oval | 橢圓  |
-|       | list | 列表  |
-| ratio | 0.75 | 3：4 |
-|       | 1.33 | 4：3 |
+## 專案架構
 
-直式
-
-```json
-{
-  "style": {
-    "type": "rect"
-  }
-}
-```
-
-橫式
-
-```json
-{
-  "style": {
-    "type": "rect",
-    "ratio": 1.33
-  }
-}
-```
-
-正方
-
-```json
-{
-  "style": {
-    "type": "rect",
-    "ratio": 1
-  }
-}
-```
-
-正圓
-
-```json
-{
-  "style": {
-    "type": "oval"
-  }
-}
-```
-
-橢圓
-
-```json
-{
-  "style": {
-    "type": "oval",
-    "ratio": 1.1
-  }
-}
-```
-
-### API
-
-刷新詳情
+| 項目      | 值                             |
+|---------|-------------------------------|
+| package | `com.fongmi.android.tv`       |
+| minSdk  | 24（Android 7.0 Nougat）        |
+| abi     | `arm64-v8a`、`armeabi-v7a`     |
+| flavor  | `leanback`（電視版）、`mobile`（手機版） |
 
 ```
-http://127.0.0.1:9978/action?do=refresh&type=detail
-```  
-
-刷新播放
-
-```
-http://127.0.0.1:9978/action?do=refresh&type=player
-```  
-
-刷新直播
-
-```
-http://127.0.0.1:9978/action?do=refresh&type=live
+TV/
+├── app/            主應用程式（含兩套 UI Flavor）
+├── catvod/         爬蟲抽象層（Spider 介面、OkHttp 網路棧）
+├── quickjs/        QuickJS JavaScript 引擎
+├── chaquo/         Chaquopy Python 引擎
 ```
 
-推送字幕
+`app/src/main/` 為兩個版本共用的業務邏輯，`app/src/leanback/` 與 `app/src/mobile/` 各自實作對應 UI。
 
-```
-http://127.0.0.1:9978/action?do=refresh&type=subtitle&path=http://xxx
-```
+---
 
-推送彈幕
+## 播放器
 
-```
-http://127.0.0.1:9978/action?do=refresh&type=danmaku&path=http://xxx
-```
+- **核心**：ExoPlayer（Media3）+ FFmpeg 軟解，硬解 / 軟解自動降級切換
+- **渲染**：SurfaceView / TextureView
+- **DRM**：Widevine、PlayReady、ClearKey，支援 `#KODIPROP` 宣告
+- **彈幕**：DanmakuFlameMaster，與播放時間軸精確同步，支援遠端推送
+- **字幕**：SRT / SSA / ASS 外掛字幕、系統 CaptioningManager、遠端即時注入
+- **其他**：倍速、多縮放比例、畫中畫（PiP）、背景音訊、片頭 / 片尾自動跳過
 
-新增緩存字串
+---
 
-```
-http://127.0.0.1:9978/cache?do=set&key=xxx&value=xxx
-``` 
+## 點播功能
 
-取得緩存字串
+- 多站點分類瀏覽，Filter 篩選（年份 / 地區 / 類型等）
+- 多站點**並行搜尋**，關鍵字自動繁轉簡提升相容性
+- 播放失敗自動換源：解析器 → 線路 → 搜尋其他站 → 下一站點
+- 觀看記錄（保留 60 天）、收藏、無痕模式
+- 電視版使用遙控器操作；手機版支援手勢（亮度 / 音量 / 進度）、上下滑切集、螢幕旋轉與鎖定
 
-```
-http://127.0.0.1:9978/cache?do=get&key=xxx
-```   
+---
 
-刪除緩存字串
+## 直播功能
 
-```
-http://127.0.0.1:9978/cache?do=del&key=xxx
-```
+- 支援 M3U、TXT（`#genre#` 分組）、JSON 三種直播源格式
+- **EPG**：XMLTV 格式（支援 `.gz`），每 6 小時自動刷新
+- **追看 / 時移**：`append`、`pltv` 等多種類型
+- 頻道收藏、隱藏分組密碼保護
+- 特殊引擎：TVBus、ForceTech
 
-### Proxy
+---
 
-scheme 支持 http, https, socks4, socks5
+## 爬蟲引擎
 
-```
-scheme://username:password@host:port
-```
+支援三種語言撰寫爬蟲：
 
-配置 rules 新增 proxy 判斷 host 是否走代理
+- Java JAR（DexClassLoader）
+- JavaScript（QuickJS）
+- Python（Chaquopy）
 
-```json
-{
-  "name": "proxy",
-  "hosts": [
-    "api.nivodz.com"
-  ]
-}
-```
+透過 `api` 欄位指定爬蟲，`ext` 欄位傳入初始化參數。完整 API 規格見 [SPIDER.md](docs/SPIDER.md)。
 
-### 配置範例
+---
 
-[點播-線上](other/sample/vod/online.json)  
-[點播-本地](other/sample/vod/offline.json)  
-[直播-線上](other/sample/live/online.json)  
-[直播-本地](other/sample/live/offline.json)
+## 網路功能
 
-### 飛機群
+- **DoH**：DNS over HTTPS，支援 Bootstrap IP
+- **代理**：HTTP / HTTPS / SOCKS4 / SOCKS5，依 host 正則規則動態選擇
+- **Hosts**：DNS 解析覆蓋，支援萬用字元 `*`
+- **CORS 注入**：依 host 規則在回應中注入自訂標頭
+- **廣告攔截**：`ads` 黑名單，符合域名直接攔截
+- **WebView 嗅探**：Sniffer 以 regex 攔截媒體 URL；支援 UA 偽裝
 
-[討論群組](https://t.me/fongmi_offical)  
-[發布頻道](https://t.me/fongmi_release)
+---
 
-### 贊助
+## DLNA 投放
 
-![photo_2024-01-10_11-39-12](https://github.com/FongMi/TV/assets/3471963/fdc12771-386c-4d5d-9a4d-d0bec0276fa7)
+- **DMC（投放端）**：手機版，掃描區域網路 DLNA 設備並投放媒體
+- **DMR（被投放端）**：電視版，作為 DLNA Renderer 接收其他設備投放
+
+使用 JUPnP 3.0.4（UPnP），支援 play / pause / stop / seek / next / repeat 控制，可傳遞自訂 HTTP 標頭（User-Agent、Referer 等）至目標串流。
+
+---
+
+## Android Auto
+
+電視版支援 Android Auto，PlaybackService 實作 MediaLibraryService，可在車機上瀏覽播放記錄與直播頻道：
+
+- **點播**：歷史記錄條目可直接續播，恢復上次進度
+- **直播**：依分組瀏覽頻道，可直接選台
+- **播放控制**：支援車機端 play / pause / prev / next / stop
+- **懶加載**：App 退出後 Auto 仍保持連線，配置自動重新載入
+
+---
+
+## 遠端控制
+
+應用啟動後綁定本地 HTTP 伺服器（NanoHTTPD），埠號從 **9978** 起自動偵測至 **9998**，可用於播放控制、推送字幕 / 彈幕、多裝置同步等。完整端點說明見 [LOCAL.md](docs/LOCAL.md)。
+
+---
+
+## 配置說明
+
+Vod 配置為應用主要入口，透過 URL 或本地路徑載入，頂層欄位定義：
+
+- 點播站點（`sites`）、解析規則（`parses`）
+- 直播來源（`lives`）
+- 網路設定（`doh`、`proxy`、`hosts`、`ads`）
+
+Live 配置可內嵌或獨立存放。完整欄位說明見 [CONFIG.md](docs/CONFIG.md)。
+
+---
+
+## 延伸閱讀
+
+| 文件                          | 說明                   |
+|-----------------------------|----------------------|
+| [CONFIG.md](docs/CONFIG.md) | Vod / Live 完整配置欄位說明  |
+| [SPIDER.md](docs/SPIDER.md) | Spider 所有方法規格與回傳格式   |
+| [LOCAL.md](docs/LOCAL.md)   | 本地 HTTP API 所有端點完整說明 |
+| [LIVE.md](docs/LIVE.md)     | 直播來源格式完整說明           |
