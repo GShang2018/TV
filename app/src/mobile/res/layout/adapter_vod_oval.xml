@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:elevation="6dp"
-        android:background="@color/black_20"
+        android:background="@color/poster_bg"
         android:foreground="@drawable/shape_vod_oval"
         android:scaleType="center"
         app:shapeAppearanceOverlay="@style/Vod.Circle"
