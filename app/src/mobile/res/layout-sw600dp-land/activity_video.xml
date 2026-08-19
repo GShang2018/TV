@@ -163,6 +163,7 @@
                                             android:id="@+id/poster"
                                             android:layout_width="108dp"
                                             android:layout_height="144dp"
+                                            android:background="@color/poster_bg"
                                             android:clickable="true"
                                             android:focusable="true"
                                             android:scaleType="centerCrop"

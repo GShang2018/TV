@@ -228,8 +228,11 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     public void refreshStyle() {
         int position = findPosition();
         List<Vod> items = new ArrayList<>(mAdapter.getItems());
-        VodFragment parent = getParent();
-        setStyle(parent != null ? parent.getHomeViewStyle() : Style.rect());
+        Style style = getStyle();
+        if (Setting.getHomeViewType() == ViewType.CONFIG && !items.isEmpty()) {
+            style = items.get(0).getStyle(style);
+        }
+        setStyle(style);
         mAdapter.addAll(items);
         mBinding.recycler.scrollToPosition(position);
     }
