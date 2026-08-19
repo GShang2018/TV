@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.dialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,10 +34,21 @@ public abstract class BaseDialog extends BottomSheetDialogFragment {
     private View wrapWithDragHandle(View content) {
         LinearLayout wrapper = new LinearLayout(requireContext());
         wrapper.setOrientation(LinearLayout.VERTICAL);
+
         BottomSheetDragHandleView dragHandle = new BottomSheetDragHandleView(requireContext());
-        wrapper.addView(dragHandle, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        ViewGroup.LayoutParams params = content.getLayoutParams();
-        int height = params != null && params.height == ViewGroup.LayoutParams.MATCH_PARENT ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT;
+        // 设置固定高度（例如 16dp）
+        int heightPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+        LinearLayout.LayoutParams handleParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, heightPx);
+        // 移除默认内边距，进一步压缩视觉高度
+        dragHandle.setPadding(0, 0, 0, 0);
+        dragHandle.setMinimumHeight(0);
+        wrapper.addView(dragHandle, handleParams);
+
+        ViewGroup.LayoutParams contentParams = content.getLayoutParams();
+        int height = (contentParams != null && contentParams.height == ViewGroup.LayoutParams.MATCH_PARENT)
+                ? ViewGroup.LayoutParams.MATCH_PARENT
+                : ViewGroup.LayoutParams.WRAP_CONTENT;
         wrapper.addView(content, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height));
         return wrapper;
     }
