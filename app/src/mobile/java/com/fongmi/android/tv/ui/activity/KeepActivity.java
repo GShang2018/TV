@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.PopupMenu;
 
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -23,6 +22,7 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.KeepFolder;
 import com.fongmi.android.tv.ui.base.ViewType;
+import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.databinding.ActivityKeepBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -120,29 +120,11 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void toggleView(View view) {
-        PopupMenu popup = new PopupMenu(this, view);
-        popup.inflate(R.menu.menu_view_type_simple);
-        try {
-            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
-            field.setAccessible(true);
-            Object menuPopup = field.get(popup);
-            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
-        } catch (Exception e) {
-            // ignore
-        }
-        popup.setOnMenuItemClickListener(item -> {
-            int id = item.getItemId();
-            int viewType;
-            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
-            else if (id == R.id.view_grid) viewType = ViewType.GRID;
-            else if (id == R.id.view_list) viewType = ViewType.LIST;
-            else return false;
+        ViewTypeMenu.show(this, view, R.menu.menu_view_type_simple, Setting.getKeepViewType(), viewType -> {
             Setting.putKeepViewType(viewType);
             setLayout(viewType);
             if (mAdapter != null) mAdapter.notifyDataSetChanged();
-            return true;
         });
-        popup.show();
     }
 
     private void updateViewIcon() {

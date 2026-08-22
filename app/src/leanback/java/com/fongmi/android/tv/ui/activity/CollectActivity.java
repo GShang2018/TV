@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Parcelable;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +29,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivityCollectBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
 import com.fongmi.android.tv.ui.fragment.CollectFragment;
 import com.fongmi.android.tv.ui.presenter.CollectPresenter;
 import com.fongmi.android.tv.utils.PauseExecutor;
@@ -142,28 +142,10 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void toggleView(View view) {
-        PopupMenu popup = new PopupMenu(this, view);
-        popup.inflate(R.menu.menu_view_type_simple);
-        try {
-            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
-            field.setAccessible(true);
-            Object menuPopup = field.get(popup);
-            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
-        } catch (Exception e) {
-            // ignore
-        }
-        popup.setOnMenuItemClickListener(item -> {
-            int id = item.getItemId();
-            int viewType;
-            if (id == R.id.view_portrait) viewType = com.fongmi.android.tv.ui.base.ViewType.PORTRAIT;
-            else if (id == R.id.view_grid) viewType = com.fongmi.android.tv.ui.base.ViewType.GRID;
-            else if (id == R.id.view_list) viewType = com.fongmi.android.tv.ui.base.ViewType.LIST;
-            else return false;
+        ViewTypeMenu.show(this, view, R.menu.menu_view_type_simple, Setting.getCollectViewType(), viewType -> {
             Setting.putCollectViewType(viewType);
             refreshAllFragments();
-            return true;
         });
-        popup.show();
     }
 
     private void refreshAllFragments() {

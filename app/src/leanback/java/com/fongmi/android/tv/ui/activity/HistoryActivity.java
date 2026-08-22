@@ -3,7 +3,6 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
-import android.widget.PopupMenu;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
@@ -19,6 +18,7 @@ import com.fongmi.android.tv.ui.adapter.HistoryAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -54,23 +54,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void toggleView(View view) {
-        PopupMenu popup = new PopupMenu(this, view);
-        popup.inflate(R.menu.menu_view_type_simple);
-        try {
-            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
-            field.setAccessible(true);
-            Object menuPopup = field.get(popup);
-            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
-        } catch (Exception e) {
-            // ignore
-        }
-        popup.setOnMenuItemClickListener(item -> {
-            int id = item.getItemId();
-            int viewType;
-            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
-            else if (id == R.id.view_grid) viewType = ViewType.GRID;
-            else if (id == R.id.view_list) viewType = ViewType.LIST;
-            else return false;
+        ViewTypeMenu.show(this, view, R.menu.menu_view_type_simple, Setting.getHistoryViewType(), viewType -> {
             Setting.putHistoryViewType(viewType);
             if (mAdapter != null) {
                 Style style = getViewStyle();
@@ -83,9 +67,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
                 mBinding.recycler.addItemDecoration(new SpaceItemDecoration(column, 16));
                 mAdapter.notifyDataSetChanged();
             }
-            return true;
         });
-        popup.show();
     }
 
     private void updateViewIcon() {

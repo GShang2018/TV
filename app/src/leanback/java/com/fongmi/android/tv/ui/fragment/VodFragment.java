@@ -199,7 +199,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     }
 
     private Style getCategoryStyle() {
-        int viewType = Setting.getCategoryViewType();
+        int viewType = Setting.getCategoryViewType(getKey(), getArguments().getString("typeId"));
         if (viewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) return Style.rect();
         if (viewType == com.fongmi.android.tv.ui.base.ViewType.LIST) return Style.list();
         if (viewType == com.fongmi.android.tv.ui.base.ViewType.CONFIG) {

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.provider.Settings;
 
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.github.catvod.utils.Prefers;
 
@@ -142,7 +143,7 @@ public class Setting {
     }
 
     public static int getHomeViewType() {
-		return Prefers.getInt("homeViewType", 3);
+		return Prefers.getInt("homeViewType", ViewType.CONFIG);
 	}
 
 	public static void putHomeViewType(int viewType) {
@@ -173,12 +174,12 @@ public class Setting {
 		Prefers.put("collectViewType", viewType);
 	}
 
-	public static int getCategoryViewType() {
-		return Prefers.getInt("categoryViewType", 3);
+	public static int getCategoryViewType(String key, String typeId) {
+		return Prefers.getInt("categoryViewType_" + key + "_" + typeId, ViewType.CONFIG);
 	}
 
-	public static void putCategoryViewType(int viewType) {
-		Prefers.put("categoryViewType", viewType);
+	public static void putCategoryViewType(String key, String typeId, int viewType) {
+		Prefers.put("categoryViewType_" + key + "_" + typeId, viewType);
 	}
 
 	   public static int getScale() {

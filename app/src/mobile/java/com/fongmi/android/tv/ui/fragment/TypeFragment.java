@@ -68,15 +68,22 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     private Style getStyle() {
         if (isFolder()) return Style.list();
-        int viewType = Setting.getHomeViewType();
+        int viewType = getViewType();
         // CONFIG 模式：使用配置中的布局（站点/分类配置优先）
         if (viewType == ViewType.CONFIG) {
             Style style = getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
             if (style != null) return style;
         }
         // 非 CONFIG 模式：锁定用户选择的布局，不被配置覆盖
-        VodFragment parent = getParent();
-        return parent != null ? parent.getHomeViewStyle() : Style.rect();
+        if (viewType == ViewType.PORTRAIT) return Style.rect();
+        if (viewType == ViewType.LIST) return Style.list();
+        return Style.land();
+    }
+
+    private int getViewType() {
+        String typeId = getArguments().getString("typeId");
+        if ("home".equals(typeId)) return Setting.getHomeViewType();
+        return Setting.getCategoryViewType(getKey(), typeId);
     }
 
     private boolean isIndexs() {
@@ -181,7 +188,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     private void addVideo(Result result) {
         Style style;
-        if (Setting.getHomeViewType() == ViewType.CONFIG) {
+        if (getViewType() == ViewType.CONFIG) {
             // CONFIG 模式：允许 Vod 自身的 style 覆盖
             style = result.getList().get(0).getStyle(getStyle());
         } else {
@@ -229,7 +236,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         int position = findPosition();
         List<Vod> items = new ArrayList<>(mAdapter.getItems());
         Style style = getStyle();
-        if (Setting.getHomeViewType() == ViewType.CONFIG && !items.isEmpty()) {
+        if (getViewType() == ViewType.CONFIG && !items.isEmpty()) {
             style = items.get(0).getStyle(style);
         }
         setStyle(style);

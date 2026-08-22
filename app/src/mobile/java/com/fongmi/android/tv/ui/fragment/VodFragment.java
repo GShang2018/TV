@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,7 +35,6 @@ import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.databinding.FragmentVodBinding;
 import com.fongmi.android.tv.event.CastEvent;
@@ -53,7 +51,7 @@ import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
-import com.fongmi.android.tv.ui.base.ViewType;
+import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
@@ -320,44 +318,19 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void toggleView(View view) {
-        PopupMenu popup = new PopupMenu(getActivity(), view);
-        popup.inflate(R.menu.menu_view_type);
-        try {
-            java.lang.reflect.Field field = popup.getClass().getDeclaredField("mPopup");
-            field.setAccessible(true);
-            Object menuPopup = field.get(popup);
-            menuPopup.getClass().getDeclaredMethod("setForceShowIcon", boolean.class).invoke(menuPopup, true);
-        } catch (Exception e) {
-            // ignore
-        }
-        popup.setOnMenuItemClickListener(item -> {
-            int id = item.getItemId();
-            int viewType;
-            if (id == R.id.view_portrait) viewType = ViewType.PORTRAIT;
-            else if (id == R.id.view_grid) viewType = ViewType.GRID;
-            else if (id == R.id.view_list) viewType = ViewType.LIST;
-            else if (id == R.id.view_config) viewType = ViewType.CONFIG;
-            else return false;
-            Setting.putHomeViewType(viewType);
+        int current = mBinding.pager.getCurrentItem();
+        Class type = mAdapter.get(current);
+        int currentViewType = "home".equals(type.getTypeId()) ? Setting.getHomeViewType() : Setting.getCategoryViewType(getSite().getKey(), type.getTypeId());
+        ViewTypeMenu.show(getActivity(), view, R.menu.menu_view_type, currentViewType, viewType -> {
+            if ("home".equals(type.getTypeId())) Setting.putHomeViewType(viewType);
+            else Setting.putCategoryViewType(getSite().getKey(), type.getTypeId(), viewType);
             TypeFragment fragment = getFragment();
             if (fragment != null) fragment.refreshStyle();
-            return true;
         });
-        popup.show();
     }
 
     private void updateViewIcon() {
         mBinding.view.setImageResource(R.drawable.ic_action_view);
-    }
-
-    Style getHomeViewStyle() {
-        int viewType = Setting.getHomeViewType();
-        if (viewType == ViewType.PORTRAIT) return Style.rect();
-        if (viewType == ViewType.GRID) return Style.land();
-        if (viewType == ViewType.LIST) return Style.list();
-        // CONFIG: 使用站点配置的布局
-        Style configStyle = getSite().getStyle();
-        return configStyle != null ? configStyle : Style.rect();
     }
 
     private void checkTypeOverflow() {
