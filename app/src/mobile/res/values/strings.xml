@@ -58,6 +58,12 @@
     <string name="nav_live">Live</string>
     <string name="nav_setting">Setting</string>
 
+    <!-- Live -->
+    <string name="tab_epg">EPG</string>
+    <string name="live_channel">Channels</string>
+    <string name="live_empty">No channels</string>
+    <string name="live_source">Live Source</string>
+
     <!-- Vod -->
     <string name="vod_home">Home</string>
     <string name="vod_type">分类</string>

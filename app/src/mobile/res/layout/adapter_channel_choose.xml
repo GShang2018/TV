@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="180dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="6dp"
-    android:layout_marginBottom="6dp"
-    android:background="@drawable/shape_channel_white"
+    android:layout_margin="8dp"
+    android:background="@drawable/selector_item_bg"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="10dp"
-    android:paddingTop="6dp"
-    android:paddingEnd="12dp"
-    android:paddingBottom="6dp">
+    android:padding="12dp">
 
     <ImageView
         android:id="@+id/logo"
@@ -23,7 +19,7 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="12dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -31,12 +27,10 @@
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:duplicateParentState="true"
             android:ellipsize="end"
             android:singleLine="true"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="14sp"
-            android:textStyle="bold"
             tools:text="CCTV-1 综合" />
 
         <TextView
@@ -44,9 +38,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:duplicateParentState="true"
             android:singleLine="true"
-            android:textColor="#99FFFFFF"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="12sp"
             tools:text="001" />
 

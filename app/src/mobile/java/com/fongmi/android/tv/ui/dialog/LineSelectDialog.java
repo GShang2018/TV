@@ -64,6 +64,13 @@ public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.On
         return dialog;
     }
 
+    public static LineSelectDialog createLiveAll(Fragment fragment) {
+        LineSelectDialog dialog = new LineSelectDialog();
+        dialog.config = LiveConfig.get().getConfig();
+        dialog.all = true;
+        return dialog;
+    }
+
     public void show(Fragment fragment) {
         this.fragment = fragment;
         for (Fragment f : fragment.getChildFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;

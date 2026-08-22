@@ -58,6 +58,12 @@
     <string name="nav_live">直播</string>
     <string name="nav_setting">设置</string>
 
+    <!-- Live -->
+    <string name="tab_epg">节目单</string>
+    <string name="live_channel">频道</string>
+    <string name="live_empty">暂无频道</string>
+    <string name="live_source">直播源</string>
+
     <!-- Vod -->
     <string name="vod_home">推荐</string>
 

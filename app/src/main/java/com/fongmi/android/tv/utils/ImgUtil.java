@@ -81,6 +81,14 @@ public class ImgUtil {
         else Glide.with(App.get()).asBitmap().load(url).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
     }
 
+    // 台标 logo 加载：等比缩放完整显示，不裁剪（保持 FIT_CENTER）
+    public static void loadLogo(String text, String url, ImageView view) {
+        view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
+        else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
+        else view.setImageResource(R.drawable.ic_img_error);
+    }
+
     private static Drawable getTextDrawable(String text, boolean rect) {
         TextDrawable.Builder builder = new TextDrawable.Builder().withBorder(ResUtil.dp2px(2), ColorGenerator.get700(text));
         if (rect) return builder.buildRoundRect(text, ColorGenerator.get500(text), ResUtil.dp2px(8));

@@ -174,6 +174,14 @@ public class Setting {
 		Prefers.put("collectViewType", viewType);
 	}
 
+	public static int getLiveViewType() {
+		return Prefers.getInt("liveViewType", ViewType.GRID);
+	}
+
+	public static void putLiveViewType(int viewType) {
+		Prefers.put("liveViewType", viewType);
+	}
+
 	public static int getCategoryViewType(String key, String typeId) {
 		return Prefers.getInt("categoryViewType_" + key + "_" + typeId, ViewType.CONFIG);
 	}

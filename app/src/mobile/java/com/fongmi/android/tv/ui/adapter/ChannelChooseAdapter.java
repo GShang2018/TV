@@ -1,25 +1,24 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.bean.Channel;
-import com.fongmi.android.tv.databinding.AdapterChannelBinding;
+import com.fongmi.android.tv.databinding.AdapterChannelChooseBinding;
 import com.fongmi.android.tv.utils.ImgUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHolder> {
+public class ChannelChooseAdapter extends RecyclerView.Adapter<ChannelChooseAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
     private final List<Channel> mItems;
 
-    public ChannelAdapter(OnClickListener listener) {
+    public ChannelChooseAdapter(OnClickListener listener) {
         this.mListener = listener;
         this.mItems = new ArrayList<>();
     }
@@ -27,13 +26,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     public interface OnClickListener {
 
         void onItemClick(Channel item);
-
-        boolean onLongClick(Channel item);
-    }
-
-    public void clear() {
-        mItems.clear();
-        notifyDataSetChanged();
     }
 
     public void addAll(List<Channel> items) {
@@ -42,29 +34,9 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         notifyDataSetChanged();
     }
 
-    public void changed(Channel item) {
-        int position = mItems.indexOf(item);
-        if (position == -1) return;
-        notifyItemChanged(position);
-    }
-
-    public void remove(Channel item) {
-        int position = mItems.indexOf(item);
-        if (position == -1) return;
-        mItems.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    public void setSelected(int position) {
-        if (position == -1) return;
+    public void setActivated(int position) {
         for (int i = 0; i < mItems.size(); i++) mItems.get(i).setSelected(i == position);
         notifyItemRangeChanged(0, getItemCount());
-    }
-
-    public int setSelected(Channel channel) {
-        int position = mItems.indexOf(channel);
-        setSelected(position);
-        return position;
     }
 
     @Override
@@ -75,7 +47,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterChannelBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        return new ViewHolder(AdapterChannelChooseBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
@@ -84,19 +56,15 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.logo);
         holder.binding.name.setText(item.getName());
         holder.binding.number.setText(item.getNumber());
-        holder.binding.number.setVisibility(item.getNumber().isEmpty() ? View.GONE : View.VISIBLE);
-        holder.binding.name.setTextColor(item.isSelected() ? 0xFF000000 : 0xFFFFFFFF);
-        holder.binding.number.setTextColor(item.isSelected() ? 0xFF000000 : 0x99FFFFFF);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(view -> mListener.onItemClick(item));
-        holder.binding.getRoot().setOnLongClickListener(view -> mListener.onLongClick(item));
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final AdapterChannelBinding binding;
+        private final AdapterChannelChooseBinding binding;
 
-        ViewHolder(@NonNull AdapterChannelBinding binding) {
+        ViewHolder(@NonNull AdapterChannelChooseBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

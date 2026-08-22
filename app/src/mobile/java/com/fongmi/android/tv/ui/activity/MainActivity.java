@@ -33,6 +33,7 @@ import com.fongmi.android.tv.receiver.ShortcutReceiver;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.FragmentStateManager;
+import com.fongmi.android.tv.ui.fragment.LiveFragment;
 import com.fongmi.android.tv.ui.fragment.SettingCustomFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
@@ -97,6 +98,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                 if (position == 1) return SettingFragment.newInstance();
                 if (position == 2) return SettingPlayerFragment.newInstance();
                 if (position == 3) return SettingCustomFragment.newInstance();
+                if (position == 4) return LiveFragment.newInstance();
                 return null;
             }
         };
@@ -181,12 +183,11 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     }
 
     private boolean openLive() {
-        LiveActivity.start(this);
-        return false;
+        return mManager.change(4);
     }
 
     private boolean addShortcut(View view) {
-        ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(this, getString(R.string.nav_live)).setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher)).setIntent(new Intent(Intent.ACTION_VIEW, null, this, LiveActivity.class)).setShortLabel(getString(R.string.nav_live)).build();
+        ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(this, getString(R.string.nav_live)).setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher)).setIntent(new Intent(Intent.ACTION_VIEW, null, this, LiveListActivity.class)).setShortLabel(getString(R.string.nav_live)).build();
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, ShortcutReceiver.class).setAction(ShortcutReceiver.ACTION), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         ShortcutManagerCompat.requestPinShortcut(this, info, pendingIntent.getIntentSender());
         return true;
@@ -237,6 +238,8 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     protected void onBackPress() {
         if (!mBinding.navigation.getMenu().findItem(R.id.vod).isVisible()) {
             setNavigation();
+        } else if (mManager.isVisible(4)) {
+            change(0);
         } else if (mManager.isVisible(3)) {
             change(1);
         } else if (mManager.isVisible(2)) {

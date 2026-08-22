@@ -1,9 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fongmi.android.tv.ui.custom.CustomRecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/recycler"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp"
-    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-    app:maxHeight="264dp" />
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="left"
+            android:text="@string/live_source"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/searchInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:background="@drawable/search_item_round"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <EditText
+                android:id="@+id/keyword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@null"
+                android:hint="@string/site_search_name_hint"
+                android:imeOptions="actionDone"
+                android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
+                android:letterSpacing="0.02"
+                android:maxLength="255"
+                android:singleLine="true"
+                android:gravity="center_horizontal"
+                android:layout_marginEnd="4dp"
+                android:textColor="@color/control"
+                android:textCursorDrawable="@drawable/site_cursor"
+                android:textSize="14sp"
+                tools:ignore="NestedWeights"
+                tools:text="直播源" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingLeft="0dp"
+        android:paddingTop="4dp"
+        android:paddingRight="0dp"
+        android:paddingBottom="16dp"
+        app:maxHeight="376dp"
+        tools:listitem="@layout/adapter_live_home" />
+
+</LinearLayout>

@@ -22,6 +22,7 @@ import com.github.catvod.net.OkHttp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
@@ -48,6 +49,7 @@ public class LiveViewModel extends ViewModel {
     private ExecutorService executor2;
     private ExecutorService executor3;
     private ExecutorService executor4;
+    private ExecutorService executor5;
 
     public LiveViewModel() {
         this.formatTime = new SimpleDateFormat("yyyy-MM-ddHH:mm", Locale.getDefault());
@@ -77,6 +79,24 @@ public class LiveViewModel extends ViewModel {
         execute(EPG, () -> {
             if (!item.getData().equal(date)) item.setData(Epg.objectFrom(OkHttp.string(url), item.getTvgName(), formatTime));
             return item.getData().selected();
+        });
+    }
+
+    // 频道列表页批量拉取 EPG：顺序执行，避免单个失败中断其余频道，结果逐个通过 epg 回调
+    public void getEpgList(List<Channel> items) {
+        if (executor5 != null) executor5.shutdownNow();
+        executor5 = Executors.newSingleThreadExecutor();
+        executor5.execute(() -> {
+            String date = formatDate.format(new Date());
+            for (Channel item : items) {
+                if (Thread.interrupted()) return;
+                try {
+                    if (item.getEpg().isEmpty() || item.getData().equal(date)) continue;
+                    item.setData(Epg.objectFrom(OkHttp.string(item.getEpg().replace("{date}", date)), item.getTvgName(), formatTime).selected());
+                    epg.postValue(item.getData());
+                } catch (Throwable ignored) {
+                }
+            }
         });
     }
 
@@ -165,5 +185,6 @@ public class LiveViewModel extends ViewModel {
         if (executor2 != null) executor2.shutdownNow();
         if (executor3 != null) executor3.shutdownNow();
         if (executor4 != null) executor4.shutdownNow();
+        if (executor5 != null) executor5.shutdownNow();
     }
 }
