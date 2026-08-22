@@ -15,7 +15,6 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.databinding.DialogSiteHomeBinding;
 import com.fongmi.android.tv.impl.SiteCallback;
-import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.SiteHomeAdapter;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
@@ -62,10 +61,6 @@ public class SiteHomeDialog extends BaseDialog implements SiteHomeAdapter.OnClic
 
     @Override
     protected void initEvent() {
-        binding.switchSubscribe.setOnClickListener(v -> {
-            SubscriptionActivity.start(requireActivity(), 0, true);
-            dismiss();
-        });
     }
 
     private void setSearchView() {
