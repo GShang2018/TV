@@ -62,6 +62,7 @@
     <string name="tab_epg">节目单</string>
     <string name="live_channel">频道</string>
     <string name="live_empty">暂无频道</string>
+    <string name="live_epg_empty">暂无节目单</string>
     <string name="live_source">直播源</string>
 
     <!-- Vod -->

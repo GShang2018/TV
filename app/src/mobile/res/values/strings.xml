@@ -62,6 +62,7 @@
     <string name="tab_epg">EPG</string>
     <string name="live_channel">Channels</string>
     <string name="live_empty">No channels</string>
+    <string name="live_epg_empty">No EPG</string>
     <string name="live_source">Live Source</string>
 
     <!-- Vod -->

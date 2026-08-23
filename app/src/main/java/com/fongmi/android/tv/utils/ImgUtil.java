@@ -81,10 +81,10 @@ public class ImgUtil {
         else Glide.with(App.get()).asBitmap().load(url).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
     }
 
-    // 台标 logo 加载：等比缩放完整显示，不裁剪（保持 FIT_CENTER）
+    // 台标 logo 加载：加载中 placeholder 居中不缩放，加载完成后 FIT_CENTER 等比缩放完整显示不裁剪
     public static void loadLogo(String text, String url, ImageView view) {
-        view.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
+        view.setScaleType(ImageView.ScaleType.CENTER);
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).listener(getLogoListener(view)).into(view);
         else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
         else view.setImageResource(R.drawable.ic_img_error);
     }
@@ -148,6 +148,23 @@ public class ImgUtil {
 
     private static RequestListener<Bitmap> getListener(ImageView view) {
         return getListener(view, ImageView.ScaleType.CENTER);
+    }
+
+    private static RequestListener<Bitmap> getLogoListener(ImageView view) {
+        return new RequestListener<>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
+                view.setImageResource(R.drawable.ic_img_error);
+                view.setScaleType(ImageView.ScaleType.CENTER);
+                return true;
+            }
+
+            @Override
+            public boolean onResourceReady(@NonNull Bitmap resource, @NonNull Object model, Target<Bitmap> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                return false;
+            }
+        };
     }
 
     private static RequestListener<Bitmap> getListener(ImageView view, ImageView.ScaleType scaleType) {

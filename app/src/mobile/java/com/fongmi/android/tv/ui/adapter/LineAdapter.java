@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.fongmi.android.tv.databinding.AdapterFlagBinding;
+import com.fongmi.android.tv.databinding.AdapterLineBinding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,22 +51,22 @@ public class LineAdapter extends RecyclerView.Adapter<LineAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterFlagBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        return new ViewHolder(AdapterLineBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String item = mItems.get(position);
         holder.binding.text.setText(item);
-        holder.binding.text.setActivated(position == mSelected);
+        holder.binding.text.setSelected(position == mSelected);
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(position));
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final AdapterFlagBinding binding;
+        private final AdapterLineBinding binding;
 
-        ViewHolder(@NonNull AdapterFlagBinding binding) {
+        ViewHolder(@NonNull AdapterLineBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

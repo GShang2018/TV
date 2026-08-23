@@ -85,8 +85,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         holder.binding.name.setText(item.getName());
         holder.binding.number.setText(item.getNumber());
         holder.binding.number.setVisibility(item.getNumber().isEmpty() ? View.GONE : View.VISIBLE);
-        holder.binding.name.setTextColor(item.isSelected() ? 0xFF000000 : 0xFFFFFFFF);
-        holder.binding.number.setTextColor(item.isSelected() ? 0xFF000000 : 0x99FFFFFF);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(view -> mListener.onItemClick(item));
         holder.binding.getRoot().setOnLongClickListener(view -> mListener.onLongClick(item));
