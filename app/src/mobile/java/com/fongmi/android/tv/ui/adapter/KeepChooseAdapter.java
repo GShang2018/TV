@@ -55,6 +55,14 @@ public class KeepChooseAdapter extends RecyclerView.Adapter<KeepChooseAdapter.Vi
         return mSelected.contains(position);
     }
 
+    public List<Integer> getSelectedFolderIds() {
+        List<Integer> ids = new ArrayList<>();
+        for (int position : mSelected) {
+            if (position >= 0 && position < mItems.size()) ids.add(mItems.get(position).getId());
+        }
+        return ids;
+    }
+
     public List<KeepFolder> getSelectedItems() {
         List<KeepFolder> list = new ArrayList<>();
         for (int position : mSelected) {
@@ -80,6 +88,9 @@ public class KeepChooseAdapter extends RecyclerView.Adapter<KeepChooseAdapter.Vi
         holder.binding.name.setText(item.getName());
         holder.binding.count.setText(holder.itemView.getContext().getString(R.string.keep_folder_count, item.getCount()));
         holder.binding.check.setChecked(mSelected.contains(position));
+        holder.binding.check.setClickable(false);
+        holder.binding.check.setFocusable(false);
+        holder.binding.check.setFocusableInTouchMode(false);
         holder.binding.getRoot().setOnClickListener(view -> mListener.onItemClick(position));
     }
 

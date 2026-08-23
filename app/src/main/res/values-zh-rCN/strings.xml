@@ -177,13 +177,13 @@
     <string name="dialog_config_hint">请输入接口…</string>
     <string name="dialog_config_name">请输入名称…</string>
     <string name="dialog_config_url">请输入地址…</string>
-    <string name="dialog_delete_record">删除全部纪录？</string>
-    <string name="dialog_delete_keep">收藏纪录将会全部删除。</string>
-    <string name="dialog_delete_history">观看纪录将会全部删除。</string>
+    <string name="dialog_delete_record">删除全部记录？</string>
+    <string name="dialog_delete_keep">收藏记录将会全部删除。</string>
+    <string name="dialog_delete_history">观看记录将会全部删除。</string>
     <string name="dialog_reset_app">重置App?</string>
     <string name="dialog_reset_app_data">所有数据将会被重置，App即将被关闭.</string>
     <string name="dialog_restore">还原备份数据？</string>
-    <string name="dialog_restore_msg">将会还原配置、观看纪录及各项设置。</string>
+    <string name="dialog_restore_msg">将会还原配置、观看记录及各项设置。</string>
 
     <!-- Error -->
     <string name="error_config_get">配置取得失败</string>

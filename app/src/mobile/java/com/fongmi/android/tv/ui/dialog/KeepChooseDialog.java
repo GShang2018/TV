@@ -94,11 +94,11 @@ public class KeepChooseDialog extends BaseDialog implements KeepChooseAdapter.On
                 .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
                     String name = editText.getText().toString().trim();
                     if (TextUtils.isEmpty(name)) return;
+                    List<Integer> selectedIds = adapter.getSelectedFolderIds();
                     KeepFolder folder = new KeepFolder(name);
                     folder.save();
-                    List<KeepFolder> folders = getFolders();
-                    adapter.addAll(folders);
-                    adapter.setSelected(Keep.getFolderIds(keep.getKey()));
+                    adapter.addAll(getFolders());
+                    adapter.setSelected(selectedIds);
                 }).show();
     }
 
