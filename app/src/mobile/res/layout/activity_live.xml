@@ -102,6 +102,11 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
+            <com.fongmi.android.tv.ui.custom.CustomViewPager
+                android:id="@+id/tabPager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
             <!-- 播放 Tab -->
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/swipeLayout"
@@ -139,8 +144,8 @@
 
                                 <com.google.android.material.imageview.ShapeableImageView
                                     android:id="@+id/playLogo"
-                                    android:layout_width="80dp"
-                                    android:layout_height="60dp"
+                                    android:layout_width="96dp"
+                                    android:layout_height="72dp"
                                     android:background="@color/poster_bg"
                                     android:scaleType="fitCenter"
                                     android:contentDescription="@string/detail_poster"
@@ -216,30 +221,6 @@
                                 android:orientation="horizontal">
 
                                 <LinearLayout
-                                    android:id="@+id/keepRoot"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:gravity="center"
-                                    android:orientation="vertical">
-
-                                    <ImageView
-                                        android:id="@+id/keep"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="?attr/selectableItemBackgroundBorderless"
-                                        android:padding="8dp"
-                                        android:src="@drawable/ic_control_keep_off" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/detail_keep"
-                                        android:textColor="?attr/colorOnSurface"
-                                        android:textSize="11sp" />
-                                </LinearLayout>
-
-                                <LinearLayout
                                     android:id="@+id/castRoot"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
@@ -288,7 +269,7 @@
                                 </LinearLayout>
 
                                 <LinearLayout
-                                    android:id="@+id/prevRoot"
+                                    android:id="@+id/keepRoot"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
@@ -296,41 +277,17 @@
                                     android:orientation="vertical">
 
                                     <ImageView
-                                        android:id="@+id/prev"
+                                        android:id="@+id/keep"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:background="?attr/selectableItemBackgroundBorderless"
                                         android:padding="8dp"
-                                        android:src="@drawable/ic_notify_prev" />
+                                        android:src="@drawable/ic_control_keep_off" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="@string/play_prev"
-                                        android:textColor="?attr/colorOnSurface"
-                                        android:textSize="11sp" />
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:id="@+id/nextRoot"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:gravity="center"
-                                    android:orientation="vertical">
-
-                                    <ImageView
-                                        android:id="@+id/next"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="?attr/selectableItemBackgroundBorderless"
-                                        android:padding="8dp"
-                                        android:src="@drawable/ic_notify_next" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/play_next"
+                                        android:text="@string/detail_keep"
                                         android:textColor="?attr/colorOnSurface"
                                         android:textSize="11sp" />
                                 </LinearLayout>

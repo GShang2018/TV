@@ -55,7 +55,10 @@ import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.widget.NestedScrollView;
 import androidx.viewbinding.ViewBinding;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -432,40 +435,30 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.poster.setOnClickListener(view -> showPoster());
-        mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                boolean isPlay = tab.getPosition() == 0;
-                mBinding.playTab.setVisibility(isPlay ? View.VISIBLE : View.GONE);
-                mBinding.detailTab.setVisibility(isPlay ? View.GONE : View.VISIBLE);
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
-        mGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if (e1 == null || e2 == null) return false;
-                float diffX = e2.getX() - e1.getX();
-                float diffY = e2.getY() - e1.getY();
-                if (Math.abs(diffX) > Math.abs(diffY) * 2 && Math.abs(diffX) > 120) {
-                    int pos = mBinding.tabLayout.getSelectedTabPosition();
-                    if (diffX < 0 && pos == 0) {
-                        mBinding.tabLayout.getTabAt(1).select();
-                    } else if (diffX > 0 && pos == 1) {
-                        mBinding.tabLayout.getTabAt(0).select();
-                    }
-                    return true;
+        if (mBinding.tabPager != null) {
+            // 提前把 scroll 从 FrameLayout 摘除，避免 ViewPager 在测量阶段 instantiateItem 时 removeView 改坏 FrameLayout 子节点数组
+            if (mBinding.scroll.getParent() != null) ((ViewGroup) mBinding.scroll.getParent()).removeView(mBinding.scroll);
+            mBinding.tabPager.setAdapter(new TabPagerAdapter());
+            mBinding.tabLayout.setupWithViewPager(mBinding.tabPager);
+        } else {
+            mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    boolean isPlay = tab.getPosition() == 0;
+                    mBinding.playTab.setVisibility(isPlay ? View.VISIBLE : View.GONE);
+                    mBinding.detailTab.setVisibility(isPlay ? View.GONE : View.VISIBLE);
                 }
-                return false;
-            }
-        });
-        mBinding.scroll.setOnTouchListener((v, event) -> {
-            mGestureDetector.onTouchEvent(event);
-            return false;
-        });
+
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
+
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
+            });
+        }
+        mBinding.more.setOnClickListener(view -> onMore());
         mBinding.more.setOnClickListener(view -> onMore());
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.download.setOnClickListener(view -> onDownload());
@@ -2397,5 +2390,50 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.result.removeObserver(mObserveDetail);
         mViewModel.player.removeObserver(mObservePlayer);
         mViewModel.search.removeObserver(mObserveSearch);
+    }class TabPagerAdapter extends PagerAdapter {
+
+        private NestedScrollView mDetailScroll;
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+            return view == object;
+        }
+
+        @NonNull
+        @Override
+        public Object instantiateItem(@NonNull ViewGroup container, int position) {
+            View view;
+            if (position == 0) {
+                view = mBinding.scroll;
+            } else {
+                if (mDetailScroll == null) {
+                    mDetailScroll = new NestedScrollView(VideoActivity.this);
+                    mDetailScroll.setFillViewport(true);
+                    ViewGroup parent = (ViewGroup) mBinding.detailTab.getParent();
+                    if (parent != null) parent.removeView(mBinding.detailTab);
+                    mBinding.detailTab.setVisibility(View.VISIBLE);
+                    mDetailScroll.addView(mBinding.detailTab, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                }
+                view = mDetailScroll;
+            }
+            if (view.getParent() != null) ((ViewGroup) view.getParent()).removeView(view);
+            container.addView(view, new ViewPager.LayoutParams());
+            return view;
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            container.removeView((View) object);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return position == 0 ? getString(R.string.tab_play) : getString(R.string.tab_detail);
+        }
     }
 }

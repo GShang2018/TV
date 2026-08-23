@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.fragment;
 
 import android.content.res.Configuration;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +11,10 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.Product;
@@ -44,11 +48,12 @@ import java.util.List;
 public class LiveFragment extends BaseFragment implements LiveCallback, GroupTabAdapter.OnClickListener, ChannelGridAdapter.OnClickListener {
 
     private FragmentLiveBinding mBinding;
-    private ChannelGridAdapter mChannelAdapter;
     private GroupTabAdapter mGroupAdapter;
     private Observer<Live> mObserveLive;
     private Observer<Epg> mObserveEpg;
     private LiveViewModel mViewModel;
+    private SparseArray<ChannelGridAdapter> mAdapters;
+    private SparseArray<RecyclerView> mViews;
     private List<Group> mHides;
     private Live mLive;
     private Group mGroup;
@@ -101,29 +106,46 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     private void setRecyclerView() {
+        mAdapters = new SparseArray<>();
+        mViews = new SparseArray<>();
         mBinding.type.setHasFixedSize(true);
         mBinding.type.setItemAnimator(null);
         mBinding.type.setAdapter(mGroupAdapter = new GroupTabAdapter(this));
-        mBinding.recycler.setHasFixedSize(true);
-        mBinding.recycler.setItemAnimator(null);
-        mBinding.recycler.setAdapter(mChannelAdapter = new ChannelGridAdapter(this));
+        mBinding.pager.setAdapter(new ChannelPagerAdapter());
+        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                selectGroup(position);
+            }
+        });
         setGrid();
     }
 
     private void setGrid() {
         int viewType = Setting.getLiveViewType();
         boolean land = ResUtil.isLand(requireContext());
-        if (mChannelAdapter != null) mChannelAdapter.setType(viewType);
+        for (int i = 0; i < mViews.size(); i++) {
+            int position = mViews.keyAt(i);
+            RecyclerView recycler = mViews.get(position);
+            ChannelGridAdapter adapter = mAdapters.get(position);
+            if (recycler == null || adapter == null) continue;
+            adapter.setType(viewType);
+            setLayoutManager(recycler, adapter, viewType, land);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private void setLayoutManager(RecyclerView recycler, ChannelGridAdapter adapter, int viewType, boolean land) {
         if (viewType == ViewType.LIST) {
-            mBinding.recycler.setLayoutManager(new GridLayoutManager(getContext(), Product.getListColumn(requireContext())));
+            recycler.setLayoutManager(new GridLayoutManager(getContext(), Product.getListColumn(requireContext())));
         } else {
             mColumn = viewType == ViewType.PORTRAIT ? (land ? 8 : 5) : (land ? 6 : 4);
             int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (mColumn - 1));
             int base = ResUtil.getScreenWidth(requireContext()) - space;
             int width = base / mColumn;
             int height = viewType == ViewType.PORTRAIT ? width * 4 / 3 : width * 3 / 4;
-            mBinding.recycler.setLayoutManager(new GridLayoutManager(getContext(), mColumn));
-            if (mChannelAdapter != null) mChannelAdapter.size(new int[]{width, height});
+            recycler.setLayoutManager(new GridLayoutManager(getContext(), mColumn));
+            if (adapter != null) adapter.size(new int[]{width, height});
         }
     }
 
@@ -131,7 +153,6 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         ViewTypeMenu.show(requireContext(), view, R.menu.menu_view_type_live, Setting.getLiveViewType(), viewType -> {
             Setting.putLiveViewType(viewType);
             setGrid();
-            if (mChannelAdapter != null) mChannelAdapter.notifyDataSetChanged();
         });
     }
 
@@ -180,32 +201,54 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mHides = new ArrayList<>();
         for (Group group : live.getGroups()) (group.isHidden() ? mHides : items).add(group);
         mGroupAdapter.addAll(items);
+        mAdapters.clear();
+        mViews.clear();
+        if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
         setPosition(LiveConfig.get().find(items));
     }
 
     private void setPosition(int[] position) {
         if (position[0] == -1 || mGroupAdapter.getItemCount() == 0) return;
         int size = mGroupAdapter.getItemCount();
-        if (size == 1 || position[0] >= size) return;
+        if (position[0] >= size) position[0] = size - 1;
         mGroup = mGroupAdapter.get(position[0]);
         mGroup.setPosition(position[1]);
-        onItemClick(mGroup);
+        mBinding.pager.setCurrentItem(position[0], false);
+        selectGroup(position[0]);
+    }
+
+    private void selectGroup(int position) {
+        if (position < 0 || position >= mGroupAdapter.getItemCount()) return;
+        mGroup = mGroupAdapter.get(position);
+        mGroupAdapter.setSelected(position);
+        mBinding.type.scrollToPosition(position);
+        ChannelGridAdapter adapter = mAdapters.get(position);
+        if (adapter != null && mGroup.getPosition() >= 0 && mGroup.getPosition() < mGroup.getChannel().size()) {
+            adapter.setSelected(mGroup.getChannel().get(mGroup.getPosition()));
+        }
+        mViewModel.getEpgList(mGroup.getChannel());
+        updateEmpty();
+    }
+
+    private void updateEmpty() {
+        if (mGroup == null) return;
+        mBinding.empty.setVisibility(mGroup.getChannel().isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private void showGroup(Group item) {
-        mGroupAdapter.setSelected(mGroup = item);
-        mChannelAdapter.addAll(item.getChannel());
-        if (item.getPosition() >= 0 && item.getPosition() < item.getChannel().size()) mChannelAdapter.setSelected(item.getChannel().get(item.getPosition()));
-        mBinding.recycler.scrollToPosition(0);
-        mBinding.empty.setVisibility(item.getChannel().isEmpty() ? View.VISIBLE : View.GONE);
-        mViewModel.getEpgList(item.getChannel());
+        int position = mGroupAdapter.indexOf(item);
+        if (position == -1) return;
+        if (mBinding.pager.getCurrentItem() != position) mBinding.pager.setCurrentItem(position, true);
+        else selectGroup(position);
     }
 
     private void setEpg(Epg epg) {
         if (mGroup == null) return;
+        ChannelGridAdapter adapter = mAdapters.get(mBinding.pager.getCurrentItem());
+        if (adapter == null) return;
         for (Channel item : mGroup.getChannel()) {
             if (item.getTvgName().equals(epg.getKey())) {
-                mChannelAdapter.changed(item);
+                adapter.changed(item);
                 break;
             }
         }
@@ -228,7 +271,10 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     private void delKeep(Channel item) {
-        if (mGroup.isKeep()) mChannelAdapter.clear();
+        if (mGroup.isKeep()) {
+            ChannelGridAdapter adapter = mAdapters.get(mBinding.pager.getCurrentItem());
+            if (adapter != null) adapter.clear();
+        }
         getKeep().getChannel().remove(item);
         Keep.delete(item.getName());
     }
@@ -264,7 +310,6 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         setGrid();
-        if (mChannelAdapter != null) mChannelAdapter.notifyDataSetChanged();
     }
 
     private void showProgress() {
@@ -286,5 +331,53 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         super.onDestroy();
         mViewModel.live.removeObserver(mObserveLive);
         mViewModel.epg.removeObserver(mObserveEpg);
+    }
+
+    class ChannelPagerAdapter extends PagerAdapter {
+
+        @Override
+        public int getCount() {
+            return mGroupAdapter == null ? 0 : mGroupAdapter.getItemCount();
+        }
+
+        @Override
+        public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+            return view == object;
+        }
+
+        @NonNull
+        @Override
+        public Object instantiateItem(@NonNull ViewGroup container, int position) {
+            Group group = mGroupAdapter.get(position);
+            RecyclerView recycler = new RecyclerView(container.getContext());
+            recycler.setHasFixedSize(true);
+            recycler.setItemAnimator(null);
+            recycler.setClipToPadding(false);
+            int padding = ResUtil.dp2px(8);
+            recycler.setPadding(padding, padding, padding, padding);
+            ChannelGridAdapter adapter = new ChannelGridAdapter(LiveFragment.this);
+            adapter.addAll(group.getChannel());
+            if (group.getPosition() >= 0 && group.getPosition() < group.getChannel().size()) {
+                adapter.setSelected(group.getChannel().get(group.getPosition()));
+            }
+            setLayoutManager(recycler, adapter, Setting.getLiveViewType(), ResUtil.isLand(requireContext()));
+            recycler.setAdapter(adapter);
+            mAdapters.put(position, adapter);
+            mViews.put(position, recycler);
+            container.addView(recycler);
+            return recycler;
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            container.removeView((View) object);
+            mAdapters.remove(position);
+            mViews.remove(position);
+        }
+
+        @Override
+        public int getItemPosition(@NonNull Object object) {
+            return POSITION_NONE;
+        }
     }
 }

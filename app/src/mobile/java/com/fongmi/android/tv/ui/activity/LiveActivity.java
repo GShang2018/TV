@@ -26,6 +26,7 @@ import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
 import androidx.viewbinding.ViewBinding;
+import androidx.viewpager.widget.PagerAdapter;
 
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
@@ -248,27 +249,20 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.control.action.getRoot().setOnTouchListener(this::onActionTouch);
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
-        mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                boolean isPlay = tab.getPosition() == 0;
-                mBinding.swipeLayout.setVisibility(isPlay ? View.VISIBLE : View.GONE);
-                mBinding.epgData.setVisibility(isPlay ? View.GONE : View.VISIBLE);
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-            }
-        });
+        mBinding.control.play.setOnClickListener(view -> checkPlay());
+        mBinding.control.prev.setOnClickListener(view -> prevChannel());
+        mBinding.control.next.setOnClickListener(view -> nextChannel());
+        // 提前把两个页面从 FrameLayout 摘除，避免 ViewPager 在测量阶段 instantiateItem 时 removeView 改坏 FrameLayout 子节点数组
+        if (mBinding.swipeLayout.getParent() != null) ((ViewGroup) mBinding.swipeLayout.getParent()).removeView(mBinding.swipeLayout);
+        if (mBinding.epgData.getParent() != null) ((ViewGroup) mBinding.epgData.getParent()).removeView(mBinding.epgData);
+        mBinding.tabPager.setAdapter(new TabPagerAdapter());
+        mBinding.tabLayout.setupWithViewPager(mBinding.tabPager);
         mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.playCast.setOnClickListener(view -> onCast());
         mBinding.share.setOnClickListener(view -> onShareClick());
-        mBinding.prev.setOnClickListener(view -> prevChannel());
-        mBinding.next.setOnClickListener(view -> nextChannel());
+        mBinding.currentSite.setOnClickListener(view -> onHome());
+        mBinding.allChannel.setOnClickListener(view -> onAllChannel());
+        mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
         mBinding.currentSite.setOnClickListener(view -> onHome());
         mBinding.allChannel.setOnClickListener(view -> onAllChannel());
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
@@ -742,7 +736,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     @Override
     public void onItemClick(Channel item) {
         if (item.getUrls().isEmpty()) return;
-        mGroup.setPosition(mChannelAdapter.setSelected(item.group(mGroup)));
+        item.group(mGroup);
+        mGroup.setPosition(mGroup.getChannel().indexOf(item));
         mPlayers.setPlayer(getPlayerType(item.getPlayerType()));
         setArtwork(item.getLogo());
         mChannel = item;
@@ -879,6 +874,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void checkPlayImg(boolean playing) {
+        mBinding.control.play.setImageResource(playing ? androidx.media3.ui.R.drawable.exo_icon_pause : androidx.media3.ui.R.drawable.exo_icon_play);
         mPiP.update(this, playing);
         ActionEvent.update();
     }
@@ -1392,7 +1388,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             hideControl();
         } else if (isVisible(mBinding.widget.info)) {
             hideInfo();
-        } else if (isVisible(mBinding.epgData)) {
+        } else if (mBinding.tabLayout.getSelectedTabPosition() == 1) {
             mBinding.tabLayout.getTabAt(0).select();
         } else if (!isLock()) {
             super.onBackPressed();
@@ -1408,5 +1404,37 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         App.removeCallbacks(mR1, mR2, mR3);
         mViewModel.url.removeObserver(mObserveUrl);
         mViewModel.epg.removeObserver(mObserveEpg);
+    }
+class TabPagerAdapter extends PagerAdapter {
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+            return view == object;
+        }
+
+        @NonNull
+        @Override
+        public Object instantiateItem(@NonNull ViewGroup container, int position) {
+            View view = position == 0 ? mBinding.swipeLayout : mBinding.epgData;
+            view.setVisibility(View.VISIBLE);
+            if (view.getParent() != null) ((ViewGroup) view.getParent()).removeView(view);
+            container.addView(view);
+            return view;
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            container.removeView((View) object);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return position == 0 ? getString(R.string.tab_play) : getString(R.string.tab_epg);
+        }
     }
 }
