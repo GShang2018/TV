@@ -99,8 +99,10 @@ public class LiveListActivity extends BaseActivity implements LiveCallback, Grou
         mBinding.type.setAdapter(mGroupAdapter = new GroupTabAdapter(this));
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setItemAnimator(null);
-        mBinding.recycler.setAdapter(mChannelAdapter = new ChannelGridAdapter(this));
+        mChannelAdapter = new ChannelGridAdapter(this);
+        // 先设置 LayoutManager 与 item 尺寸，再挂 adapter，避免布局时 size 未初始化导致 NPE
         setGrid();
+        mBinding.recycler.setAdapter(mChannelAdapter);
     }
 
     private void setGrid() {

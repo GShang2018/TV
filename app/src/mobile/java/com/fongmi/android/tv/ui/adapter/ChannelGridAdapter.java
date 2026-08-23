@@ -97,6 +97,7 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         if (size != null) {
             holder.binding.image.getLayoutParams().width = size[0];
             holder.binding.image.getLayoutParams().height = size[1];
+            holder.binding.remark.setMaxWidth(size[0] - ResUtil.dp2px(12));
         }
         holder.binding.name.setText(item.getName());
         holder.binding.number.setText(item.getNumber());
@@ -104,7 +105,6 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         String remark = item.getData().getEpg();
         holder.binding.remark.setText(remark);
         holder.binding.remark.setVisibility(remark.isEmpty() ? View.GONE : View.VISIBLE);
-        holder.binding.remark.setMaxWidth(size[0] - ResUtil.dp2px(12));
         ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.image);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
