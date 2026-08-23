@@ -338,6 +338,16 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.epgData.setHasFixedSize(true);
         mBinding.epgData.setItemAnimator(null);
         mBinding.epgData.setAdapter(mEpgDataAdapter = new EpgDataAdapter(this));
+        // 横向列表按下时声明自己消费手势，避免外层 CustomViewPager 拦截横向滑动导致列表无法滚动
+        mBinding.lineList.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.channel.setOnTouchListener(this::onHorizontalTouch);
+    }
+
+    private boolean onHorizontalTouch(View v, MotionEvent e) {
+        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+            v.getParent().requestDisallowInterceptTouchEvent(true);
+        }
+        return false;
     }
 
     private void setPlayerView() {

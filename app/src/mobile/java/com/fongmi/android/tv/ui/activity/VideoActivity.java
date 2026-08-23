@@ -536,6 +536,20 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.parse.setItemAnimator(null);
         mBinding.control.parse.addItemDecoration(new SpaceItemDecoration(8));
         mBinding.control.parse.setAdapter(mParseAdapter = new ParseAdapter(this, ViewType.DARK));
+        // 横向列表按下时声明自己消费手势，避免外层 CustomViewPager 拦截横向滑动导致列表无法滚动
+        mBinding.flag.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.quality.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.episode.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.directorList.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.actorList.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.gallery.setOnTouchListener(this::onHorizontalTouch);
+    }
+
+    private boolean onHorizontalTouch(View v, MotionEvent e) {
+        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+            v.getParent().requestDisallowInterceptTouchEvent(true);
+        }
+        return false;
     }
 
     private void setPlayerView() {
