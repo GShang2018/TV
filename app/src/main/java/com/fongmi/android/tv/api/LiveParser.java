@@ -34,7 +34,8 @@ public class LiveParser {
 
     private static String extract(String line, Pattern pattern) {
         Matcher matcher = pattern.matcher(line.trim());
-        if (matcher.matches()) return matcher.group(1);
+        // 去除匹配值首尾空格，避免频道名/分组名/台标等带多余空格
+        if (matcher.matches()) return matcher.group(1).trim();
         return "";
     }
 
@@ -62,7 +63,9 @@ public class LiveParser {
     private static void json(Live live, String text) {
         live.getGroups().addAll(Group.arrayFrom(text));
         for (Group group : live.getGroups()) {
+            group.setName(group.getName().trim());
             for (Channel channel : group.getChannel()) {
+                channel.setName(channel.getName().trim());
                 channel.live(live);
             }
         }
@@ -112,11 +115,11 @@ public class LiveParser {
             int index = line.indexOf(",") + 1;
             if (setting.find(line)) setting.check(line);
             if (line.contains("#genre#")) setting.clear();
-            if (line.contains("#genre#")) live.getGroups().add(Group.create(split[0], live.isPass()));
+            if (line.contains("#genre#")) live.getGroups().add(Group.create(split[0].trim(), live.isPass()));
             if (split.length > 1 && live.getGroups().isEmpty()) live.getGroups().add(Group.create());
             if (split.length > 1 && split[1].contains("://")) {
                 Group group = live.getGroups().get(live.getGroups().size() - 1);
-                Channel channel = group.find(Channel.create(split[0]));
+                Channel channel = group.find(Channel.create(split[0].trim()));
                 channel.addUrls(line.substring(index).split("#"));
                 setting.copy(channel);
             }

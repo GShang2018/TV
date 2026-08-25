@@ -199,6 +199,8 @@ public class LiveConfig {
             initLive(object);
             initOther(object);
             BaseLoader.get().parseJar(Json.safeString(object, "spider"));
+            // 与点播首页一致：从配置 JSON 读取 logo 并持久化，供直播首页左上角同步加载
+            config.logo(Json.safeString(object, "logo")).json(object.toString()).update();
         } catch (Throwable e) {
             e.printStackTrace();
         } finally {

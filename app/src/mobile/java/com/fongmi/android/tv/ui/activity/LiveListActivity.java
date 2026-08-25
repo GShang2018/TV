@@ -13,13 +13,14 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.bumptech.glide.Glide;
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.Group;
-import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.ActivityLiveListBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.LiveCallback;
@@ -29,7 +30,6 @@ import com.fongmi.android.tv.ui.adapter.GroupTabAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 
 import java.util.ArrayList;
@@ -46,7 +46,6 @@ public class LiveListActivity extends BaseActivity implements LiveCallback, Grou
     private List<Group> mHides;
     private Live mLive;
     private Group mGroup;
-    private int mColumn;
 
     public static void start(Context context) {
         if (!LiveConfig.isEmpty()) context.startActivity(new Intent(context, LiveListActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -54,10 +53,6 @@ public class LiveListActivity extends BaseActivity implements LiveCallback, Grou
 
     private Live getHome() {
         return LiveConfig.get().getHome();
-    }
-
-    private Group getKeep() {
-        return mLive == null || mLive.getGroups().isEmpty() ? Group.create() : mLive.getGroups().get(0);
     }
 
     @Override
@@ -106,13 +101,9 @@ public class LiveListActivity extends BaseActivity implements LiveCallback, Grou
     }
 
     private void setGrid() {
-        mColumn = ResUtil.isLand(this) ? 6 : 4;
-        int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (mColumn - 1));
-        int base = ResUtil.getScreenWidth(this) - space;
-        int width = base / mColumn;
-        int height = width * 3 / 4;
-        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, mColumn));
-        if (mChannelAdapter != null) mChannelAdapter.size(new int[]{width, height});
+        // 与点播横版布局完全一致：统一走 Product 尺寸计算
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn(this, Style.land())));
+        if (mChannelAdapter != null) mChannelAdapter.size(Product.getSpec(this, Style.land()));
     }
 
     private void setViewModel() {
@@ -199,20 +190,6 @@ public class LiveListActivity extends BaseActivity implements LiveCallback, Grou
         KeepActivity.start(this);
     }
 
-    private void addKeep(Channel item) {
-        getKeep().add(item);
-        Keep keep = new Keep();
-        keep.setKey(item.getName());
-        keep.setType(1);
-        keep.save();
-    }
-
-    private void delKeep(Channel item) {
-        if (mGroup.isKeep()) mChannelAdapter.clear();
-        getKeep().getChannel().remove(item);
-        Keep.delete(item.getName());
-    }
-
     @Override
     public void onItemClick(Group item) {
         showGroup(item);
@@ -222,15 +199,6 @@ public class LiveListActivity extends BaseActivity implements LiveCallback, Grou
     public void onItemClick(Channel item) {
         if (item.getUrls().isEmpty()) return;
         LiveActivity.start(this, mGroup.getName(), item.getName());
-    }
-
-    @Override
-    public boolean onLongClick(Channel item) {
-        boolean exist = Keep.exist(item.getName());
-        Notify.show(exist ? R.string.keep_del : R.string.keep_add);
-        if (exist) delKeep(item);
-        else addKeep(item);
-        return true;
     }
 
     @Override

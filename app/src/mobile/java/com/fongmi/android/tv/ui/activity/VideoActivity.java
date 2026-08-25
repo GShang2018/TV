@@ -438,6 +438,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (mBinding.tabPager != null) {
             // 提前把 scroll 从 FrameLayout 摘除，避免 ViewPager 在测量阶段 instantiateItem 时 removeView 改坏 FrameLayout 子节点数组
             if (mBinding.scroll.getParent() != null) ((ViewGroup) mBinding.scroll.getParent()).removeView(mBinding.scroll);
+            // 禁用手势滑动翻页，避免播放/详情 tab 内容被轻易误切，仅保留 TabLayout 点击切换
+            mBinding.tabPager.setSwipeEnabled(false);
             mBinding.tabPager.setAdapter(new TabPagerAdapter());
             mBinding.tabLayout.setupWithViewPager(mBinding.tabPager);
         } else {

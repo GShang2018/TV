@@ -48,6 +48,7 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.activity.HistoryActivity;
 import com.fongmi.android.tv.ui.activity.KeepActivity;
+import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
@@ -134,6 +135,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.view.setOnClickListener(this::toggleView);
         mBinding.keep.setOnClickListener(this::onKeep);
         mBinding.retry.setOnClickListener(this::onRetry);
+        mBinding.addSubscribe.setOnClickListener(v -> SubscriptionActivity.start(requireActivity(), 0, false));
         mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.search.setOnClickListener(this::onSearch);
         mBinding.searchIcon.setOnClickListener(this::onSearchIcon);
@@ -255,7 +257,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void checkRetry() {
-        mBinding.retry.setVisibility(mAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+        boolean empty = mAdapter.getItemCount() == 0;
+        boolean noSubscription = !VodConfig.hasUrl();
+        mBinding.retry.setVisibility(empty && !noSubscription ? View.VISIBLE : View.GONE);
+        // 无订阅时展示"暂无订阅 + 添加订阅"引导，替代重试图标
+        mBinding.emptyState.setVisibility(empty && noSubscription ? View.VISIBLE : View.GONE);
     }
 
     private void onTop(View view) {
@@ -463,6 +469,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         switch (event.getType()) {
             case EMPTY:
                 hideProgress();
+                // 无订阅/配置加载失败时同步更新空状态引导
+                checkRetry();
                 break;
             case PROGRESS:
                 showProgress();
@@ -516,6 +524,12 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         if (mBinding.pager.getAdapter() == null) return true;
         if (mBinding.pager.getAdapter().getCount() == 0) return true;
         return getFragment().canBack();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mBinding.typeLayout.post(this::checkTypeOverflow);
     }
 
     @Override

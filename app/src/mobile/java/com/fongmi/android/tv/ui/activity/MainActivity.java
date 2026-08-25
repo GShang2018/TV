@@ -179,7 +179,8 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     private void setNavigation() {
         mBinding.navigation.getMenu().findItem(R.id.vod).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.setting).setVisible(true);
-        mBinding.navigation.getMenu().findItem(R.id.live).setVisible(LiveConfig.hasUrl());
+        // 直播页不再依赖订阅才显示，始终可见；无订阅时由直播首页展示"暂无订阅/添加订阅"
+        mBinding.navigation.getMenu().findItem(R.id.live).setVisible(true);
     }
 
     private boolean openLive() {

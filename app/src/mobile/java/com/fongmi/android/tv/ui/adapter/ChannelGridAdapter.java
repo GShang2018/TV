@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.databinding.AdapterChannelGridBinding;
 import com.fongmi.android.tv.databinding.AdapterChannelListBinding;
@@ -32,8 +33,6 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public interface OnClickListener {
 
         void onItemClick(Channel item);
-
-        boolean onLongClick(Channel item);
     }
 
     public ChannelGridAdapter size(int[] size) {
@@ -103,12 +102,13 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         holder.binding.number.setText(item.getNumber());
         holder.binding.number.setVisibility(item.getNumber().isEmpty() ? View.GONE : View.VISIBLE);
         String remark = item.getData().getEpg();
+        // 无当前节目/无节目单时显示占位提示
+        if (remark.isEmpty()) remark = ResUtil.getString(R.string.live_epg_none);
         holder.binding.remark.setText(remark);
-        holder.binding.remark.setVisibility(remark.isEmpty() ? View.GONE : View.VISIBLE);
+        holder.binding.remark.setVisibility(View.VISIBLE);
         ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.image);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
-        holder.binding.getRoot().setOnLongClickListener(v -> mListener.onLongClick(item));
     }
 
     private void bindList(ListHolder holder, Channel item) {
@@ -116,12 +116,13 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         holder.binding.number.setText(item.getNumber());
         holder.binding.number.setVisibility(item.getNumber().isEmpty() ? View.GONE : View.VISIBLE);
         String remark = item.getData().getEpg();
+        // 无当前节目/无节目单时显示占位提示
+        if (remark.isEmpty()) remark = ResUtil.getString(R.string.live_epg_none);
         holder.binding.remark.setText(remark);
-        holder.binding.remark.setVisibility(remark.isEmpty() ? View.GONE : View.VISIBLE);
+        holder.binding.remark.setVisibility(View.VISIBLE);
         ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.image);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
-        holder.binding.getRoot().setOnLongClickListener(v -> mListener.onLongClick(item));
     }
 
     static class GridHolder extends RecyclerView.ViewHolder {

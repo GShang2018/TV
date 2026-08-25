@@ -18,6 +18,10 @@ public class GroupTabAdapter extends RecyclerView.Adapter<GroupTabAdapter.ViewHo
     private final List<Group> mItems;
 
     public GroupTabAdapter(OnClickListener listener) {
+        this(listener, false);
+    }
+
+    public GroupTabAdapter(OnClickListener listener, boolean dialogMode) {
         this.mListener = listener;
         this.mItems = new ArrayList<>();
     }
@@ -40,6 +44,10 @@ public class GroupTabAdapter extends RecyclerView.Adapter<GroupTabAdapter.ViewHo
 
     public Group get(int position) {
         return mItems.get(position);
+    }
+
+    public List<Group> getItems() {
+        return mItems;
     }
 
     public int indexOf(Group group) {

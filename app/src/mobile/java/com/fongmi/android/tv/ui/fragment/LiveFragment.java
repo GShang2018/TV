@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.fragment;
 
 import android.content.res.Configuration;
+import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.PagerAdapter;
@@ -24,18 +26,20 @@ import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.Group;
-import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.FragmentLiveBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.ui.activity.LiveActivity;
+import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.ChannelGridAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupTabAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
+import com.fongmi.android.tv.ui.dialog.GroupDialog;
 import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.utils.Notify;
@@ -57,7 +61,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     private List<Group> mHides;
     private Live mLive;
     private Group mGroup;
-    private int mColumn;
+    private boolean mChecked;
 
     public static LiveFragment newInstance() {
         return new LiveFragment();
@@ -65,10 +69,6 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
 
     private Live getHome() {
         return LiveConfig.get().getHome();
-    }
-
-    private Group getKeep() {
-        return mLive == null || mLive.getGroups().isEmpty() ? Group.create() : mLive.getGroups().get(0);
     }
 
     @Override
@@ -90,6 +90,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.siteBox.setOnClickListener(this::onSite);
         mBinding.view.setOnClickListener(this::toggleView);
+        mBinding.typeMore.setOnClickListener(this::onTypeMore);
+        mBinding.addSubscribe.setOnClickListener(v -> SubscriptionActivity.start(requireActivity(), 1, false));
     }
 
     private void setSiteText() {
@@ -108,7 +110,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     private void setRecyclerView() {
         mAdapters = new SparseArray<>();
         mViews = new SparseArray<>();
-        mBinding.type.setHasFixedSize(true);
+        // 分类条高度 wrap_content 且数据异步到达，不能设 HasFixedSize，否则 notifyDataSetChanged 不触发重测量导致首载不显示
         mBinding.type.setItemAnimator(null);
         mBinding.type.setAdapter(mGroupAdapter = new GroupTabAdapter(this));
         mBinding.pager.setAdapter(new ChannelPagerAdapter());
@@ -123,30 +125,22 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
 
     private void setGrid() {
         int viewType = Setting.getLiveViewType();
-        boolean land = ResUtil.isLand(requireContext());
         for (int i = 0; i < mViews.size(); i++) {
             int position = mViews.keyAt(i);
             RecyclerView recycler = mViews.get(position);
             ChannelGridAdapter adapter = mAdapters.get(position);
             if (recycler == null || adapter == null) continue;
             adapter.setType(viewType);
-            setLayoutManager(recycler, adapter, viewType, land);
+            setLayoutManager(recycler, adapter, viewType);
             adapter.notifyDataSetChanged();
         }
     }
 
-    private void setLayoutManager(RecyclerView recycler, ChannelGridAdapter adapter, int viewType, boolean land) {
-        if (viewType == ViewType.LIST) {
-            recycler.setLayoutManager(new GridLayoutManager(getContext(), Product.getListColumn(requireContext())));
-        } else {
-            mColumn = viewType == ViewType.PORTRAIT ? (land ? 8 : 5) : (land ? 6 : 4);
-            int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (mColumn - 1));
-            int base = ResUtil.getScreenWidth(requireContext()) - space;
-            int width = base / mColumn;
-            int height = viewType == ViewType.PORTRAIT ? width * 4 / 3 : width * 3 / 4;
-            recycler.setLayoutManager(new GridLayoutManager(getContext(), mColumn));
-            if (adapter != null) adapter.size(new int[]{width, height});
-        }
+    private void setLayoutManager(RecyclerView recycler, ChannelGridAdapter adapter, int viewType) {
+        // 与点播首页完全一致：横版用 land、竖版用 rect、列表用 list，统一走 Product 尺寸计算
+        Style style = viewType == ViewType.PORTRAIT ? Style.rect() : viewType == ViewType.LIST ? Style.list() : Style.land();
+        recycler.setLayoutManager(new GridLayoutManager(getContext(), Product.getColumn(requireContext(), style)));
+        if (viewType != ViewType.LIST && adapter != null) adapter.size(Product.getSpec(requireContext(), style));
     }
 
     private void toggleView(View view) {
@@ -173,12 +167,20 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         return new Callback() {
             @Override
             public void success() {
+                mChecked = true;
                 getLive();
             }
 
             @Override
             public void error(String msg) {
-                Notify.show(msg);
+                mChecked = true;
+                hideProgress();
+                // 无直播订阅时展示"暂无订阅 + 添加订阅"引导
+                if (LiveConfig.hasUrl()) {
+                    if (!TextUtils.isEmpty(msg)) Notify.show(msg);
+                } else {
+                    showEmpty();
+                }
             }
         };
     }
@@ -189,9 +191,19 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     private void onLive(Live live) {
-        if (live.isEmpty()) return;
+        // 加载失败/超时时 live 为空对象：也要隐藏进度并清空列表，避免进度条卡住、分类区域空白
         mLive = live;
         hideProgress();
+        mChecked = true;
+        if (live.isEmpty()) {
+            mGroupAdapter.clear();
+            mAdapters.clear();
+            mViews.clear();
+            if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
+            showEmpty();
+            return;
+        }
+        hideEmpty();
         setGroup(live);
         setSiteText();
     }
@@ -205,6 +217,12 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mViews.clear();
         if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
         setPosition(LiveConfig.get().find(items));
+        // 数据可能在首帧布局过程中到达导致 requestLayout 被吞，post 到布局完成后重新 notify + requestLayout，确保 wrap_content 分类条显示
+        mBinding.type.post(() -> {
+            mGroupAdapter.notifyDataSetChanged();
+            mBinding.type.requestLayout();
+        });
+        mBinding.typeLayout.post(this::checkTypeOverflow);
     }
 
     private void setPosition(int[] position) {
@@ -221,7 +239,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         if (position < 0 || position >= mGroupAdapter.getItemCount()) return;
         mGroup = mGroupAdapter.get(position);
         mGroupAdapter.setSelected(position);
-        mBinding.type.scrollToPosition(position);
+        mBinding.type.smoothScrollToPosition(position);
         ChannelGridAdapter adapter = mAdapters.get(position);
         if (adapter != null && mGroup.getPosition() >= 0 && mGroup.getPosition() < mGroup.getChannel().size()) {
             adapter.setSelected(mGroup.getChannel().get(mGroup.getPosition()));
@@ -230,8 +248,29 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         updateEmpty();
     }
 
+    private void checkTypeOverflow() {
+        if (mGroupAdapter == null || mBinding.type.getLayoutManager() == null) return;
+        if (mGroupAdapter.getItemCount() == 0) {
+            mBinding.typeMore.setVisibility(View.GONE);
+            return;
+        }
+        LinearLayoutManager llm = (LinearLayoutManager) mBinding.type.getLayoutManager();
+        int last = llm.findLastCompletelyVisibleItemPosition();
+        // 布局未完成时 findLastCompletelyVisibleItemPosition 可能返回 -1，避免误判为溢出
+        if (last < 0) return;
+        int total = mGroupAdapter.getItemCount() - 1;
+        boolean overflow = last < total;
+        mBinding.typeMore.setVisibility(overflow ? View.VISIBLE : View.GONE);
+    }
+
+    private void onTypeMore(View view) {
+        GroupDialog.create(mGroupAdapter.getItems(), mBinding.pager.getCurrentItem(), this).show(getChildFragmentManager(), "groupDialog");
+    }
+
     private void updateEmpty() {
         if (mGroup == null) return;
+        // 有分组说明已有订阅，隐藏"暂无订阅"引导
+        mBinding.emptyState.setVisibility(View.GONE);
         mBinding.empty.setVisibility(mGroup.getChannel().isEmpty() ? View.VISIBLE : View.GONE);
     }
 
@@ -248,8 +287,9 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         if (adapter == null) return;
         for (Channel item : mGroup.getChannel()) {
             if (item.getTvgName().equals(epg.getKey())) {
-                adapter.changed(item);
-                break;
+                // 数据已写入 Channel，整体刷新当前页条目，确保节目信息显示（单条 changed 在首载时序下可能丢失）
+                adapter.notifyDataSetChanged();
+                return;
             }
         }
     }
@@ -260,23 +300,6 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
 
     private void onSite(View view) {
         LiveDialog.create().show(this);
-    }
-
-    private void addKeep(Channel item) {
-        getKeep().add(item);
-        Keep keep = new Keep();
-        keep.setKey(item.getName());
-        keep.setType(1);
-        keep.save();
-    }
-
-    private void delKeep(Channel item) {
-        if (mGroup.isKeep()) {
-            ChannelGridAdapter adapter = mAdapters.get(mBinding.pager.getCurrentItem());
-            if (adapter != null) adapter.clear();
-        }
-        getKeep().getChannel().remove(item);
-        Keep.delete(item.getName());
     }
 
     @Override
@@ -291,15 +314,6 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     @Override
-    public boolean onLongClick(Channel item) {
-        boolean exist = Keep.exist(item.getName());
-        Notify.show(exist ? R.string.keep_del : R.string.keep_add);
-        if (exist) delKeep(item);
-        else addKeep(item);
-        return true;
-    }
-
-    @Override
     public void setLive(Live item) {
         if (item.isActivated()) item.getGroups().clear();
         LiveConfig.get().setHome(item);
@@ -310,6 +324,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         setGrid();
+        mBinding.typeLayout.post(this::checkTypeOverflow);
     }
 
     private void showProgress() {
@@ -320,10 +335,23 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mBinding.progress.getRoot().setVisibility(View.GONE);
     }
 
+    private void showEmpty() {
+        mBinding.emptyState.setVisibility(View.VISIBLE);
+        mBinding.empty.setVisibility(View.GONE);
+    }
+
+    private void hideEmpty() {
+        mBinding.emptyState.setVisibility(View.GONE);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        if (mLive != null) getLive();
+        // 首次加载完成前不重复发起；之后恢复时若无订阅重新检查（覆盖刚添加订阅返回），有订阅则重新加载
+        if (mChecked) {
+            if (LiveConfig.isEmpty()) checkLive();
+            else getLive();
+        }
     }
 
     @Override
@@ -356,11 +384,13 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
             int padding = ResUtil.dp2px(8);
             recycler.setPadding(padding, padding, padding, padding);
             ChannelGridAdapter adapter = new ChannelGridAdapter(LiveFragment.this);
+            // 新页面必须设置当前视图类型，否则默认 GRID 导致列表模式下仍用宫格条目渲染
+            adapter.setType(Setting.getLiveViewType());
             adapter.addAll(group.getChannel());
             if (group.getPosition() >= 0 && group.getPosition() < group.getChannel().size()) {
                 adapter.setSelected(group.getChannel().get(group.getPosition()));
             }
-            setLayoutManager(recycler, adapter, Setting.getLiveViewType(), ResUtil.isLand(requireContext()));
+            setLayoutManager(recycler, adapter, Setting.getLiveViewType());
             recycler.setAdapter(adapter);
             mAdapters.put(position, adapter);
             mViews.put(position, recycler);

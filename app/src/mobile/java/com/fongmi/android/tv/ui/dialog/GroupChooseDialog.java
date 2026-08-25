@@ -9,63 +9,63 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.bean.Channel;
-import com.fongmi.android.tv.databinding.DialogChannelChooseBinding;
-import com.fongmi.android.tv.ui.adapter.ChannelChooseAdapter;
+import com.fongmi.android.tv.bean.Group;
+import com.fongmi.android.tv.databinding.DialogGroupChooseBinding;
+import com.fongmi.android.tv.ui.adapter.GroupChooseAdapter;
 
 import java.util.List;
 
-public class ChannelChooseDialog extends BaseDialog implements ChannelChooseAdapter.OnClickListener {
+public class GroupChooseDialog extends BaseDialog implements GroupChooseAdapter.OnClickListener {
 
-    private DialogChannelChooseBinding binding;
-    private ChannelChooseAdapter adapter;
+    private DialogGroupChooseBinding binding;
+    private GroupChooseAdapter adapter;
     private OnClickListener listener;
-    private List<Channel> items;
-    private int selected = -1;
+    private List<Group> items;
+    private Group selected;
 
-    public static ChannelChooseDialog create() {
-        return new ChannelChooseDialog();
+    public static GroupChooseDialog create() {
+        return new GroupChooseDialog();
     }
 
-    public ChannelChooseDialog items(List<Channel> items) {
+    public GroupChooseDialog items(List<Group> items) {
         this.items = items;
         return this;
     }
 
-    public ChannelChooseDialog selected(int selected) {
+    public GroupChooseDialog selected(Group selected) {
         this.selected = selected;
         return this;
     }
 
-    public ChannelChooseDialog listener(OnClickListener listener) {
+    public GroupChooseDialog listener(OnClickListener listener) {
         this.listener = listener;
         return this;
     }
 
-    public ChannelChooseDialog show(FragmentActivity activity) {
+    public GroupChooseDialog show(FragmentActivity activity) {
         show(activity.getSupportFragmentManager(), null);
         return this;
     }
 
     @Override
     protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        return binding = DialogChannelChooseBinding.inflate(inflater, container, false);
+        return binding = DialogGroupChooseBinding.inflate(inflater, container, false);
     }
 
     @Override
     protected void initView() {
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setItemAnimator(null);
-        binding.recycler.setAdapter(adapter = new ChannelChooseAdapter(this));
+        binding.recycler.setAdapter(adapter = new GroupChooseAdapter(this));
         if (items != null) adapter.addAll(items);
         setActivated();
         updateTitle();
     }
 
     private void setActivated() {
-        if (selected == -1 || items == null || selected >= items.size()) return;
+        if (selected == null || items == null || !items.contains(selected)) return;
         adapter.setActivated(selected);
-        scrollToSelected(selected);
+        scrollToSelected(items.indexOf(selected));
     }
 
     private void scrollToSelected(int position) {
@@ -75,17 +75,17 @@ public class ChannelChooseDialog extends BaseDialog implements ChannelChooseAdap
 
     private void updateTitle() {
         int count = items == null ? 0 : items.size();
-        binding.title.setText(count > 0 ? getString(R.string.live_channel) + " (" + count + ")" : getString(R.string.live_channel));
+        binding.title.setText(count > 0 ? getString(R.string.live_group) + " (" + count + ")" : getString(R.string.live_group));
     }
 
     @Override
-    public void onItemClick(Channel item) {
+    public void onItemClick(Group item) {
         if (listener != null) listener.onItemClick(item);
         dismiss();
     }
 
     public interface OnClickListener {
 
-        void onItemClick(Channel item);
+        void onItemClick(Group item);
     }
 }

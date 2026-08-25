@@ -63,7 +63,10 @@
     <string name="live_channel">Channels</string>
     <string name="live_empty">No channels</string>
     <string name="live_epg_empty">No EPG</string>
+    <string name="live_epg_none">No program info</string>
+    <string name="epg_today">Today %1$s</string>
     <string name="live_source">Live Source</string>
+    <string name="live_group">Categories</string>
 
     <!-- Vod -->
     <string name="vod_home">Home</string>
@@ -139,6 +142,7 @@
     <string name="subscribe_added">Subscription added</string>
     <string name="subscribe_file_error">Failed to read file</string>
     <string name="subscribe_empty">No subscriptions yet</string>
+    <string name="subscribe_add">Add Subscription</string>
     <string name="subscribe_positive">Add</string>
     <string name="subscribe_menu_more">More options</string>
     <string name="subscribe_menu_edit">Edit</string>

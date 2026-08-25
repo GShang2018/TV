@@ -20,6 +20,7 @@ import com.fongmi.android.tv.player.Source;
 import com.github.catvod.net.OkHttp;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -74,12 +75,45 @@ public class LiveViewModel extends ViewModel {
     }
 
     public void getEpg(Channel item) {
-        String date = formatDate.format(new Date());
+        getEpg(item, getEpgDate(), true);
+    }
+
+    // 切换日期拉取节目单：只用于节目单展示，不覆盖频道当天数据
+    public void getEpg(Channel item, String date) {
+        getEpg(item, date, false);
+    }
+
+    // save=true 时写入频道数据（当天节目单），false 时仅返回结果用于展示
+    private void getEpg(Channel item, String date, boolean save) {
         String url = item.getEpg().replace("{date}", date);
         execute(EPG, () -> {
-            if (!item.getData().equal(date)) item.setData(Epg.objectFrom(OkHttp.string(url), item.getTvgName(), formatTime));
-            return item.getData().selected();
+            Epg data;
+            if (item.getData().equal(date)) {
+                data = item.getData();
+            } else {
+                data = Epg.objectFrom(OkHttp.string(url), item.getTvgName(), formatTime);
+                // 以请求日期为准写回，避免响应日期与请求不一致导致缓存误判
+                data.setDate(date);
+                if (save) item.setData(data);
+            }
+            return data.selected();
         });
+    }
+
+    public String getEpgDate() {
+        return formatDate.format(new Date());
+    }
+
+    // 在指定日期基础上偏移 offset 天（-1 前一天 / 1 后一天）
+    public String getEpgDate(String date, int offset) {
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(formatDate.parse(date));
+            calendar.add(Calendar.DATE, offset);
+            return formatDate.format(calendar.getTime());
+        } catch (Exception e) {
+            return getEpgDate();
+        }
     }
 
     // 频道列表页批量拉取 EPG：顺序执行，避免单个失败中断其余频道，结果逐个通过 epg 回调
@@ -92,7 +126,10 @@ public class LiveViewModel extends ViewModel {
                 if (Thread.interrupted()) return;
                 try {
                     if (item.getEpg().isEmpty() || item.getData().equal(date)) continue;
-                    item.setData(Epg.objectFrom(OkHttp.string(item.getEpg().replace("{date}", date)), item.getTvgName(), formatTime).selected());
+                    Epg data = Epg.objectFrom(OkHttp.string(item.getEpg().replace("{date}", date)), item.getTvgName(), formatTime).selected();
+                    // 解析结果可能不含日期，补上当天日期便于 equal(date) 命中缓存，避免重复拉取
+                    data.setDate(date);
+                    item.setData(data);
                     epg.postValue(item.getData());
                 } catch (Throwable ignored) {
                 }

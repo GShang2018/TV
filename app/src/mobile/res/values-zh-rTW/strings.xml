@@ -57,7 +57,10 @@
     <string name="live_channel">頻道</string>
     <string name="live_empty">暫無頻道</string>
     <string name="live_epg_empty">暫無節目單</string>
+    <string name="live_epg_none">暫無節目資訊</string>
+    <string name="epg_today">今日 %1$s</string>
     <string name="live_source">直播源</string>
+    <string name="live_group">頻道分類</string>
 
     <!-- Vod -->
     <string name="vod_home">推薦</string>
@@ -129,6 +132,7 @@
     <string name="subscribe_added">訂閱已新增</string>
     <string name="subscribe_file_error">檔案讀取失敗</string>
     <string name="subscribe_empty">暫無訂閱</string>
+    <string name="subscribe_add">新增訂閱</string>
     <string name="subscribe_positive">新增</string>
     <string name="subscribe_menu_more">更多選項</string>
     <string name="subscribe_menu_edit">編輯</string>

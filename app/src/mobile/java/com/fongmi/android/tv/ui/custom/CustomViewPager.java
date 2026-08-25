@@ -13,17 +13,26 @@ public class CustomViewPager extends ViewPager {
 
     private float downX;
     private float downY;
+    private boolean swipeEnabled;
 
     public CustomViewPager(@NonNull Context context) {
         super(context);
+        swipeEnabled = true;
     }
 
     public CustomViewPager(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        swipeEnabled = true;
+    }
+
+    public void setSwipeEnabled(boolean enabled) {
+        this.swipeEnabled = enabled;
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        // 禁用手势滑动时放行所有事件，子 View 正常滚动，仅保留 TabLayout 点击切换
+        if (!swipeEnabled) return false;
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             downX = ev.getX();
             downY = ev.getY();
@@ -38,6 +47,12 @@ public class CustomViewPager extends ViewPager {
         } catch (Exception e) {
             return isHorizontalDrag(ev);
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (!swipeEnabled) return false;
+        return super.onTouchEvent(ev);
     }
 
     private boolean isHorizontalDrag(MotionEvent ev) {

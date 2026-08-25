@@ -27,8 +27,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     public interface OnClickListener {
 
         void onItemClick(Channel item);
-
-        boolean onLongClick(Channel item);
     }
 
     public void clear() {
@@ -87,7 +85,6 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         holder.binding.number.setVisibility(item.getNumber().isEmpty() ? View.GONE : View.VISIBLE);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(view -> mListener.onItemClick(item));
-        holder.binding.getRoot().setOnLongClickListener(view -> mListener.onLongClick(item));
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

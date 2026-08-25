@@ -1,12 +1,16 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -25,9 +29,12 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
+import androidx.palette.graphics.Palette;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.PagerAdapter;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
@@ -58,12 +65,12 @@ import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
 import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
-import com.fongmi.android.tv.ui.adapter.LineAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.ChannelChooseDialog;
+import com.fongmi.android.tv.ui.dialog.GroupChooseDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PlayerDialog;
@@ -89,7 +96,7 @@ import java.util.List;
 
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, LiveCallback, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, LineAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
+public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, LiveCallback, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
     private ActivityLiveBinding mBinding;
     private View mShadow;
@@ -103,7 +110,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private CustomKeyDownLive mKeyDown;
     private Observer<Epg> mObserveEpg;
     private LiveViewModel mViewModel;
-    private LineAdapter mLineAdapter;
     private List<Group> mHides;
     private List<Group> mGroups;
     private Players mPlayers;
@@ -123,6 +129,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private int toggleCount;
     private int errorCount;
     private PiP mPiP;
+    private String mEpgDate;
+    private Epg mEpg;
 
     public static void start(Context context) {
         start(context, "", "");
@@ -197,6 +205,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mKeyDown = CustomKeyDownLive.create(this, mBinding.video);
         mClock = Clock.create(Arrays.asList(mBinding.widget.clock, mBinding.display.clock, mBinding.control.time));
         getWindow().setStatusBarColor(Color.BLACK);
+        // 渐变背景加载完成前的默认兜底背景，避免窗口无背景导致渲染异常（点播播放页默认有壁纸兜底）
+        getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
         mShadow = findViewById(R.id.shadow);
         mVideoParams = (RelativeLayout.LayoutParams) mBinding.video.getLayoutParams();
@@ -254,17 +264,18 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.next.setOnClickListener(view -> nextChannel());
         // 提前把两个页面从 FrameLayout 摘除，避免 ViewPager 在测量阶段 instantiateItem 时 removeView 改坏 FrameLayout 子节点数组
         if (mBinding.swipeLayout.getParent() != null) ((ViewGroup) mBinding.swipeLayout.getParent()).removeView(mBinding.swipeLayout);
-        if (mBinding.epgData.getParent() != null) ((ViewGroup) mBinding.epgData.getParent()).removeView(mBinding.epgData);
+        if (mBinding.epgBox.getParent() != null) ((ViewGroup) mBinding.epgBox.getParent()).removeView(mBinding.epgBox);
+        // 禁用手势滑动翻页，避免播放/节目单 tab 内容被轻易误切，仅保留 TabLayout 点击切换
+        mBinding.tabPager.setSwipeEnabled(false);
         mBinding.tabPager.setAdapter(new TabPagerAdapter());
         mBinding.tabLayout.setupWithViewPager(mBinding.tabPager);
         mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.playCast.setOnClickListener(view -> onCast());
         mBinding.share.setOnClickListener(view -> onShareClick());
-        mBinding.currentSite.setOnClickListener(view -> onHome());
+        mBinding.currentSite.setOnClickListener(view -> onMoreGroup());
         mBinding.allChannel.setOnClickListener(view -> onAllChannel());
-        mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
-        mBinding.currentSite.setOnClickListener(view -> onHome());
-        mBinding.allChannel.setOnClickListener(view -> onAllChannel());
+        mBinding.epgPrev.setOnClickListener(view -> onEpgDate(-1));
+        mBinding.epgNext.setOnClickListener(view -> onEpgDate(1));
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
     }
 
@@ -327,10 +338,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setRecyclerView() {
-        mBinding.lineList.setHasFixedSize(true);
-        mBinding.lineList.setItemAnimator(null);
-        mBinding.lineList.addItemDecoration(new SpaceItemDecoration(8));
-        mBinding.lineList.setAdapter(mLineAdapter = new LineAdapter(this));
         mBinding.channel.setHasFixedSize(true);
         mBinding.channel.setItemAnimator(null);
         mBinding.channel.addItemDecoration(new SpaceItemDecoration(8));
@@ -339,7 +346,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.epgData.setItemAnimator(null);
         mBinding.epgData.setAdapter(mEpgDataAdapter = new EpgDataAdapter(this));
         // 横向列表按下时声明自己消费手势，避免外层 CustomViewPager 拦截横向滑动导致列表无法滚动
-        mBinding.lineList.setOnTouchListener(this::onHorizontalTouch);
         mBinding.channel.setOnTouchListener(this::onHorizontalTouch);
     }
 
@@ -438,11 +444,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         if (!getGroupName().isEmpty()) {
             for (Group group : mGroups) {
                 if (group.getName().equals(getGroupName())) {
-                    mGroup = group;
                     int index = group.find(getChannelName());
                     if (index == -1) return;
-                    mGroup.setPosition(index);
-                    onItemClick(mGroup.current());
+                    setGroup(group, index);
                     return;
                 }
             }
@@ -454,8 +458,12 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         if (position[0] == -1 || mGroups.isEmpty()) return;
         int size = mGroups.size();
         if (position[0] >= size) position[0] = size - 1;
-        mGroup = mGroups.get(position[0]);
-        mGroup.setPosition(position[1]);
+        setGroup(mGroups.get(position[0]), position[1]);
+    }
+
+    private void setGroup(Group item, int position) {
+        mGroup = item;
+        mGroup.setPosition(position);
         if (mGroup.isEmpty()) return;
         onItemClick(mGroup.current());
     }
@@ -635,6 +643,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void showControl() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
+        // 未全屏时隐藏底部文本按钮（播放器/解码/倍速/线路等），全屏时才显示
+        mBinding.control.action.getRoot().setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.info.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.cast.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.right.rotate.setVisibility(isLock() ? View.GONE : View.VISIBLE);
@@ -729,6 +739,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 getExo().setDefaultArtwork(resource);
                 getIjk().setDefaultArtwork(resource);
+                // 直播播放页默认使用兜底黑色背景，不再使用封面动态取色（setCoverBackground 代码保留备用）
+                // setCoverBackground(url);
             }
 
             @Override
@@ -743,6 +755,73 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         });
     }
 
+    private void setCoverBackground(String url) {
+        App.execute(() -> {
+            try {
+                Bitmap bitmap = Glide.with(LiveActivity.this)
+                        .asBitmap()
+                        .load(ImgUtil.getUrl(url))
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .submit(ResUtil.getScreenWidth(), ResUtil.getScreenHeight())
+                        .get();
+                if (bitmap == null) return;
+                Palette.from(bitmap).generate(palette -> {
+                    // 旋转/销毁后 Activity 已重建，Palette 的 AsyncTask 无法取消，直接忽略避免 NPE
+                    if (isDestroyed() || isFinishing()) return;
+                    int darkColor = 0xFF222222;
+                    // 优先使用 Muted（柔和），其次其它色调
+                    if (palette.getMutedSwatch() != null) {
+                        darkColor = palette.getMutedSwatch().getRgb();
+                    } else if (palette.getDarkVibrantSwatch() != null) {
+                        darkColor = palette.getDarkVibrantSwatch().getRgb();
+                    } else if (palette.getDarkMutedSwatch() != null) {
+                        darkColor = palette.getDarkMutedSwatch().getRgb();
+                    } else if (palette.getDominantSwatch() != null) {
+                        darkColor = palette.getDominantSwatch().getRgb();
+                    } else if (palette.getVibrantSwatch() != null) {
+                        darkColor = palette.getVibrantSwatch().getRgb();
+                    }
+                    int r = Color.red(darkColor);
+                    int g = Color.green(darkColor);
+                    int b = Color.blue(darkColor);
+                    int darkenAmount = 60;
+                    int dr = Math.max(0, r - darkenAmount);
+                    int dg = Math.max(0, g - darkenAmount);
+                    int db = Math.max(0, b - darkenAmount);
+                    // 多阶颜色插值，消除色带
+                    int steps = 8;
+                    int[] colors = new int[steps];
+                    for (int i = 0; i < steps; i++) {
+                        float t = (float) i / (steps - 1);
+                        int cr = (int) (r * (1 - t) + dr * t);
+                        int cg = (int) (g * (1 - t) + dg * t);
+                        int cb = (int) (b * (1 - t) + db * t);
+                        colors[i] = Color.rgb(cr, cg, cb);
+                    }
+                    GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
+                    gradient.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+                    gradient.setDither(true);
+                    runOnUiThread(() -> {
+                        // 进入主线程后仍需再次校验，防止回调入队后 Activity 已被销毁
+                        if (isDestroyed() || isFinishing()) {
+                            bitmap.recycle();
+                            return;
+                        }
+                        gradient.setAlpha(0);
+                        getWindow().setBackgroundDrawable(gradient);
+                        ValueAnimator animator = ValueAnimator.ofInt(0, 255);
+                        animator.setDuration(300);
+                        animator.addUpdateListener(animation -> gradient.setAlpha((int) animation.getAnimatedValue()));
+                        animator.start();
+                        bitmap.recycle();
+                    });
+                });
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
     @Override
     public void onItemClick(Channel item) {
         if (item.getUrls().isEmpty()) return;
@@ -753,23 +832,23 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mChannel = item;
         setPlayerView();
         setChannelAdapter();
-        showInfo();
+        setInfo();
         fetch();
-    }
-
-    @Override
-    public boolean onLongClick(Channel item) {
-        if (mGroup == null || mGroup.isHidden()) return false;
-        boolean exist = Keep.exist(item.getName());
-        Notify.show(exist ? R.string.keep_del : R.string.keep_add);
-        if (exist) delKeep(item);
-        else addKeep(item);
-        return true;
     }
 
     private void onAllChannel() {
         if (mGroup == null || mGroup.getChannel().isEmpty()) return;
         ChannelChooseDialog.create().items(mGroup.getChannel()).selected(mGroup.getPosition()).listener(this::onItemClick).show(this);
+    }
+
+    private void onMoreGroup() {
+        if (mGroups.isEmpty()) return;
+        GroupChooseDialog.create().items(mGroups).selected(mGroup).listener(this::onItemClick).show(this);
+    }
+
+    private void onItemClick(Group item) {
+        if (mGroup != null && item.equals(mGroup)) return;
+        setGroup(item, 0);
     }
 
     @Override
@@ -781,14 +860,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mPlayers.clear();
         mPlayers.stop();
         showProgress();
-    }
-
-    @Override
-    public void onItemClick(int position) {
-        if (mChannel == null || position == mChannel.getLine()) return;
-        mChannel.setLine(position);
-        setInfo();
-        fetch();
     }
 
     private void addKeep(Channel item) {
@@ -807,7 +878,16 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void setInfo() {
         mViewModel.getEpg(mChannel);
-        mBinding.widget.play.setText("");
+        // 切换频道后回到今天的节目单
+        mEpgDate = mViewModel.getEpgDate();
+        updateEpgDate();
+        mEpg = null;
+        // 切换频道后先清空节目单并显示占位，EPG 加载完成后由 setEpg 填充
+        String none = getString(R.string.live_epg_none);
+        mBinding.widget.play.setText(none);
+        mBinding.playEpg.setText(none);
+        mEpgDataAdapter.clear();
+        mBinding.epgEmpty.setVisibility(View.VISIBLE);
         mChannel.loadLogo(mBinding.widget.logo);
         mChannel.loadLogo(mBinding.playLogo);
         mBinding.widget.name.setText(mChannel.getName());
@@ -824,22 +904,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setText(mBinding.widget.line.getText());
         mBinding.control.action.line.setVisibility(mBinding.widget.line.getVisibility());
-        setLineAdapter();
         setChannelAdapter();
         checkKeepImg();
-    }
-
-    private void setLineAdapter() {
-        if (mChannel == null) return;
-        List<String> lines = new ArrayList<>();
-        for (String url : mChannel.getUrls()) lines.add(getLineName(url, lines.size()));
-        mLineAdapter.addAll(lines);
-        mLineAdapter.setSelected(mChannel.getLine());
-    }
-
-    private String getLineName(String url, int index) {
-        if (url.contains("$")) return url.split("\\$")[1];
-        return ResUtil.getString(R.string.live_line, index + 1);
     }
 
     private void setChannelAdapter() {
@@ -852,13 +918,18 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void setEpg() {
         String epg = mChannel.getData().getEpg();
-        List<EpgData> data = mChannel.getData().getList();
+        // 节目单展示使用独立 mEpg（切换日期不覆盖频道当天数据）
+        List<EpgData> data = mEpg == null ? mChannel.getData().getList() : mEpg.getList();
         if (epg.length() > 0) mBinding.widget.name.setMaxEms(12);
-        mBinding.widget.play.setText(epg);
-        mBinding.playEpg.setText(epg);
+        // 无当前节目时显示占位提示
+        String text = epg.isEmpty() ? getString(R.string.live_epg_none) : epg;
+        mBinding.widget.play.setText(text);
+        mBinding.playEpg.setText(text);
         mChannelAdapter.changed(mChannel);
         mEpgDataAdapter.addAll(data);
-        mBinding.epgData.scrollToPosition(Math.max(mChannel.getData().getSelected(), 0));
+        // 节目单为空时显示占位提示
+        mBinding.epgEmpty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
+        mBinding.epgData.scrollToPosition(Math.max(mEpg == null ? -1 : mEpg.getSelected(), 0));
         setMetadata();
     }
 
@@ -867,7 +938,27 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setEpg(Epg epg) {
-        if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) setEpg();
+        if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) {
+            mEpg = epg;
+            setEpg();
+        }
+    }
+
+    private void onEpgDate(int offset) {
+        if (mChannel == null) return;
+        // 切换前一天/后一天，按 {date} 占位符重新拉取节目单
+        mEpgDate = mViewModel.getEpgDate(mEpgDate, offset);
+        updateEpgDate();
+        // 先清空并显示占位，避免残留上一日期节目单（拉取失败时也保持占位）
+        mEpg = null;
+        mEpgDataAdapter.clear();
+        mBinding.epgEmpty.setVisibility(View.VISIBLE);
+        mViewModel.getEpg(mChannel, mEpgDate);
+    }
+
+    private void updateEpgDate() {
+        String today = mViewModel.getEpgDate();
+        mBinding.epgDate.setText(mEpgDate.equals(today) ? getString(R.string.epg_today, mEpgDate) : mEpgDate);
     }
 
     private void fetch() {
@@ -904,7 +995,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void resetAdapter() {
-        mLineAdapter.addAll(new ArrayList<>());
         mChannelAdapter.clear();
         mEpgDataAdapter.clear();
         mHides.clear();
@@ -1430,7 +1520,7 @@ class TabPagerAdapter extends PagerAdapter {
         @NonNull
         @Override
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
-            View view = position == 0 ? mBinding.swipeLayout : mBinding.epgData;
+            View view = position == 0 ? mBinding.swipeLayout : mBinding.epgBox;
             view.setVisibility(View.VISIBLE);
             if (view.getParent() != null) ((ViewGroup) view.getParent()).removeView(view);
             container.addView(view);

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
     android:keepScreenOn="true">
 
     <FrameLayout
@@ -144,8 +143,8 @@
 
                                 <com.google.android.material.imageview.ShapeableImageView
                                     android:id="@+id/playLogo"
-                                    android:layout_width="96dp"
-                                    android:layout_height="72dp"
+                                    android:layout_width="108dp"
+                                    android:layout_height="144dp"
                                     android:background="@color/poster_bg"
                                     android:scaleType="fitCenter"
                                     android:contentDescription="@string/detail_poster"
@@ -305,7 +304,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/live_source"
+                                    android:text="@string/live_group"
                                     android:textColor="?attr/colorOnSurface"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
@@ -327,41 +326,6 @@
                                     tools:text="直播源" />
 
                             </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:layout_marginTop="16dp"
-                                android:layout_marginEnd="12dp"
-                                android:gravity="center_vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/detail_flag"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
-
-                                <View
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1" />
-
-                            </LinearLayout>
-
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/lineList"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:clipToPadding="false"
-                                android:nestedScrollingEnabled="false"
-                                android:orientation="horizontal"
-                                android:paddingStart="16dp"
-                                android:paddingEnd="16dp"
-                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -416,15 +380,85 @@
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <!-- 节目单 Tab：独立 RecyclerView，正常复用与滚动，避免内嵌滚动容器导致渲染异常 -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/epgData"
+            <FrameLayout
+                android:id="@+id/epgBox"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:visibility="gone"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:itemCount="8"
-                tools:listitem="@layout/adapter_epg_data" />
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/epgHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="8dp"
+                        android:paddingTop="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="4dp">
+
+                        <ImageView
+                            android:id="@+id/epgPrev"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_notify_prev" />
+
+                        <TextView
+                            android:id="@+id/epgDate"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="14sp"
+                            tools:text="2026-08-26 今天" />
+
+                        <ImageView
+                            android:id="@+id/epgNext"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_notify_next" />
+
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/epgData"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:clipToPadding="false"
+                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                            tools:itemCount="8"
+                            tools:listitem="@layout/adapter_epg_data" />
+
+                        <TextView
+                            android:id="@+id/epgEmpty"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/live_epg_none"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="14sp"
+                            android:visibility="gone" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+            </FrameLayout>
 
         </FrameLayout>
     </LinearLayout>
