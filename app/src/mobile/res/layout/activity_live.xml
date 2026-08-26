@@ -178,7 +178,18 @@
                                         android:maxLines="1"
                                         android:textColor="?attr/colorOnSurface"
                                         android:textSize="13sp"
-                                        tools:text="正在播放：新闻联播" />
+                                        tools:text="当前节目：20:00~21:00 新闻联播" />
+
+                                    <TextView
+                                        android:id="@+id/playNext"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:ellipsize="end"
+                                        android:maxLines="1"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="13sp"
+                                        tools:text="下一节目：21:00~21:30 焦点访谈" />
 
                                     <LinearLayout
                                         android:layout_width="match_parent"
@@ -373,6 +384,50 @@
                                 android:paddingStart="16dp"
                                 android:paddingEnd="16dp"
                                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                            <!-- 线路分类：参考频道分类布局，点击右侧当前线路弹出线路选择弹窗 -->
+                            <LinearLayout
+                                android:id="@+id/lineBox"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="16dp"
+                                    android:layout_marginTop="16dp"
+                                    android:layout_marginEnd="12dp"
+                                    android:gravity="center_vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/live_line_title"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="16sp"
+                                        android:textStyle="bold" />
+
+                                    <View
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:layout_weight="1" />
+
+                                    <TextView
+                                        android:id="@+id/currentLine"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:gravity="center"
+                                        android:singleLine="true"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:textSize="14sp"
+                                        app:drawableEndCompat="@drawable/ic_detail_more"
+                                        tools:text="线路 1" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
 
                         </LinearLayout>
                     </LinearLayout>

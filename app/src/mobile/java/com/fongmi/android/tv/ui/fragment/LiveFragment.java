@@ -29,6 +29,7 @@ import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.FragmentLiveBinding;
+import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
@@ -45,6 +46,10 @@ import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +83,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
 
     @Override
     protected void initView() {
+        EventBus.getDefault().register(this);
         setRecyclerView();
         setViewModel();
         setSiteText();
@@ -187,6 +193,12 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
 
     private void getLive() {
         showProgress();
+        hideEmpty();
+        // 切换订阅/源时先清空旧数据，避免旧分组残留导致内容不同步（与点播 homeContent 一致）
+        mGroupAdapter.clear();
+        mAdapters.clear();
+        mViews.clear();
+        if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
         mViewModel.getLive(getHome());
     }
 
@@ -317,6 +329,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     public void setLive(Live item) {
         if (item.isActivated()) item.getGroups().clear();
         LiveConfig.get().setHome(item);
+        // 与点播 setSite 一致：先同步站点名再重新加载内容
+        setSiteText();
         getLive();
     }
 
@@ -347,10 +361,26 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     @Override
     public void onResume() {
         super.onResume();
-        // 首次加载完成前不重复发起；之后恢复时若无订阅重新检查（覆盖刚添加订阅返回），有订阅则重新加载
-        if (mChecked) {
-            if (LiveConfig.isEmpty()) checkLive();
-            else getLive();
+        // 订阅/线路切换均通过 RefreshEvent 同步刷新；此处仅兜底无订阅场景（覆盖刚添加订阅返回）
+        if (mChecked && LiveConfig.isEmpty()) checkLive();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        switch (event.getType()) {
+            case LIVE:
+            case VIDEO:
+                getLive();
+                break;
+            case CONFIG:
+                setSiteText();
+                break;
         }
     }
 

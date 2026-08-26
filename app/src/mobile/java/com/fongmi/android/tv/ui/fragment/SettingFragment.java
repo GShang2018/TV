@@ -201,6 +201,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
                 break;
             case 1:
                 Notify.dismiss();
+                RefreshEvent.video();
                 RefreshEvent.config();
                 break;
             case 2:
@@ -223,6 +224,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     @Override
     public void setLive(Live item) {
         LiveConfig.get().setHome(item);
+        RefreshEvent.video();
     }
 
     private void onWall(View view) {

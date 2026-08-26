@@ -67,6 +67,9 @@
     <string name="epg_today">今天 %1$s</string>
     <string name="live_source">直播源</string>
     <string name="live_group">频道分类</string>
+    <string name="live_line_title">线路</string>
+    <string name="live_epg_now">当前节目：%1$s %2$s</string>
+    <string name="live_epg_next">下一节目：%1$s %2$s</string>
 
     <!-- Vod -->
     <string name="vod_home">推荐</string>

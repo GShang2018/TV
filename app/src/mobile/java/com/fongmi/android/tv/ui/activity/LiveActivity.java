@@ -72,6 +72,7 @@ import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.ChannelChooseDialog;
 import com.fongmi.android.tv.ui.dialog.GroupChooseDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
+import com.fongmi.android.tv.ui.dialog.LineChooseDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PlayerDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
@@ -274,6 +275,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.share.setOnClickListener(view -> onShareClick());
         mBinding.currentSite.setOnClickListener(view -> onMoreGroup());
         mBinding.allChannel.setOnClickListener(view -> onAllChannel());
+        mBinding.currentLine.setOnClickListener(view -> onMoreLine());
         mBinding.epgPrev.setOnClickListener(view -> onEpgDate(-1));
         mBinding.epgNext.setOnClickListener(view -> onEpgDate(1));
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
@@ -886,6 +888,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         String none = getString(R.string.live_epg_none);
         mBinding.widget.play.setText(none);
         mBinding.playEpg.setText(none);
+        mBinding.playNext.setText("");
+        mBinding.playNext.setVisibility(View.GONE);
         mEpgDataAdapter.clear();
         mBinding.epgEmpty.setVisibility(View.VISIBLE);
         mChannel.loadLogo(mBinding.widget.logo);
@@ -900,6 +904,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.widget.numberPip.setText(mChannel.getNumber());
         mBinding.playNumber.setText(mChannel.getNumber());
         mBinding.playLine.setText(mChannel.getLineText());
+        setLineView();
         mBinding.widget.name.setMaxEms(mChannel.getName().length());
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setText(mBinding.widget.line.getText());
@@ -925,12 +930,67 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         String text = epg.isEmpty() ? getString(R.string.live_epg_none) : epg;
         mBinding.widget.play.setText(text);
         mBinding.playEpg.setText(text);
+        setPlayInfo();
         mChannelAdapter.changed(mChannel);
         mEpgDataAdapter.addAll(data);
         // 节目单为空时显示占位提示
         mBinding.epgEmpty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
         mBinding.epgData.scrollToPosition(Math.max(mEpg == null ? -1 : mEpg.getSelected(), 0));
         setMetadata();
+    }
+
+    // 频道信息区两行节目展示：当前节目 / 下一个节目
+    private void setPlayInfo() {
+        if (mChannel == null) return;
+        List<EpgData> list = mChannel.getData().getList();
+        int index = mChannel.getData().getSelected();
+        String now = getString(R.string.live_epg_none);
+        String next = "";
+        if (index >= 0 && index < list.size()) {
+            EpgData current = list.get(index);
+            if (!current.getTitle().isEmpty()) {
+                now = getString(R.string.live_epg_now, getTimeText(current), current.getTitle());
+                if (index + 1 < list.size()) {
+                    EpgData after = list.get(index + 1);
+                    if (!after.getTitle().isEmpty()) next = getString(R.string.live_epg_next, getTimeText(after), after.getTitle());
+                }
+            }
+        }
+        mBinding.playEpg.setText(now);
+        mBinding.playNext.setText(next);
+        mBinding.playNext.setVisibility(next.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    private String getTimeText(EpgData item) {
+        if (item.getStart().isEmpty() && item.getEnd().isEmpty()) return "";
+        return item.getStart() + "~" + item.getEnd();
+    }
+
+    // 线路分类区域：单线路时隐藏，右侧显示当前线路
+    private void setLineView() {
+        if (mChannel == null) return;
+        boolean only = mChannel.isOnly();
+        mBinding.lineBox.setVisibility(only ? View.GONE : View.VISIBLE);
+        if (only) return;
+        mBinding.currentLine.setText(mChannel.getLineText());
+    }
+
+    // 打开线路选择弹窗（参考频道分类弹窗 GroupChooseDialog）
+    private void onMoreLine() {
+        if (mChannel == null || mChannel.isOnly()) return;
+        List<String> lines = new ArrayList<>();
+        for (int i = 0; i < mChannel.getUrls().size(); i++) {
+            String url = mChannel.getUrls().get(i);
+            lines.add(url.contains("$") ? url.split("\\$")[1] : ResUtil.getString(R.string.live_line, i + 1));
+        }
+        LineChooseDialog.create().items(lines).selected(mChannel.getLine()).listener(this::onLineClick).show(this);
+    }
+
+    private void onLineClick(int position) {
+        if (mChannel == null || mChannel.getLine() == position) return;
+        mChannel.setLine(position);
+        setInfo();
+        fetch();
     }
 
     private void setEpg(boolean success) {

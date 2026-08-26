@@ -67,6 +67,9 @@
     <string name="epg_today">Today %1$s</string>
     <string name="live_source">Live Source</string>
     <string name="live_group">Categories</string>
+    <string name="live_line_title">Line</string>
+    <string name="live_epg_now">Now: %1$s %2$s</string>
+    <string name="live_epg_next">Next: %1$s %2$s</string>
 
     <!-- Vod -->
     <string name="vod_home">Home</string>

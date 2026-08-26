@@ -117,9 +117,9 @@ public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.On
 
     private String getSelected() {
         if (!all) return config.getLine();
-        Config active = VodConfig.get().getConfig();
-        if (active.isDepot()) return active.getLine();
-        return active.getUrl();
+        // 点播/直播线路对话框各自使用自己的配置判定选中态，互不绑定
+        if (config.isDepot()) return config.getLine();
+        return config.getUrl();
     }
 
     private Config getParent(Depot item) {
