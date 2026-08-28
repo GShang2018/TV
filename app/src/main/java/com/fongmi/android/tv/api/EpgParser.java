@@ -58,12 +58,18 @@ public class EpgParser {
 
     private static void readXml(Live live, File file) throws Exception {
         Set<String> exist = new HashSet<>();
-        Map<String, Epg> epgMap = new HashMap<>();
+        Map<String, Map<String, Epg>> epgMap = new HashMap<>();
         Map<String, String> mapping = new HashMap<>();
         SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm", Locale.getDefault());
         SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         SimpleDateFormat formatFull = new SimpleDateFormat("yyyyMMddHHmmss Z", Locale.getDefault());
-        String today = formatDate.format(new Date());
+        Calendar calendar = Calendar.getInstance();
+        String today = formatDate.format(calendar.getTime());
+        // 多天保留窗口：昨天 ~ 未来6天，供节目单弹窗切换日期
+        calendar.add(Calendar.DATE, -1);
+        String first = formatDate.format(calendar.getTime());
+        calendar.add(Calendar.DATE, 7);
+        String last = formatDate.format(calendar.getTime());
         Tv tv = new Persister().read(Tv.class, Path.read(file), false);
         for (Group group : live.getGroups()) for (Channel channel : group.getChannel()) exist.add(channel.getTvgName());
         for (Tv.Channel channel : tv.getChannel()) mapping.put(channel.getId(), channel.getDisplayName());
@@ -72,19 +78,28 @@ public class EpgParser {
             Date startDate = formatFull.parse(programme.getStart());
             Date endDate = formatFull.parse(programme.getStop());
             if (!exist.contains(key)) continue;
-            if (!isToday(startDate) && !isToday(endDate)) continue;
-            if (!epgMap.containsKey(key)) epgMap.put(key, Epg.create(key, today));
+            // 按节目开始日分桶，窗口外日期丢弃
+            String day = formatDate.format(startDate);
+            if (day.compareTo(first) < 0 || day.compareTo(last) > 0) continue;
+            Map<String, Epg> days = epgMap.computeIfAbsent(key, k -> new HashMap<>());
+            Epg epg = days.get(day);
+            if (epg == null) days.put(day, epg = Epg.create(key, day));
             EpgData epgData = new EpgData();
             epgData.setTitle(Trans.s2t(programme.getTitle()));
             epgData.setStart(formatTime.format(startDate));
             epgData.setEnd(formatTime.format(endDate));
             epgData.setStartTime(startDate.getTime());
             epgData.setEndTime(endDate.getTime());
-            epgMap.get(key).getList().add(epgData);
+            epg.getList().add(epgData);
         }
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
-                channel.setData(epgMap.get(channel.getTvgName()));
+                Map<String, Epg> days = epgMap.get(channel.getTvgName());
+                if (days != null) channel.getEpgs().putAll(days);
+                Epg epg = days == null ? null : days.get(today);
+                channel.setData(epg);
+                // 标记每个频道当前直播节目，频道列表才能取到 getSelected() 显示各自节目
+                if (epg != null) epg.selected();
             }
         }
     }

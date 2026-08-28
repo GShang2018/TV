@@ -79,7 +79,8 @@ public class Epg {
         return getDate().equals(date);
     }
 
-    private void setTime(SimpleDateFormat format) {
+    // 以当前 date 解析节目起止时间；在外部 setDate(请求日期) 后调用可纠正响应不含日期字段导致的解析失败
+    public void setTime(SimpleDateFormat format) {
         setList(new ArrayList<>(new LinkedHashSet<>(getList())));
         for (EpgData item : getList()) {
             item.setStartTime(Util.format(format, getDate().concat(item.getStart())));

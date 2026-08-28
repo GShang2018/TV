@@ -70,6 +70,21 @@
     <string name="live_line_title">Line</string>
     <string name="live_epg_now">Now: %1$s %2$s</string>
     <string name="live_epg_next">Next: %1$s %2$s</string>
+    <string name="tab_channel">Switch</string>
+    <string name="live_all_epg">All Programs</string>
+    <string name="live_epg_live">Live</string>
+    <string name="live_epg_playing">Playing</string>
+    <string name="live_epg_reserve">Reserve</string>
+    <string name="live_epg_ended">Ended</string>
+    <string name="live_epg_today_label">Today</string>
+    <string name="live_epg_dialog_title">EPG</string>
+    <string name="live_epg_reserve_toast">Calendar reminder opened, please confirm</string>
+    <string name="live_epg_reserve_fail">Failed to open calendar</string>
+    <string name="live_replay">Replay</string>
+    <string name="live_reserved">Reserved</string>
+    <string name="live_reminder_add">Reserved, will remind</string>
+    <string name="live_reminder_cancel">Reservation cancelled</string>
+    <string name="live_reminder">%1$s will air soon</string>
 
     <!-- Vod -->
     <string name="vod_home">Home</string>

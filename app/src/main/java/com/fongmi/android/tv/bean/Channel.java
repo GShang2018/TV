@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Channel {
 
@@ -59,6 +60,7 @@ public class Channel {
     private String url;
     private String msg;
     private Epg data;
+    private Map<String, Epg> epgs;
     private int line;
 
     public static Channel objectFrom(JsonElement element) {
@@ -252,6 +254,25 @@ public class Channel {
 
     public void setData(Epg data) {
         this.data = data;
+        putData(data);
+    }
+
+    // 各日期节目单缓存：XML 多天解析与接口逐日拉取结果，节目单弹窗按日期读取
+    public Map<String, Epg> getEpgs() {
+        return epgs = epgs == null ? new ConcurrentHashMap<>() : epgs;
+    }
+
+    public Epg findData(String date) {
+        return getEpgs().get(date);
+    }
+
+    public void putData(Epg data) {
+        if (data == null || data.getDate().isEmpty()) return;
+        getEpgs().put(data.getDate(), data);
+    }
+
+    public List<String> getDateKeys() {
+        return new ArrayList<>(getEpgs().keySet());
     }
 
     public int getLine() {
@@ -367,6 +388,8 @@ public class Channel {
         setName(item.getName());
         setUrls(item.getUrls());
         setData(item.getData());
+        // 收藏分组为复制频道，共享各日期节目单缓存
+        this.epgs = item.getEpgs();
         setDrm(item.getDrm());
         setEpg(item.getEpg());
         setUa(item.getUa());

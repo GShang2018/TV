@@ -60,6 +60,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     private GroupTabAdapter mGroupAdapter;
     private Observer<Live> mObserveLive;
     private Observer<Epg> mObserveEpg;
+    private Observer<Boolean> mObserveXml;
     private LiveViewModel mViewModel;
     private SparseArray<ChannelGridAdapter> mAdapters;
     private SparseArray<RecyclerView> mViews;
@@ -160,8 +161,10 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mViewModel = new ViewModelProvider(this).get(LiveViewModel.class);
         mObserveLive = this::onLive;
         mObserveEpg = this::setEpg;
+        mObserveXml = this::setEpg;
         mViewModel.live.observeForever(mObserveLive);
         mViewModel.epg.observeForever(mObserveEpg);
+        mViewModel.xml.observeForever(mObserveXml);
     }
 
     private void checkLive() {
@@ -216,6 +219,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
             return;
         }
         hideEmpty();
+        // XML 节目单与播放页一致：live 加载后触发解析，数据写入各频道后由 setEpg(boolean) 刷新列表
+        mViewModel.getXml(live);
         setGroup(live);
         setSiteText();
     }
@@ -291,6 +296,12 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         if (position == -1) return;
         if (mBinding.pager.getCurrentItem() != position) mBinding.pager.setCurrentItem(position, true);
         else selectGroup(position);
+    }
+
+    // XML 节目单为异步解析，完成后刷新已创建的频道页，确保每个频道显示各自当前节目
+    private void setEpg(boolean success) {
+        if (!success) return;
+        for (int i = 0; i < mAdapters.size(); i++) mAdapters.valueAt(i).notifyDataSetChanged();
     }
 
     private void setEpg(Epg epg) {
@@ -389,6 +400,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         super.onDestroy();
         mViewModel.live.removeObserver(mObserveLive);
         mViewModel.epg.removeObserver(mObserveEpg);
+        mViewModel.xml.removeObserver(mObserveXml);
     }
 
     class ChannelPagerAdapter extends PagerAdapter {

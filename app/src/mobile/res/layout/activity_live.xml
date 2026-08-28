@@ -87,7 +87,7 @@
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/tab_epg" />
+                android:text="@string/tab_channel" />
 
         </com.google.android.material.tabs.TabLayout>
 
@@ -304,87 +304,6 @@
 
                             </LinearLayout>
 
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:layout_marginTop="16dp"
-                                android:layout_marginEnd="12dp"
-                                android:gravity="center_vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/live_group"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
-
-                                <View
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1" />
-
-                                <TextView
-                                    android:id="@+id/currentSite"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:gravity="center"
-                                    android:singleLine="true"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="14sp"
-                                    app:drawableEndCompat="@drawable/ic_detail_more"
-                                    tools:text="直播源" />
-
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:layout_marginTop="16dp"
-                                android:layout_marginEnd="12dp"
-                                android:gravity="center_vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/live_channel"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
-
-                                <View
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:layout_weight="1" />
-
-                                <TextView
-                                    android:id="@+id/allChannel"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:gravity="center"
-                                    android:singleLine="true"
-                                    android:textColor="?attr/colorOnSurface"
-                                    android:textSize="14sp"
-                                    app:drawableEndCompat="@drawable/ic_detail_more"
-                                    tools:text="全部 128" />
-
-                            </LinearLayout>
-
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/channel"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:layout_marginBottom="8dp"
-                                android:clipToPadding="false"
-                                android:nestedScrollingEnabled="false"
-                                android:orientation="horizontal"
-                                android:paddingStart="16dp"
-                                android:paddingEnd="16dp"
-                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
                             <!-- 线路分类：参考频道分类布局，点击右侧当前线路弹出线路选择弹窗 -->
                             <LinearLayout
                                 android:id="@+id/lineBox"
@@ -429,91 +348,128 @@
 
                             </LinearLayout>
 
+                            <!-- 节目单：标题 + 全部节目 + 横向节目卡片 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginEnd="12dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/tab_epg"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1" />
+
+                                <TextView
+                                    android:id="@+id/allEpg"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:singleLine="true"
+                                    android:text="@string/live_all_epg"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp"
+                                    app:drawableEndCompat="@drawable/ic_detail_more" />
+
+                            </LinearLayout>
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/epgProgram"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:layout_marginBottom="8dp"
+                                android:clipToPadding="false"
+                                android:nestedScrollingEnabled="false"
+                                android:orientation="horizontal"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                tools:itemCount="6"
+                                tools:listitem="@layout/adapter_epg_program" />
+
+                            <TextView
+                                android:id="@+id/epgProgramEmpty"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:layout_marginBottom="8dp"
+                                android:gravity="center"
+                                android:text="@string/live_epg_none"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="13sp"
+                                android:visibility="gone" />
+
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.core.widget.NestedScrollView>
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <!-- 节目单 Tab：独立 RecyclerView，正常复用与滚动，避免内嵌滚动容器导致渲染异常 -->
-            <FrameLayout
-                android:id="@+id/epgBox"
+            <!-- 换台 Tab：左侧频道分类 + 右侧频道列表 -->
+            <LinearLayout
+                android:id="@+id/channelBox"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:orientation="horizontal"
                 android:visibility="gone">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/groupList"
+                    android:layout_width="104dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="8"
+                    tools:listitem="@layout/adapter_group_live" />
 
-                    <LinearLayout
-                        android:id="@+id/epgHeader"
+                <View
+                    android:layout_width="0.5dp"
+                    android:layout_height="match_parent"
+                    android:background="#33FFFFFF" />
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/channelList"
                         android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:paddingTop="4dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:paddingBottom="8dp"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        tools:itemCount="10"
+                        tools:listitem="@layout/adapter_channel_live" />
+
+                    <TextView
+                        android:id="@+id/channelEmpty"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingStart="8dp"
-                        android:paddingTop="8dp"
-                        android:paddingEnd="8dp"
-                        android:paddingBottom="4dp">
+                        android:layout_gravity="center"
+                        android:text="@string/live_empty"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
 
-                        <ImageView
-                            android:id="@+id/epgPrev"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_notify_prev" />
+                </FrameLayout>
 
-                        <TextView
-                            android:id="@+id/epgDate"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="14sp"
-                            tools:text="2026-08-26 今天" />
-
-                        <ImageView
-                            android:id="@+id/epgNext"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_notify_next" />
-
-                    </LinearLayout>
-
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1">
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/epgData"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:clipToPadding="false"
-                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                            tools:itemCount="8"
-                            tools:listitem="@layout/adapter_epg_data" />
-
-                        <TextView
-                            android:id="@+id/epgEmpty"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="@string/live_epg_none"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="14sp"
-                            android:visibility="gone" />
-
-                    </FrameLayout>
-
-                </LinearLayout>
-
-            </FrameLayout>
+            </LinearLayout>
 
         </FrameLayout>
     </LinearLayout>

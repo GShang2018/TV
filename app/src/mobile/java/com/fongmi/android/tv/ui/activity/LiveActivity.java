@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,14 +64,13 @@ import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
-import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
-import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
+import com.fongmi.android.tv.ui.adapter.ChannelLiveAdapter;
+import com.fongmi.android.tv.ui.adapter.EpgProgramAdapter;
+import com.fongmi.android.tv.ui.adapter.GroupLiveAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
-import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
-import com.fongmi.android.tv.ui.dialog.ChannelChooseDialog;
-import com.fongmi.android.tv.ui.dialog.GroupChooseDialog;
+import com.fongmi.android.tv.ui.dialog.EpgAllDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.LineChooseDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
@@ -97,7 +97,7 @@ import java.util.List;
 
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, LiveCallback, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
+public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, LiveCallback, EpgProgramAdapter.OnClickListener, GroupLiveAdapter.OnClickListener, ChannelLiveAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
     private ActivityLiveBinding mBinding;
     private View mShadow;
@@ -105,8 +105,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private RelativeLayout.LayoutParams mShadowParams;
     private RelativeLayout.LayoutParams mContentParams;
     private boolean fullscreen;
-    private ChannelAdapter mChannelAdapter;
-    private EpgDataAdapter mEpgDataAdapter;
+    private EpgProgramAdapter mEpgProgramAdapter;
+    private GroupLiveAdapter mGroupTabAdapter;
+    private ChannelLiveAdapter mChannelTabAdapter;
     private Observer<Channel> mObserveUrl;
     private CustomKeyDownLive mKeyDown;
     private Observer<Epg> mObserveEpg;
@@ -130,8 +131,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private int toggleCount;
     private int errorCount;
     private PiP mPiP;
-    private String mEpgDate;
-    private Epg mEpg;
 
     public static void start(Context context) {
         start(context, "", "");
@@ -265,19 +264,16 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.next.setOnClickListener(view -> nextChannel());
         // 提前把两个页面从 FrameLayout 摘除，避免 ViewPager 在测量阶段 instantiateItem 时 removeView 改坏 FrameLayout 子节点数组
         if (mBinding.swipeLayout.getParent() != null) ((ViewGroup) mBinding.swipeLayout.getParent()).removeView(mBinding.swipeLayout);
-        if (mBinding.epgBox.getParent() != null) ((ViewGroup) mBinding.epgBox.getParent()).removeView(mBinding.epgBox);
-        // 禁用手势滑动翻页，避免播放/节目单 tab 内容被轻易误切，仅保留 TabLayout 点击切换
+        if (mBinding.channelBox.getParent() != null) ((ViewGroup) mBinding.channelBox.getParent()).removeView(mBinding.channelBox);
+        // 禁用手势滑动翻页，避免播放/换台 tab 内容被轻易误切，仅保留 TabLayout 点击切换
         mBinding.tabPager.setSwipeEnabled(false);
         mBinding.tabPager.setAdapter(new TabPagerAdapter());
         mBinding.tabLayout.setupWithViewPager(mBinding.tabPager);
         mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.playCast.setOnClickListener(view -> onCast());
         mBinding.share.setOnClickListener(view -> onShareClick());
-        mBinding.currentSite.setOnClickListener(view -> onMoreGroup());
-        mBinding.allChannel.setOnClickListener(view -> onAllChannel());
+        mBinding.allEpg.setOnClickListener(view -> onAllEpg());
         mBinding.currentLine.setOnClickListener(view -> onMoreLine());
-        mBinding.epgPrev.setOnClickListener(view -> onEpgDate(-1));
-        mBinding.epgNext.setOnClickListener(view -> onEpgDate(1));
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
     }
 
@@ -340,15 +336,19 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setRecyclerView() {
-        mBinding.channel.setHasFixedSize(true);
-        mBinding.channel.setItemAnimator(null);
-        mBinding.channel.addItemDecoration(new SpaceItemDecoration(8));
-        mBinding.channel.setAdapter(mChannelAdapter = new ChannelAdapter(this));
-        mBinding.epgData.setHasFixedSize(true);
-        mBinding.epgData.setItemAnimator(null);
-        mBinding.epgData.setAdapter(mEpgDataAdapter = new EpgDataAdapter(this));
+        // 播放 tab 节目单横向卡片列表
+        mBinding.epgProgram.setHasFixedSize(true);
+        mBinding.epgProgram.setItemAnimator(null);
+        mBinding.epgProgram.setAdapter(mEpgProgramAdapter = new EpgProgramAdapter(this));
         // 横向列表按下时声明自己消费手势，避免外层 CustomViewPager 拦截横向滑动导致列表无法滚动
-        mBinding.channel.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.epgProgram.setOnTouchListener(this::onHorizontalTouch);
+        // 换台 tab 左侧频道分类 + 右侧频道列表
+        mBinding.groupList.setHasFixedSize(true);
+        mBinding.groupList.setItemAnimator(null);
+        mBinding.groupList.setAdapter(mGroupTabAdapter = new GroupLiveAdapter(this));
+        mBinding.channelList.setHasFixedSize(true);
+        mBinding.channelList.setItemAnimator(null);
+        mBinding.channelList.setAdapter(mChannelTabAdapter = new ChannelLiveAdapter(this));
     }
 
     private boolean onHorizontalTouch(View v, MotionEvent e) {
@@ -431,7 +431,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void getLive() {
         mBinding.control.action.home.setText(getHome().getName());
-        mBinding.currentSite.setText(getHome().getName());
         mPlayers.setPlayer(Setting.getLivePlayer());
         mViewModel.getLive(getHome());
         setPlayerView();
@@ -443,6 +442,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mHides.clear();
         mGroups.clear();
         for (Group group : live.getGroups()) (group.isHidden() ? mHides : mGroups).add(group);
+        // 换台 tab 左侧分类列表
+        mGroupTabAdapter.addAll(mGroups);
         if (!getGroupName().isEmpty()) {
             for (Group group : mGroups) {
                 if (group.getName().equals(getGroupName())) {
@@ -468,6 +469,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mGroup.setPosition(position);
         if (mGroup.isEmpty()) return;
         onItemClick(mGroup.current());
+        // 批量拉取当前分组频道节目单，供换台 tab 展示
+        loadEpgList();
     }
 
     private void onCast() {
@@ -838,30 +841,62 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         fetch();
     }
 
-    private void onAllChannel() {
-        if (mGroup == null || mGroup.getChannel().isEmpty()) return;
-        ChannelChooseDialog.create().items(mGroup.getChannel()).selected(mGroup.getPosition()).listener(this::onItemClick).show(this);
+    // 点击全部节目：弹出日期 + 时间线弹窗，已结束且支持回放的节目点击可播放
+    private void onAllEpg() {
+        if (mChannel == null) return;
+        EpgAllDialog.create().channel(mChannel).viewModel(mViewModel).listener(this::onItemClick).show(this);
     }
 
-    private void onMoreGroup() {
-        if (mGroups.isEmpty()) return;
-        GroupChooseDialog.create().items(mGroups).selected(mGroup).listener(this::onItemClick).show(this);
-    }
-
-    private void onItemClick(Group item) {
+    // 换台 tab 点击分类：仅切换分类并加载频道列表，不自动播放
+    @Override
+    public void onItemClick(Group item) {
         if (mGroup != null && item.equals(mGroup)) return;
-        setGroup(item, 0);
+        mGroup = item;
+        setChannelTab();
+        loadEpgList();
+    }
+
+    // 批量拉取当前分组频道节目单，完成后整体刷新换台列表，确保所有频道节目都显示
+    private void loadEpgList() {
+        mViewModel.getEpgList(mGroup.getChannel(), this::refreshChannelTab);
+    }
+
+    private void refreshChannelTab() {
+        if (mGroup == null) return;
+        mChannelTabAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onItemClick(EpgData item) {
         if (item.isFuture() || !mChannel.hasCatchup()) return;
         Notify.show(getString(R.string.play_ready, item.getTitle()));
-        mEpgDataAdapter.setSelected(item);
+        // 回看/直播点击后高亮该节目卡片，并滚动到当前节目（非当天节目不滚动）
+        mEpgProgramAdapter.setSelected(item);
+        int index = mEpgProgramAdapter.indexOf(item);
+        if (index >= 0) mBinding.epgProgram.scrollToPosition(index);
+        // 同步更新播放信息中的当前节目/下一节目
+        setPlayInfo();
         mViewModel.getUrl(mChannel, item);
         mPlayers.clear();
         mPlayers.stop();
         showProgress();
+    }
+
+    // 未来节目：预约调起系统日历新建事件提醒，与弹窗预约保持一致
+    @Override
+    public void onReserve(EpgData item) {
+        if (mChannel == null) return;
+        try {
+            Intent intent = new Intent(Intent.ACTION_INSERT).setData(CalendarContract.Events.CONTENT_URI);
+            intent.putExtra(CalendarContract.Events.TITLE, item.getTitle());
+            intent.putExtra(CalendarContract.Events.DESCRIPTION, mChannel.getName());
+            intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, item.getStartTime());
+            intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, item.getEndTime());
+            startActivity(intent);
+            Notify.show(R.string.live_epg_reserve_toast);
+        } catch (Exception e) {
+            Notify.show(R.string.live_epg_reserve_fail);
+        }
     }
 
     private void addKeep(Channel item) {
@@ -873,25 +908,33 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void delKeep(Channel item) {
-        if (mGroup != null && mGroup.isKeep()) mChannelAdapter.remove(item);
+        if (mGroup != null && mGroup.isKeep()) mChannelTabAdapter.remove(item);
         if (mGroup != null) mGroup.getChannel().remove(item);
         Keep.delete(item.getName());
     }
 
+    // 换台 tab 频道收藏按钮
+    @Override
+    public void onKeepClick(Channel item) {
+        if (item.getUrls().isEmpty()) return;
+        boolean exist = Keep.exist(item.getName());
+        Notify.show(exist ? R.string.keep_del : R.string.keep_add);
+        if (exist) delKeep(item);
+        else addKeep(item);
+        mChannelTabAdapter.changed(item);
+        if (mChannel != null && mChannel.equals(item)) checkKeepImg();
+    }
+
     private void setInfo() {
         mViewModel.getEpg(mChannel);
-        // 切换频道后回到今天的节目单
-        mEpgDate = mViewModel.getEpgDate();
-        updateEpgDate();
-        mEpg = null;
         // 切换频道后先清空节目单并显示占位，EPG 加载完成后由 setEpg 填充
         String none = getString(R.string.live_epg_none);
         mBinding.widget.play.setText(none);
         mBinding.playEpg.setText(none);
         mBinding.playNext.setText("");
         mBinding.playNext.setVisibility(View.GONE);
-        mEpgDataAdapter.clear();
-        mBinding.epgEmpty.setVisibility(View.VISIBLE);
+        mEpgProgramAdapter.clear();
+        mBinding.epgProgramEmpty.setVisibility(View.VISIBLE);
         mChannel.loadLogo(mBinding.widget.logo);
         mChannel.loadLogo(mBinding.playLogo);
         mBinding.widget.name.setText(mChannel.getName());
@@ -913,29 +956,40 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         checkKeepImg();
     }
 
+    // 播放 tab 选中频道时同步换台 tab 选中状态
     private void setChannelAdapter() {
         if (mGroup == null) return;
-        mChannelAdapter.addAll(mGroup.getChannel());
-        mChannelAdapter.setSelected(mGroup.getPosition());
-        mBinding.allChannel.setText("全部 " + mGroup.getChannel().size());
-        mBinding.channel.scrollToPosition(Math.max(mGroup.getPosition(), 0));
+        setChannelTab();
+    }
+
+    // 换台 tab：左侧分类选中 + 右侧频道列表同步
+    private void setChannelTab() {
+        if (mGroup == null) return;
+        mGroupTabAdapter.setSelected(mGroup);
+        mBinding.groupList.scrollToPosition(Math.max(mGroups.indexOf(mGroup), 0));
+        mChannelTabAdapter.addAll(mGroup.getChannel());
+        mChannelTabAdapter.setSelected(mGroup.getPosition());
+        mBinding.channelEmpty.setVisibility(mGroup.getChannel().isEmpty() ? View.VISIBLE : View.GONE);
+        mBinding.channelList.scrollToPosition(Math.max(mGroup.getPosition(), 0));
     }
 
     private void setEpg() {
         String epg = mChannel.getData().getEpg();
-        // 节目单展示使用独立 mEpg（切换日期不覆盖频道当天数据）
-        List<EpgData> data = mEpg == null ? mChannel.getData().getList() : mEpg.getList();
+        // 节目单横向卡片展示频道当天数据
+        List<EpgData> data = mChannel.getData().getList();
         if (epg.length() > 0) mBinding.widget.name.setMaxEms(12);
         // 无当前节目时显示占位提示
         String text = epg.isEmpty() ? getString(R.string.live_epg_none) : epg;
         mBinding.widget.play.setText(text);
         mBinding.playEpg.setText(text);
         setPlayInfo();
-        mChannelAdapter.changed(mChannel);
-        mEpgDataAdapter.addAll(data);
+        mChannelTabAdapter.changed(mChannel);
+        // 传当前频道供节目卡片判断回看/预约状态
+        mEpgProgramAdapter.setChannel(mChannel);
+        mEpgProgramAdapter.addAll(data);
         // 节目单为空时显示占位提示
-        mBinding.epgEmpty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
-        mBinding.epgData.scrollToPosition(Math.max(mEpg == null ? -1 : mEpg.getSelected(), 0));
+        mBinding.epgProgramEmpty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
+        mBinding.epgProgram.scrollToPosition(Math.max(mChannel.getData().getSelected(), 0));
         setMetadata();
     }
 
@@ -995,30 +1049,20 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void setEpg(boolean success) {
         if (mChannel != null && success) mViewModel.getEpg(mChannel);
+        // XML 节目单为异步解析，完成后整体刷新换台列表，确保每个频道显示各自当前节目
+        if (success) refreshChannelTab();
     }
 
+    // EPG 结果回调：刷新播放页节目单与换台 tab 对应频道（弹窗内其它日期结果不影响当天展示）
     private void setEpg(Epg epg) {
-        if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) {
-            mEpg = epg;
-            setEpg();
+        if (mChannel == null || epg == null || mGroup == null) return;
+        for (Channel item : mGroup.getChannel()) {
+            if (item.getTvgName().equals(epg.getKey())) {
+                if (item.equals(mChannel)) setEpg();
+                else mChannelTabAdapter.changed(item);
+                return;
+            }
         }
-    }
-
-    private void onEpgDate(int offset) {
-        if (mChannel == null) return;
-        // 切换前一天/后一天，按 {date} 占位符重新拉取节目单
-        mEpgDate = mViewModel.getEpgDate(mEpgDate, offset);
-        updateEpgDate();
-        // 先清空并显示占位，避免残留上一日期节目单（拉取失败时也保持占位）
-        mEpg = null;
-        mEpgDataAdapter.clear();
-        mBinding.epgEmpty.setVisibility(View.VISIBLE);
-        mViewModel.getEpg(mChannel, mEpgDate);
-    }
-
-    private void updateEpgDate() {
-        String today = mViewModel.getEpgDate();
-        mBinding.epgDate.setText(mEpgDate.equals(today) ? getString(R.string.epg_today, mEpgDate) : mEpgDate);
     }
 
     private void fetch() {
@@ -1055,8 +1099,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void resetAdapter() {
-        mChannelAdapter.clear();
-        mEpgDataAdapter.clear();
+        mEpgProgramAdapter.clear();
+        mGroupTabAdapter.clear();
+        mChannelTabAdapter.clear();
         mHides.clear();
         mGroups.clear();
         mChannel = null;
@@ -1239,14 +1284,14 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         int position = mGroup.getPosition() - 1;
         boolean limit = position < 0;
         if (Setting.isAcross() & limit) prevGroup();
-        else mGroup.setPosition(limit ? mChannelAdapter.getItemCount() - 1 : position);
+        else mGroup.setPosition(limit ? mGroup.getChannel().size() - 1 : position);
         if (!mGroup.isEmpty()) onItemClick(mGroup.current());
     }
 
     private void nextChannel() {
         if (mGroup == null) return;
         int position = mGroup.getPosition() + 1;
-        boolean limit = position > mChannelAdapter.getItemCount() - 1;
+        boolean limit = position > mGroup.getChannel().size() - 1;
         if (Setting.isAcross() && limit) nextGroup();
         else mGroup.setPosition(limit ? 0 : position);
         if (!mGroup.isEmpty()) onItemClick(mGroup.current());
@@ -1580,7 +1625,7 @@ class TabPagerAdapter extends PagerAdapter {
         @NonNull
         @Override
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
-            View view = position == 0 ? mBinding.swipeLayout : mBinding.epgBox;
+            View view = position == 0 ? mBinding.swipeLayout : mBinding.channelBox;
             view.setVisibility(View.VISIBLE);
             if (view.getParent() != null) ((ViewGroup) view.getParent()).removeView(view);
             container.addView(view);
@@ -1594,7 +1639,7 @@ class TabPagerAdapter extends PagerAdapter {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return position == 0 ? getString(R.string.tab_play) : getString(R.string.tab_epg);
+            return position == 0 ? getString(R.string.tab_play) : getString(R.string.tab_channel);
         }
     }
 }

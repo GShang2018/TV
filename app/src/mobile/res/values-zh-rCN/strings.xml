@@ -70,6 +70,21 @@
     <string name="live_line_title">线路</string>
     <string name="live_epg_now">当前节目：%1$s %2$s</string>
     <string name="live_epg_next">下一节目：%1$s %2$s</string>
+    <string name="tab_channel">换台</string>
+    <string name="live_all_epg">全部节目</string>
+    <string name="live_epg_live">直播中</string>
+    <string name="live_epg_playing">正在播放</string>
+    <string name="live_epg_reserve">预约</string>
+    <string name="live_epg_ended">已结束</string>
+    <string name="live_epg_today_label">今天</string>
+    <string name="live_epg_dialog_title">节目单</string>
+    <string name="live_epg_reserve_toast">已发起日历提醒，请确认保存</string>
+    <string name="live_epg_reserve_fail">打开日历失败</string>
+    <string name="live_replay">回看</string>
+    <string name="live_reserved">已预约</string>
+    <string name="live_reminder_add">已预约，到点提醒</string>
+    <string name="live_reminder_cancel">已取消预约</string>
+    <string name="live_reminder">%1$s 即将播出</string>
 
     <!-- Vod -->
     <string name="vod_home">推荐</string>
