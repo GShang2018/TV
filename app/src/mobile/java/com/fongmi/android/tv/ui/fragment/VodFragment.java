@@ -16,7 +16,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.ViewPager;
 
@@ -144,8 +143,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                mBinding.type.smoothScrollToPosition(position);
-                mAdapter.setSelected(position);
+                // 标签选中态与滑动联动由 TabLayout 托管，这里仅维护悬浮按钮
                 setFabVisible(position);
             }
         });
@@ -167,10 +165,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void setRecyclerView() {
-        mBinding.type.setHasFixedSize(true);
-        mBinding.type.setItemAnimator(null);
-        mBinding.type.setAdapter(mAdapter = new TypeAdapter(this));
+        // 分类标签展示改由原生 TabLayout 承担（可横向滑动、指示器随页面联动）；
+        // TypeAdapter 保留为分类数据源（TypeDialog 弹窗等仍在使用）
+        mAdapter = new TypeAdapter(this);
         mBinding.pager.setAdapter(new PageAdapter(getChildFragmentManager()));
+        mBinding.type.setupWithViewPager(mBinding.pager);
     }
 
     private void setViewModel() {
@@ -340,11 +339,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void checkTypeOverflow() {
-        if (mAdapter == null || mBinding.type.getLayoutManager() == null) return;
-        LinearLayoutManager llm = (LinearLayoutManager) mBinding.type.getLayoutManager();
-        int last = llm.findLastCompletelyVisibleItemPosition();
-        int total = mAdapter.getItemCount() - 1;
-        boolean overflow = last < total;
+        // TabLayout 继承 HorizontalScrollView，可向左或向右滚动即说明标签溢出
+        boolean overflow = mBinding.type.getWidth() > 0 && (mBinding.type.canScrollHorizontally(1) || mBinding.type.canScrollHorizontally(-1));
         mBinding.typeMore.setVisibility(overflow ? View.VISIBLE : View.GONE);
     }
 
@@ -555,6 +551,12 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         @Override
         public int getCount() {
             return mAdapter.getItemCount();
+        }
+
+        // TabLayout 标签文本取自分类名，数据变化 notify 后标签自动重建
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mAdapter.get(position).getTypeName();
         }
 
         @Override

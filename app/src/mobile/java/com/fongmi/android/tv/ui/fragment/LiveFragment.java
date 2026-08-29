@@ -12,7 +12,6 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.PagerAdapter;
@@ -156,10 +155,11 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     private void setRecyclerView() {
         mAdapters = new SparseArray<>();
         mViews = new SparseArray<>();
-        // 分类条高度 wrap_content 且数据异步到达，不能设 HasFixedSize，否则 notifyDataSetChanged 不触发重测量导致首载不显示
-        mBinding.type.setItemAnimator(null);
-        mBinding.type.setAdapter(mGroupAdapter = new GroupTabAdapter(this));
+        // 分类标签展示改由原生 TabLayout 承担（可横向滑动、指示器随页面联动）；
+        // GroupTabAdapter 保留为分组数据源（GroupDialog 弹窗等仍在使用）
+        mGroupAdapter = new GroupTabAdapter(this);
         mBinding.pager.setAdapter(new ChannelPagerAdapter());
+        mBinding.type.setupWithViewPager(mBinding.pager);
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
@@ -273,11 +273,6 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mViews.clear();
         if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
         setPosition(LiveConfig.get().find(items));
-        // 数据可能在首帧布局过程中到达导致 requestLayout 被吞，post 到布局完成后重新 notify + requestLayout，确保 wrap_content 分类条显示
-        mBinding.type.post(() -> {
-            mGroupAdapter.notifyDataSetChanged();
-            mBinding.type.requestLayout();
-        });
         mBinding.typeLayout.post(this::checkTypeOverflow);
     }
 
@@ -294,8 +289,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     private void selectGroup(int position) {
         if (position < 0 || position >= mGroupAdapter.getItemCount()) return;
         mGroup = mGroupAdapter.get(position);
-        mGroupAdapter.setSelected(position);
-        mBinding.type.smoothScrollToPosition(position);
+        // 标签选中与滚动交由 TabLayout 托管，这里仅维护分组数据与频道列表选中态
         ChannelGridAdapter adapter = mAdapters.get(position);
         if (adapter != null && mGroup.getPosition() >= 0 && mGroup.getPosition() < mGroup.getChannel().size()) {
             adapter.setSelected(mGroup.getChannel().get(mGroup.getPosition()));
@@ -305,17 +299,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     private void checkTypeOverflow() {
-        if (mGroupAdapter == null || mBinding.type.getLayoutManager() == null) return;
-        if (mGroupAdapter.getItemCount() == 0) {
-            mBinding.typeMore.setVisibility(View.GONE);
-            return;
-        }
-        LinearLayoutManager llm = (LinearLayoutManager) mBinding.type.getLayoutManager();
-        int last = llm.findLastCompletelyVisibleItemPosition();
-        // 布局未完成时 findLastCompletelyVisibleItemPosition 可能返回 -1，避免误判为溢出
-        if (last < 0) return;
-        int total = mGroupAdapter.getItemCount() - 1;
-        boolean overflow = last < total;
+        // TabLayout 继承 HorizontalScrollView，可向左或向右滚动即说明标签溢出
+        boolean overflow = mBinding.type.getWidth() > 0 && (mBinding.type.canScrollHorizontally(1) || mBinding.type.canScrollHorizontally(-1));
         mBinding.typeMore.setVisibility(overflow ? View.VISIBLE : View.GONE);
     }
 
@@ -447,6 +432,12 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         @Override
         public int getCount() {
             return mGroupAdapter == null ? 0 : mGroupAdapter.getItemCount();
+        }
+
+        // TabLayout 标签文本取自分组名，数据变化 notify 后标签自动重建
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mGroupAdapter.get(position).getName();
         }
 
         @Override

@@ -21,8 +21,7 @@
             android:paddingStart="16dp"
             android:paddingTop="16dp"
             android:paddingEnd="16dp"
-            android:paddingBottom="4dp"
-            app:layout_scrollFlags="scroll|enterAlways">
+            android:paddingBottom="4dp">
 
             <LinearLayout
                 android:id="@+id/siteBox"
@@ -152,20 +151,24 @@
             android:paddingEnd="8dp"
             android:orientation="horizontal">
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.google.android.material.tabs.TabLayout
                 android:id="@+id/type"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:orientation="horizontal"
-                android:paddingStart="8dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="4dp"
-                android:paddingBottom="12dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/adapter_type" />
+                android:background="@color/transparent"
+                app:tabGravity="start"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabIndicatorFullWidth="false"
+                app:tabIndicatorHeight="3dp"
+                app:tabMinWidth="0dp"
+                app:tabMode="scrollable"
+                app:tabPaddingEnd="8dp"
+                app:tabPaddingStart="8dp"
+                app:tabRippleColor="@color/transparent"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabTextColor="#80FFFFFF" />
 
             <ImageView
                 android:id="@+id/typeMore"
