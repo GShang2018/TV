@@ -28,6 +28,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -117,7 +118,6 @@ import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.ImageDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
-import com.fongmi.android.tv.ui.dialog.KeepAddedDialog;
 import com.fongmi.android.tv.ui.dialog.KeepChooseDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SourceChooseDialog;
@@ -136,7 +136,9 @@ import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.permissionx.guolindev.PermissionX;
 
@@ -1129,13 +1131,37 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             RefreshEvent.keep();
             checkKeepImg();
         } else {
-            // 默认添加到默认收藏夹
+            // 默认添加到默认收藏夹，用 Snackbar 提示（左侧圆形对勾 + 已加入“默认收藏夹”），并提供“选择收藏夹”入口
             createKeep(0);
-            // 弹出底部小弹窗，3秒后自动消失
-            KeepAddedDialog.create()
-                    .folderName(getString(R.string.keep_folder_default))
-                    .listener(this::openChooseDialog)
-                    .show(this);
+            String msg = getString(R.string.keep_added_to, getString(R.string.keep_folder_default));
+            Snackbar snackbar = Snackbar.make(mBinding.getRoot(), msg, Snackbar.LENGTH_SHORT);
+            snackbar.setBackgroundTint(Color.BLACK);
+            snackbar.setTextColor(Color.WHITE);
+            snackbar.setActionTextColor(MaterialColors.getColor(mBinding.getRoot(), com.google.android.material.R.attr.colorPrimary));
+            snackbar.setAction(R.string.keep_choose_folder, v -> openChooseDialog());
+            // 左侧追加圆形对勾图标（与原 KeepAddedDialog 一致）
+            View root = snackbar.getView();
+            if (root instanceof ViewGroup) {
+                ViewGroup vg = (ViewGroup) root;
+                if (vg.getChildCount() > 0 && vg.getChildAt(0) instanceof ViewGroup) {
+                    ViewGroup content = (ViewGroup) vg.getChildAt(0);
+                    FrameLayout iconBox = new FrameLayout(this);
+                    int box = ResUtil.dp2px(20);
+                    LinearLayout.LayoutParams boxLp = new LinearLayout.LayoutParams(box, box);
+                    boxLp.gravity = Gravity.CENTER_VERTICAL;
+                    boxLp.setMarginEnd(ResUtil.dp2px(12));
+                    iconBox.setLayoutParams(boxLp);
+                    iconBox.setBackgroundResource(R.drawable.shape_keep_check_bg);
+                    ImageView check = new ImageView(this);
+                    FrameLayout.LayoutParams checkLp = new FrameLayout.LayoutParams(ResUtil.dp2px(14), ResUtil.dp2px(14));
+                    checkLp.gravity = Gravity.CENTER;
+                    check.setLayoutParams(checkLp);
+                    check.setImageResource(R.drawable.ic_check);
+                    iconBox.addView(check);
+                    content.addView(iconBox, 0);
+                }
+            }
+            snackbar.show();
         }
     }
 

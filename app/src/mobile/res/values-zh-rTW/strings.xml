@@ -24,6 +24,7 @@
     <string name="keep_sync">同步方式</string>
     <string name="keep_sync_lan">區域網路同步</string>
     <string name="keep_sync_webdav">WebDAV 雲端同步</string>
+    <string name="keep_added_to">已加入「%1$s」</string>
 
     <!-- WebDAV -->
     <string name="webdav_title">WebDAV 雲端同步</string>
