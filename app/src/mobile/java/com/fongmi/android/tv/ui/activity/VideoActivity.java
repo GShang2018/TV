@@ -2300,7 +2300,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             hideControl();
             hideSheet();
         } else {
-            mBinding.getRoot().setPadding(0, getStatusBarHeight(), 0, 0);
+            // 退出 PiP：全屏中保持沉浸式（padding 0），否则恢复状态栏 padding，避免全屏返回时顶部空出一条黑边
+            mBinding.getRoot().setPadding(0, isFullscreen() ? 0 : getStatusBarHeight(), 0, 0);
             showDanmu();
             App.post(mR0, 1000);
             setForeground(true);
@@ -2311,6 +2312,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        // 画中画小窗会触发窗口尺寸/方向变化（16:9 小窗被识别为横屏），
+        // 不应据此进入全屏或 recreate，否则退出小窗后布局错乱（如顶部空出一条黑边）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
         // 全屏状态下旋转：保持不重建，保住播放器与视频流，仅维持沉浸式
         if (isFullscreen()) {
             Util.hideSystemUI(this);

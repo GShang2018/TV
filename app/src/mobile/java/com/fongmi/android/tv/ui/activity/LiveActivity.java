@@ -282,6 +282,15 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setLayout() {
+        // 画中画小窗中保持视频铺满的布局：进入小窗会触发 onConfigurationChanged → setLayout，
+        // 若不拦截会重新显示 tab/频道列表，导致小窗内出现 tab 页
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) {
+            mBinding.getRoot().setPadding(0, 0, 0, 0);
+            setVideoFullscreen();
+            mShadow.setVisibility(View.GONE);
+            mBinding.content.setVisibility(View.GONE);
+            return;
+        }
         boolean land = ResUtil.isLand(this);
         if (isFullscreen()) {
             mBinding.getRoot().setPadding(0, 0, 0, 0);
@@ -696,8 +705,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void showDisplayInfo() {
+        // 小窗模式下隐藏时间/网速/标题等悬浮信息，保持小窗画面干净（与点播一致）
+        boolean pip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode();
         boolean controlVisible = isVisible(mBinding.control.getRoot()) || isVisible(mBinding.widget.info);
-        boolean visible = (!controlVisible && !isLock());
+        boolean visible = (!controlVisible && !isLock()) && !pip;
         mBinding.display.clock.setVisibility(Setting.isDisplayTime() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.duration.setVisibility(View.GONE);
@@ -1547,11 +1558,15 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             setForeground(true);
             if (isStop()) finish();
         }
+        // 小窗进入/退出均按画中画状态切换布局（进入铺满视频隐藏 tab，退出按全屏状态恢复）
+        setLayout();
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        // 画中画小窗的窗口尺寸/方向变化不处理（setLayout 内已有画中画守卫，双保险）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
         resizeVideo();
     }
 
