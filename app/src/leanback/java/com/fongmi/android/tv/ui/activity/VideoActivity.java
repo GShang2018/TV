@@ -653,7 +653,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         String score = item.getVodScore();
         if (!score.isEmpty()) {
             try {
-                mBinding.scoreStars.setRating(Float.parseFloat(score) / 2f);
+                mBinding.scoreStars.setScore(Float.parseFloat(score));
                 mBinding.score.setText(score);
                 mBinding.scoreLayout.setVisibility(View.VISIBLE);
             } catch (NumberFormatException e) {

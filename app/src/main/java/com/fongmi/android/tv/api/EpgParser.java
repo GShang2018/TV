@@ -92,6 +92,8 @@ public class EpgParser {
             epgData.setEndTime(endDate.getTime());
             epg.getList().add(epgData);
         }
+        // 去重：多个 channel id 映射同一频道名或节目表本身重复时，同一天节目会循环重复，按时间戳去重并排序
+        for (Map<String, Epg> days : epgMap.values()) for (Epg epg : days.values()) epg.dedupe();
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
                 Map<String, Epg> days = epgMap.get(channel.getTvgName());

@@ -108,9 +108,12 @@ public class LiveChannelAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 		}
 		holder.binding.name.setText(item.getName());
 		holder.binding.number.setVisibility(View.GONE);
+		// 删除模式下隐藏副标题、显示右上角删除图标，与点播收藏/历史页一致
+		holder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
+		holder.binding.delete.setVisibility(delete ? View.VISIBLE : View.GONE);
 		String remark = item.getGroup() == null ? "" : item.getGroup().getName();
 		holder.binding.remark.setText(remark);
-		holder.binding.remark.setVisibility(remark.isEmpty() ? View.GONE : View.VISIBLE);
+		if (remark.isEmpty()) holder.binding.remark.setVisibility(View.GONE);
 		ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.image);
 		setClickListener(holder.binding.getRoot(), item);
 	}
@@ -118,9 +121,11 @@ public class LiveChannelAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 	private void bindList(ListHolder holder, Channel item) {
 		holder.binding.name.setText(item.getName());
 		holder.binding.number.setVisibility(View.GONE);
+		holder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
+		holder.binding.delete.setVisibility(delete ? View.VISIBLE : View.GONE);
 		String remark = item.getGroup() == null ? "" : item.getGroup().getName();
 		holder.binding.remark.setText(remark);
-		holder.binding.remark.setVisibility(remark.isEmpty() ? View.GONE : View.VISIBLE);
+		if (remark.isEmpty()) holder.binding.remark.setVisibility(View.GONE);
 		ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.image);
 		setClickListener(holder.binding.getRoot(), item);
 	}

@@ -215,14 +215,10 @@
                                                 android:textColor="?attr/colorOnSurface"
                                                 android:textSize="13sp" />
 
-                                            <RatingBar
+                                            <com.fongmi.android.tv.ui.custom.ScoreStars
                                                 android:id="@+id/scoreStars"
-                                                style="?android:attr/ratingBarStyleSmall"
                                                 android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:isIndicator="true"
-                                                android:numStars="5"
-                                                android:stepSize="0.1" />
+                                                android:layout_height="wrap_content" />
 
                                             <TextView
                                                 android:id="@+id/otherScore"

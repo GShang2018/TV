@@ -816,7 +816,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         String score = item.getVodScore();
         if (!score.isEmpty()) {
             try {
-                mBinding.scoreStars.setRating(Float.parseFloat(score) / 2f);
+                mBinding.scoreStars.setScore(Float.parseFloat(score));
                 mBinding.otherScore.setText(score);
                 mBinding.scoreLayout.setVisibility(View.VISIBLE);
             } catch (NumberFormatException e) {
