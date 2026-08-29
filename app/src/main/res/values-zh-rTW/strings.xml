@@ -155,6 +155,7 @@
     <string name="player_exo_tunnel">隧道模式</string>
     <string name="player_exo_http">連線方式</string>
     <string name="player_rtsp">RTSP 通道</string>
+    <string name="player_unsupported">目前裝置不支援 MPV 核心</string>
     <string name="player_ua">User-Agent</string>
 
     <!-- Search -->
@@ -246,6 +247,7 @@
         <item>系統</item>
         <item>IJK</item>
         <item>EXO</item>
+        <item>MPV</item>
     </string-array>
 
     <string-array name="select_danmu_speed">

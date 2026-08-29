@@ -363,8 +363,15 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.action.speed.setText(mPlayers.getSpeedText());
         mBinding.control.action.player.setText(mPlayers.getPlayerText());
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
-        getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
-        getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        if (mPlayers.isMpv()) {
+            getExo().setPlayer(mPlayers.mpv());
+            getExo().setVisibility(View.VISIBLE);
+            getIjk().setVisibility(View.GONE);
+        } else {
+            getExo().setPlayer(mPlayers.exo());
+            getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
+            getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setDecodeView() {

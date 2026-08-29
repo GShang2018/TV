@@ -109,6 +109,10 @@ public class Track {
         return getPlayer() == player && (player == Players.IJK || player == Players.SYS);
     }
 
+    public boolean isMpv(int player) {
+        return getPlayer() == player && player == Players.MPV;
+    }
+
     public Track toggle() {
         setSelected(!isSelected());
         return this;

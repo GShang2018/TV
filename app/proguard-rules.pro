@@ -61,6 +61,10 @@
 # IJK
 -keep class tv.danmaku.ijk.media.player.** { *; }
 
+# MPV
+-keep class is.xyz.mpv.** { *; }
+-keep class androidx.media3.mpvplayer.** { *; }
+
 # Jianpian
 -keep class com.p2p.** { *; }
 

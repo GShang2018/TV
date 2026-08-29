@@ -541,8 +541,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         getIjk().setPlayer(mPlayers.getPlayer());
         mBinding.control.player.setText(mPlayers.getPlayerText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
-        getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
-        getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        if (mPlayers.isMpv()) {
+            getExo().setPlayer(mPlayers.mpv());
+            getExo().setVisibility(View.VISIBLE);
+            getIjk().setVisibility(View.GONE);
+        } else {
+            getExo().setPlayer(mPlayers.exo());
+            getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
+            getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        }
         mBinding.control.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
     }
 
@@ -1963,6 +1970,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Override
     public void onPlayerClick(Integer item) {
+        // MPV 不可用时提示并保持当前内核，避免"选 MPV 后播放失败再被动切回 EXO"
+        if (item == Players.MPV && !Players.isMpvAvailable()) {
+            Notify.show(R.string.player_unsupported);
+            return;
+        }
         mPlayers.setPlayer(item);
         setPlayerView();
         setDecodeView();

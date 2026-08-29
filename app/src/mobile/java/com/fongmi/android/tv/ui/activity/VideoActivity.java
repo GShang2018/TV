@@ -559,8 +559,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.action.player.setText(mPlayers.getPlayerText());
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
-        getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
-        getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        if (mPlayers.isMpv()) {
+            getExo().setPlayer(mPlayers.mpv());
+            getExo().setVisibility(View.VISIBLE);
+            getIjk().setVisibility(View.GONE);
+        } else {
+            getExo().setPlayer(mPlayers.exo());
+            getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
+            getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        }
         if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.updatePlayer();
     }
 
@@ -2241,6 +2248,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onPlayerClick(Integer item) {
+        // MPV 不可用时提示并保持当前内核，避免"选 MPV 后播放失败再被动切回 EXO"
+        if (item == Players.MPV && !Players.isMpvAvailable()) {
+            Notify.show(R.string.player_unsupported);
+            return;
+        }
         mPlayers.setPlayer(item);
         setPlayerView();
         setDecodeView();

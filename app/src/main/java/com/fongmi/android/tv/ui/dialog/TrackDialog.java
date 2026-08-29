@@ -132,7 +132,27 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         List<Track> items = new ArrayList<>();
         if (player.isExo()) addExoTrack(items);
         if (player.isIjk()) addIjkTrack(items);
+        if (player.isMpv()) addMpvTrack(items);
         return items;
+    }
+
+    private void addMpvTrack(List<Track> items) {
+        List<Tracks.Group> groups = player.mpv().getCurrentTracks().getGroups();
+        for (int i = 0; i < groups.size(); i++) {
+            Tracks.Group trackGroup = groups.get(i);
+            if (trackGroup.getType() != type) continue;
+            for (int j = 0; j < trackGroup.length; j++) {
+                String name = provider.getTrackName(trackGroup.getTrackFormat(j));
+                if (name.isEmpty()) continue;
+                Track item = new Track(type, name);
+                item.setAdaptive(trackGroup.isAdaptiveSupported());
+                item.setSelected(trackGroup.isTrackSelected(j));
+                item.setPlayer(player.getPlayer());
+                item.setGroup(i);
+                item.setTrack(j);
+                items.add(item);
+            }
+        }
     }
 
     private void addExoTrack(List<Track> items) {

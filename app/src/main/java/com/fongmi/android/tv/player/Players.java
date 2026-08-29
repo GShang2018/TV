@@ -22,9 +22,11 @@ import androidx.media3.common.C;
 import androidx.media3.common.Format;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.LoadControl;
 import androidx.media3.exoplayer.util.EventLogger;
+import androidx.media3.mpvplayer.MpvPlayer;
 import androidx.media3.ui.PlayerView;
 
 import com.fongmi.android.tv.App;
@@ -76,6 +78,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public static final int SYS = 0;
     public static final int IJK = 1;
     public static final int EXO = 2;
+    public static final int MPV = 3;
 
     public static final int SOFT = 0;
     public static final int HARD = 1;
@@ -90,6 +93,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private DanmakuView danmuView;
     private ExoPlayer exoPlayer;
     private PlayerView exoView;
+    private MpvPlayer mpvPlayer;
     private ParseJob parseJob;
     private List<Sub> subs;
     private String format;
@@ -112,9 +116,50 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private final Handler speedHandler = new Handler(Looper.getMainLooper());
     private long lastBufferLevelMs;
     private long lastSpeedCheckMs;
-    private int rebufferCount;
+    private long rebufferCount;
     private long rebufferTotalMs;
     private long rebufferStartMs;
+
+    /** MPV 内核状态转发：把 SimpleBasePlayer 的状态转换映射为 PlayerEvent / 媒体会话状态 */
+    private final Player.Listener mpvListener = new Player.Listener() {
+        private int lastState = Player.STATE_IDLE;
+        /** 本次播放是否真正进入过 READY，用于过滤"未就绪就结束"的误报 */
+        private boolean mpvEverReady;
+
+        @Override
+        public void onPlaybackStateChanged(int state) {
+            if (mpvPlayer == null || state == lastState) return;
+            lastState = state;
+            switch (state) {
+                case Player.STATE_READY:
+                    mpvEverReady = true;
+                    PlayerEvent.state(Player.STATE_READY);
+                    setPlaybackState(mpvPlayer.isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED);
+                    break;
+                case Player.STATE_BUFFERING:
+                    PlayerEvent.state(Player.STATE_BUFFERING);
+                    setPlaybackState(PlaybackStateCompat.STATE_BUFFERING);
+                    break;
+                case Player.STATE_ENDED:
+                    // 只有确实播放就绪过（READY）才触发"播放结束连播"逻辑，
+                    // 加载失败/从未就绪就 ENDED 的误报会导致 checkNext 弹"已经是最后一集"提示
+                    if (mpvEverReady) PlayerEvent.state(Player.STATE_ENDED);
+                    setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
+                    break;
+                case Player.STATE_IDLE:
+                    mpvEverReady = false;
+                    setPlaybackState(mpvPlayer.getPlayerError() != null ? PlaybackStateCompat.STATE_ERROR : PlaybackStateCompat.STATE_NONE);
+                    break;
+            }
+        }
+
+        @Override
+        public void onPlayerError(@NonNull PlaybackException error) {
+            // 输出 MPV 失败的具体原因（native 加载失败/渲染失败等），便于排查
+            Logger.t(TAG).e("mpv error code=" + error.errorCode + ", url=" + url + ", msg=" + error.getMessage());
+            ErrorEvent.url(ExoUtil.getRetry(error.errorCode), error.errorCode);
+        }
+    };
 
     public static Players create(Activity activity) {
         Players player = new Players(activity);
@@ -146,8 +191,18 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         return player == SYS || player == IJK;
     }
 
+    public boolean isMpv() {
+        return player == MPV;
+    }
+
+    /** 当前设备是否有可用的 MPV native 库（参照 MXboxS PlayerEngineFactory 的可用性检测） */
+    public static boolean isMpvAvailable() {
+        return MpvPlayer.isAvailable(App.get());
+    }
+
     private Players(Activity activity) {
         player = Setting.getPlayer();
+        if (player == MPV && !isMpvAvailable()) player = EXO;
         decode = Setting.getDecode(player);
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
@@ -169,8 +224,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         wasProxy = false;
         releaseExo();
         releaseIjk();
+        releaseMpv();
         initExo(exo);
         initIjk(ijk);
+        initMpv();
+    }
+
+    private void initMpv() {
+        mpvPlayer = new MpvPlayer(App.get());
+        mpvPlayer.addListener(mpvListener);
     }
 
     private void initExo(PlayerView view) {
@@ -213,6 +275,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         return ijkPlayer;
     }
 
+    public MpvPlayer mpv() {
+        return mpvPlayer;
+    }
+
     public MediaSessionCompat getSession() {
         return session;
     }
@@ -253,6 +319,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void setPlayer(int player) {
+        // 设备不支持 MPV 时回退 EXO（参照 MXboxS PlayerEngineFactory：MPV 不可用则用 EXO）
+        if (player == MPV && !isMpvAvailable()) player = EXO;
         if (this.player != player) reset();
         if (this.player != player) stop();
         this.player = player;
@@ -300,34 +368,42 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public int getVideoWidth() {
-        return isExo() ? exoPlayer.getVideoSize().width : ijkPlayer.getVideoWidth();
+        if (isExo()) return exoPlayer.getVideoSize().width;
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getVideoWidth();
+        return ijkPlayer.getVideoWidth();
     }
 
     public int getVideoHeight() {
-        return isExo() ? exoPlayer.getVideoSize().height : ijkPlayer.getVideoHeight();
+        if (isExo()) return exoPlayer.getVideoSize().height;
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getVideoHeight();
+        return ijkPlayer.getVideoHeight();
     }
 
     public float getSpeed() {
         if (isExo() && exoPlayer != null) return exoPlayer.getPlaybackParameters().speed;
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getSpeed();
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getPlaybackParameters().speed;
         return 1.0f;
     }
 
     public long getPosition() {
         if (isExo() && exoPlayer != null) return exoPlayer.getCurrentPosition();
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getCurrentPosition();
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getCurrentPosition();
         return 0;
     }
 
     public long getDuration() {
         if (isExo() && exoPlayer != null) return exoPlayer.getDuration();
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getDuration();
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getDuration();
         return -1;
     }
 
     public long getBuffered() {
         if (isExo() && exoPlayer != null) return exoPlayer.getBufferedPosition();
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getBufferedPosition();
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getBufferedPosition();
         return 0;
     }
 
@@ -336,22 +412,26 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public boolean canAdjustSpeed() {
-        return isIjk() || !Setting.isTunnel();
+        return isIjk() || isMpv() || !Setting.isTunnel();
     }
 
     public boolean haveTrack(int type) {
         if (isExo() && exoPlayer != null) return ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
         if (isIjk() && ijkPlayer != null) return ijkPlayer.haveTrack(type);
+        if (isMpv() && mpvPlayer != null) return ExoUtil.haveTrack(mpvPlayer.getCurrentTracks(), type);
         return false;
     }
 
     public boolean isPlaying() {
-        return isExo() ? exoPlayer != null && exoPlayer.isPlaying() : ijkPlayer != null && ijkPlayer.isPlaying();
+        if (isExo()) return exoPlayer != null && exoPlayer.isPlaying();
+        if (isIjk()) return ijkPlayer != null && ijkPlayer.isPlaying();
+        return mpvPlayer != null && mpvPlayer.isPlaying();
     }
 
     public boolean isEnd() {
         if (isExo() && exoPlayer != null) return exoPlayer.getPlaybackState() == Player.STATE_ENDED;
         if (isIjk() && ijkPlayer != null) return ijkPlayer.getPlaybackState() == IjkVideoView.STATE_ENDED;
+        if (isMpv() && mpvPlayer != null) return mpvPlayer.getPlaybackState() == Player.STATE_ENDED;
         return false;
     }
 
@@ -394,6 +474,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public String setSpeed(float speed) {
         if (exoPlayer != null && !Setting.isTunnel()) exoPlayer.setPlaybackSpeed(speed);
         if (ijkPlayer != null) ijkPlayer.setSpeed(speed);
+        if (mpvPlayer != null) mpvPlayer.setPlaybackSpeed(speed);
         return getSpeedText();
     }
 
@@ -423,7 +504,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void togglePlayer() {
-        setPlayer(isExo() ? SYS : ++player);
+        setPlayer(player >= MPV ? SYS : player + 1);
     }
 
     public void nextPlayer() {
@@ -456,6 +537,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (haveDanmu()) danmuView.seekTo(time);
         if (isExo() && exoPlayer != null) exoPlayer.seekTo(time);
         if (isIjk() && ijkPlayer != null) ijkPlayer.seekTo(time);
+        if (isMpv() && mpvPlayer != null) mpvPlayer.seekTo(time);
     }
 
     public void play() {
@@ -463,6 +545,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         session.setActive(true);
         if (isExo()) playExo();
         if (isIjk()) playIjk();
+        if (isMpv() && mpvPlayer != null) mpvPlayer.play();
         if (haveDanmu()) danmuView.resume();
         setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
     }
@@ -470,6 +553,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void pause() {
         if (isExo()) pauseExo();
         if (isIjk()) pauseIjk();
+        if (isMpv() && mpvPlayer != null) mpvPlayer.pause();
         if (haveDanmu()) danmuView.pause();
         setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
     }
@@ -478,6 +562,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (exoPlayer != null) recordAutoSession();
         if (isExo()) stopExo();
         if (isIjk()) stopIjk();
+        if (isMpv() && mpvPlayer != null) mpvPlayer.stop();
         session.setActive(false);
         if (haveDanmu()) danmuView.stop();
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
@@ -489,6 +574,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         session.release();
         if (isExo()) releaseExo();
         if (isIjk()) releaseIjk();
+        if (isMpv()) releaseMpv();
         if (haveDanmu()) danmuView.release();
         removeTimeoutCheck();
         ExoPerformanceSetting.setProxyMode(false);
@@ -605,6 +691,13 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         ijkPlayer = null;
     }
 
+    private void releaseMpv() {
+        if (mpvPlayer == null) return;
+        mpvPlayer.removeListener(mpvListener);
+        mpvPlayer.release();
+        mpvPlayer = null;
+    }
+
     /** 会话结束/切换媒体时，将本会话的缓冲表现上报给自适应策略 */
     @SuppressWarnings("deprecation")
     private void recordAutoSession() {
@@ -614,7 +707,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         Format format = exoPlayer.getVideoFormat();
         if (format != null) mediaBitrate = format.bitrate;
         // media3 1.3.1 的 ExoPlayer 无 getBandwidthEstimate()，带宽未知传 0（ratio 返回 0，仅依赖重缓冲统计）
-        ExoPerformanceSetting.recordAutoSession(rebufferCount, rebufferTotalMs, getPosition(), mediaBitrate, 0);
+        ExoPerformanceSetting.recordAutoSession((int) rebufferCount, rebufferTotalMs, getPosition(), mediaBitrate, 0);
         rebufferCount = 0;
         rebufferTotalMs = 0;
         rebufferStartMs = 0;
@@ -672,6 +765,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             ExoPerformanceSetting.beginAutoSession();
             exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         }
+        if (isMpv() && mpvPlayer != null) {
+            mpvPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position == C.TIME_UNSET ? 0 : position);
+            mpvPlayer.prepare();
+        }
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
         // 本地代理 (Thunder/BtEngine 磁力鏈接) 需要更長的超時時間等待緩衝
         if (timeout > 0 && isLocalProxyUrl(url)) {
@@ -697,6 +794,22 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private void setTrack(Track item) {
         if (item.isExo(player)) setTrackExo(item);
         if (item.isIjk(player)) setTrackIjk(item);
+        if (item.isMpv(player)) setTrackMpv(item);
+    }
+
+    private void setTrackMpv(Track item) {
+        if (mpvPlayer == null || item.getGroup() < 0) return;
+        List<Tracks.Group> groups = mpvPlayer.getCurrentTracks().getGroups();
+        if (item.getGroup() >= groups.size()) return;
+        Tracks.Group group = groups.get(item.getGroup());
+        if (item.getTrack() >= group.length) return;
+        Format format = group.getTrackFormat(item.getTrack());
+        String id = format.id == null ? null : format.id.substring(format.id.indexOf(':') + 1);
+        if (item.isSelected()) {
+            if (id != null) mpvPlayer.setTrackSelection(item.getType(), id);
+        } else if (item.getType() != C.TRACK_TYPE_VIDEO) {
+            mpvPlayer.setTrackSelection(item.getType(), "no");
+        }
     }
 
     private void setTrackExo(Track item) {
