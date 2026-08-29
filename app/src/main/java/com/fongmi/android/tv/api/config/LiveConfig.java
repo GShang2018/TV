@@ -281,11 +281,14 @@ public class LiveConfig {
     public void setKeep(List<Group> items) {
         List<String> key = new ArrayList<>();
         for (Keep keep : Keep.getLive()) key.add(keep.getKey());
+        Group keep = items.get(0);
+        // 已在收藏组的频道从待加入列表剔除，保证重复调用幂等（verify 每次加载都会重新同步）
+        for (Channel channel : keep.getChannel()) key.remove(channel.getName());
         for (Group group : items) {
             if (group.isKeep()) continue;
             for (Channel channel : group.getChannel()) {
                 if (key.contains(channel.getName())) {
-                    items.get(0).add(channel);
+                    keep.add(channel);
                 }
             }
         }

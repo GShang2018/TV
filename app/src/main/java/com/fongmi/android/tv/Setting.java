@@ -182,6 +182,22 @@ public class Setting {
 		Prefers.put("liveViewType", viewType);
 	}
 
+	public static int getLiveKeepViewType() {
+		return Prefers.getInt("liveKeepViewType", 3);
+	}
+
+	public static void putLiveKeepViewType(int viewType) {
+		Prefers.put("liveKeepViewType", viewType);
+	}
+
+	public static int getLiveHistoryViewType() {
+		return Prefers.getInt("liveHistoryViewType", 3);
+	}
+
+	public static void putLiveHistoryViewType(int viewType) {
+		Prefers.put("liveHistoryViewType", viewType);
+	}
+
 	public static int getCategoryViewType(String key, String typeId) {
 		return Prefers.getInt("categoryViewType_" + key + "_" + typeId, ViewType.CONFIG);
 	}

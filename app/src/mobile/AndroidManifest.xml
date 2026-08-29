@@ -134,6 +134,16 @@
             android:screenOrientation="fullUser" />
 
         <activity
+            android:name=".ui.activity.LiveKeepActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:screenOrientation="fullUser" />
+
+        <activity
+            android:name=".ui.activity.LiveHistoryActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:screenOrientation="fullUser" />
+
+        <activity
             android:name=".ui.activity.ScanActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout"
             android:screenOrientation="fullUser" />

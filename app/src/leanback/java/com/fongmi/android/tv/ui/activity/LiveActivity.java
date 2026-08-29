@@ -35,6 +35,7 @@ import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.LiveHistory;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.databinding.ActivityLiveBinding;
 import com.fongmi.android.tv.event.ActionEvent;
@@ -698,6 +699,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private void fetch() {
         if (mChannel == null) return;
         LiveConfig.get().setKeep(mChannel);
+        // 每次播放记录直播历史（按频道名去重，时间刷新到顶部）
+        LiveHistory.create(mChannel).save();
         mViewModel.getUrl(mChannel);
         mPlayers.clear();
         mPlayers.stop();

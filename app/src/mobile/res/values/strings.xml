@@ -66,6 +66,9 @@
     <string name="live_epg_none">No program info</string>
     <string name="epg_today">Today %1$s</string>
     <string name="live_source">Live Source</string>
+    <string name="live_keep">Live Favorites</string>
+    <string name="live_history">Live History</string>
+    <string name="live_channel_missing">Channel not found in current live source</string>
     <string name="live_group">Categories</string>
     <string name="live_line_title">Line</string>
     <string name="live_epg_now">Now: %1$s %2$s</string>

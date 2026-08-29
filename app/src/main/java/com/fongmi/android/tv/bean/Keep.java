@@ -135,6 +135,10 @@ public class Keep {
         AppDatabase.get().getKeepDao().delete();
     }
 
+    public static void deleteLiveAll() {
+        AppDatabase.get().getKeepDao().deleteLive();
+    }
+
     public static void delete(int cid) {
         AppDatabase.get().getKeepDao().delete(cid);
     }

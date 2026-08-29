@@ -66,6 +66,9 @@
     <string name="live_epg_none">暂无节目信息</string>
     <string name="epg_today">今天 %1$s</string>
     <string name="live_source">直播源</string>
+    <string name="live_keep">直播收藏</string>
+    <string name="live_history">直播历史</string>
+    <string name="live_channel_missing">当前直播源中不存在该频道</string>
     <string name="live_group">频道分类</string>
     <string name="live_line_title">线路</string>
     <string name="live_epg_now">当前节目：%1$s %2$s</string>

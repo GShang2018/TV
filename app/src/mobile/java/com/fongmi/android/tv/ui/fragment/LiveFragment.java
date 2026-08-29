@@ -34,6 +34,8 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.ui.activity.LiveActivity;
+import com.fongmi.android.tv.ui.activity.LiveHistoryActivity;
+import com.fongmi.android.tv.ui.activity.LiveKeepActivity;
 import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.adapter.ChannelGridAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupTabAdapter;
@@ -43,6 +45,7 @@ import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
 import com.fongmi.android.tv.ui.dialog.GroupDialog;
 import com.fongmi.android.tv.ui.dialog.LineSelectDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
+import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -95,10 +98,46 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     @Override
     protected void initEvent() {
         mBinding.logo.setOnClickListener(this::onLogo);
+        // 与点播一致：logo 长按刷新配置
+        mBinding.logo.setOnLongClickListener(this::onRefresh);
         mBinding.siteBox.setOnClickListener(this::onSite);
+        mBinding.keep.setOnClickListener(this::onKeep);
         mBinding.view.setOnClickListener(this::toggleView);
+        mBinding.history.setOnClickListener(this::onHistory);
         mBinding.typeMore.setOnClickListener(this::onTypeMore);
         mBinding.addSubscribe.setOnClickListener(v -> SubscriptionActivity.start(requireActivity(), 1, false));
+    }
+
+    // logo 长按刷新（与点播 onRefresh 一致）：清缓存后重新拉取直播配置，收藏组也会按数据库重建
+    private boolean onRefresh(View view) {
+        FileUtil.clearCache(new Callback() {
+            @Override
+            public void success() {
+                LiveConfig.get().init().load(new Callback() {
+                    @Override
+                    public void success() {
+                        RefreshEvent.live();
+                        Notify.show(R.string.config_refreshed);
+                    }
+
+                    @Override
+                    public void error(String msg) {
+                        Notify.show(msg);
+                    }
+                });
+            }
+        });
+        return true;
+    }
+
+    // 顶栏收藏按钮：进入直播收藏页（参考点播首页收藏入口）
+    private void onKeep(View view) {
+        LiveKeepActivity.start(getActivity());
+    }
+
+    // 顶栏历史按钮：进入直播历史页（参考点播首页历史入口）
+    private void onHistory(View view) {
+        LiveHistoryActivity.start(getActivity());
     }
 
     private void setSiteText() {

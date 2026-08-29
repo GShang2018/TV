@@ -80,11 +80,27 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    android:id="@+id/keep"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_action_keep" />
+
+                <ImageView
                     android:id="@+id/view"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:layout_marginEnd="12dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_action_view" />
+
+                <ImageView
+                    android:id="@+id/history"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_action_history" />
 
             </LinearLayout>
 

@@ -18,6 +18,7 @@ import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.KeepFolder;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.LiveHistory;
 import com.fongmi.android.tv.bean.Reminder;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Track;
@@ -28,6 +29,7 @@ import com.fongmi.android.tv.db.dao.HistoryDao;
 import com.fongmi.android.tv.db.dao.KeepDao;
 import com.fongmi.android.tv.db.dao.KeepFolderDao;
 import com.fongmi.android.tv.db.dao.LiveDao;
+import com.fongmi.android.tv.db.dao.LiveHistoryDao;
 import com.fongmi.android.tv.db.dao.ReminderDao;
 import com.fongmi.android.tv.db.dao.SiteDao;
 import com.fongmi.android.tv.db.dao.TrackDao;
@@ -40,10 +42,10 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-@Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class, Reminder.class}, version = AppDatabase.VERSION)
+@Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class, Reminder.class, LiveHistory.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 35;
+    public static final int VERSION = 36;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
     public static final String BACKUP_SUFFIX = "tv.backup";
@@ -131,6 +133,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_32_33)
                 .addMigrations(MIGRATION_33_34)
                 .addMigrations(MIGRATION_34_35)
+                .addMigrations(MIGRATION_35_36)
                 .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
@@ -153,6 +156,15 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract DownloadDao getDownloadDao();
 
     public abstract ReminderDao getReminderDao();
+
+    public abstract LiveHistoryDao getLiveHistoryDao();
+
+    static final Migration MIGRATION_35_36 = new Migration(35, 36) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `LiveHistory` (`channelName` TEXT NOT NULL, `groupName` TEXT, `logo` TEXT, `createTime` INTEGER NOT NULL, PRIMARY KEY(`channelName`))");
+        }
+    };
 
     static final Migration MIGRATION_34_35 = new Migration(34, 35) {
         @Override

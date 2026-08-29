@@ -203,8 +203,10 @@ public class LiveViewModel extends ViewModel {
     private void verify(Live item) {
         Iterator<Group> iterator = item.getGroups().iterator();
         while (iterator.hasNext()) if (iterator.next().isEmpty()) iterator.remove();
-        if (item.getGroups().isEmpty() || item.getGroups().get(0).isKeep()) return;
-        item.getGroups().add(0, Group.create(R.string.keep));
+        if (item.getGroups().isEmpty()) return;
+        // 收藏组不存在时注入；已存在（重复加载/源自带收藏组）时不重复注入，
+        // 但每次都重新同步收藏数据，避免收藏组内容与数据库脱节导致收藏后不显示
+        if (!item.getGroups().get(0).isKeep()) item.getGroups().add(0, Group.create(R.string.keep));
         LiveConfig.get().setKeep(item.getGroups());
     }
 
