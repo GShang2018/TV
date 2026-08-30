@@ -810,6 +810,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setText(mBinding.otherArea, R.string.detail_area, item.getVodArea());
         setText(mBinding.otherType, R.string.detail_type, item.getTypeName());
         setText(mBinding.otherTv, R.string.detail_tv, item.getVodTv());
+        setText(mBinding.otherAuthor, R.string.detail_author, item.getVodAuthor());
         setText(mBinding.otherSeries, R.string.detail_series, item.getVodClass());
         setText(mBinding.otherPubdate, R.string.detail_pubdate, item.getVodPubdate());
         setText(mBinding.otherDuration, R.string.detail_duration, item.getVodDuration());

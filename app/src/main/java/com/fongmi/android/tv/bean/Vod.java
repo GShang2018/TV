@@ -80,6 +80,10 @@ public class Vod implements Parcelable {
     @SerializedName("vod_duration")
     private String vodDuration;
 
+    @Element(name = "author", required = false)
+    @SerializedName("vod_author")
+    private String vodAuthor;
+
     @Element(name = "score", required = false)
     @SerializedName("vod_score")
     private String vodScore;
@@ -201,6 +205,10 @@ public class Vod implements Parcelable {
 
     public String getVodDuration() {
         return TextUtils.isEmpty(vodDuration) ? "" : vodDuration.trim();
+    }
+
+    public String getVodAuthor() {
+        return TextUtils.isEmpty(vodAuthor) ? "" : vodAuthor.trim();
     }
 
     public String getVodScore() {
@@ -357,6 +365,7 @@ public class Vod implements Parcelable {
         if (vodClass != null) this.vodClass = Trans.s2t(vodClass);
         if (vodPubdate != null) this.vodPubdate = Trans.s2t(vodPubdate);
         if (vodDuration != null) this.vodDuration = Trans.s2t(vodDuration);
+        if (vodAuthor != null) this.vodAuthor = Trans.s2t(vodAuthor);
         if (vodScore != null) this.vodScore = Trans.s2t(vodScore);
     }
 
@@ -404,6 +413,7 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodClass);
         dest.writeString(this.vodPubdate);
         dest.writeString(this.vodDuration);
+        dest.writeString(this.vodAuthor);
         dest.writeString(this.vodScore);
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
@@ -436,6 +446,7 @@ public class Vod implements Parcelable {
         this.vodClass = in.readString();
         this.vodPubdate = in.readString();
         this.vodDuration = in.readString();
+        this.vodAuthor = in.readString();
         this.vodScore = in.readString();
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();

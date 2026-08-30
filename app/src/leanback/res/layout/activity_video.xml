@@ -198,6 +198,15 @@
             tools:text="發行商：Netflix" />
 
         <TextView
+            android:id="@+id/author"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            tools:text="製作商：A24" />
+
+        <TextView
             android:id="@+id/duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -117,6 +117,7 @@
     <string name="dialog_delete_custom_site">Delete this custom site?</string>
     <string name="dialog_custom_site_searchable">Searchable</string>
     <string name="dialog_custom_site_quick_search">Quick Search</string>
+    <string name="filter">Filter</string>
     <string name="dialog_custom_site_filterable">Filterable</string>
     <string name="dialog_custom_site_style">Cover Style</string>
     <string name="dialog_custom_site_style_rect">Rect</string>

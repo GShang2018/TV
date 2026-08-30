@@ -20,6 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:elevation="6dp"
+            android:background="@color/poster_bg"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/Vod.Grid"
             tools:src="@drawable/ic_img_error" />

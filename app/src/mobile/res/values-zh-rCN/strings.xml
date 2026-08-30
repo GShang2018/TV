@@ -116,6 +116,7 @@
     <string name="dialog_delete_custom_site">确定删除该自定义站点？</string>
     <string name="dialog_custom_site_searchable">可搜索</string>
     <string name="dialog_custom_site_quick_search">快速搜索</string>
+    <string name="filter">筛选</string>
     <string name="dialog_custom_site_filterable">可筛选</string>
     <string name="dialog_custom_site_style">封面样式</string>
     <string name="dialog_custom_site_style_rect">矩形</string>

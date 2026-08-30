@@ -22,6 +22,7 @@ import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.FragmentTypeBinding;
+import com.fongmi.android.tv.impl.FilterCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.activity.DetailActivity;
@@ -36,7 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class TypeFragment extends BaseFragment implements CustomScroller.Callback, VodAdapter.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class TypeFragment extends BaseFragment implements CustomScroller.Callback, VodAdapter.OnClickListener, SwipeRefreshLayout.OnRefreshListener, FilterCallback {
 
     private HashMap<String, String> mExtends;
     private FragmentTypeBinding mBinding;

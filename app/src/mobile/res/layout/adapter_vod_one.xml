@@ -16,6 +16,7 @@
         android:layout_height="112dp"
         android:layout_marginEnd="12dp"
         android:elevation="6dp"
+        android:background="@color/poster_bg"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/Vod.Grid"
         tools:src="@drawable/ic_img_loading" />

@@ -17,6 +17,7 @@
     <string name="detail_year">年份：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_area">地区：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_type">类型：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_author">制作商：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_tv">发行商：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_series">系列：<xliff:g name="name">%s</xliff:g></string>
     <string name="detail_pubdate">上映时间：<xliff:g name="name">%s</xliff:g></string>

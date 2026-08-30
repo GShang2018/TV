@@ -647,6 +647,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
         setText(mBinding.type, R.string.detail_type, item.getTypeName());
         setText(mBinding.tv, R.string.detail_tv, item.getVodTv());
+        setText(mBinding.author, R.string.detail_author, item.getVodAuthor());
         setText(mBinding.series, R.string.detail_series, item.getVodClass());
         setText(mBinding.pubdate, R.string.detail_pubdate, item.getVodPubdate());
         setText(mBinding.duration, R.string.detail_duration, item.getVodDuration());
