@@ -10,8 +10,10 @@ import android.widget.TextView;
 
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Episode;
@@ -19,6 +21,7 @@ import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityDetailBinding;
 import com.fongmi.android.tv.db.AppDatabase;
@@ -26,21 +29,27 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
+import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.crawler.SpiderDebug;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener {
+public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, VodAdapter.OnClickListener {
 
     private ActivityDetailBinding mBinding;
     private EpisodeAdapter mEpisodeAdapter;
     private SiteViewModel mViewModel;
     private FlagAdapter mFlagAdapter;
+    private VodAdapter mRelAdapter;
+    private List<Vod> mRelItems;
     private History mHistory;
 
     public static void start(Activity activity, String key, String id, String name) {
@@ -126,11 +135,27 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         mBinding.episode.setHasFixedSize(true);
         mBinding.episode.setItemAnimator(null);
         mBinding.episode.setAdapter(mEpisodeAdapter = new EpisodeAdapter(this, ViewType.VERT));
+        mBinding.rel.setHasFixedSize(true);
+        mBinding.rel.setItemAnimator(null);
+        mBinding.rel.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.rel.setAdapter(mRelAdapter = new VodAdapter(this, Style.land(), getRelSpec(Style.land())));
+        mRelItems = new ArrayList<>();
+    }
+
+    @Override
+    public void onItemClick(Vod item) {
+        DetailActivity.start(this, getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+    }
+
+    @Override
+    public boolean onLongClick(Vod item) {
+        return false;
     }
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.result.observe(this, this::setDetail);
+        mViewModel.related.observe(this, this::setRelated);
         mViewModel.player.observe(this, new Observer<Result>() {
             @Override
             public void onChanged(Result result) {
@@ -172,6 +197,42 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         checkHistory(item);
         checkFlag(item);
         checkKeepImg();
+        setRelated(item);
+    }
+
+    private int[] getRelSpec(Style style) {
+        if (style.isList()) return new int[]{0, 0};
+        int width = ResUtil.dp2px(style.isLand() ? 150 : 105);
+        return new int[]{width, (int) (width / style.getRatio())};
+    }
+
+    private void setRelated(Vod item) {
+        mRelAdapter.clear();
+        mRelItems.clear();
+        mBinding.relLayout.setVisibility(View.GONE);
+        List<Vod> relVods = item.getRelVods();
+        if (!relVods.isEmpty()) {
+            setRelVods(relVods);
+            return;
+        }
+        SpiderDebug.log("rel_check:ids=" + item.getRelIds().size() + ",has=" + item.hasRel());
+        if (!item.hasRel()) return;
+        mViewModel.relatedContent(getKey(), item.getRelIds());
+    }
+
+    private void setRelVods(List<Vod> items) {
+        mRelItems = items;
+        mRelAdapter.addAll(items);
+        mBinding.relAll.setText(getString(R.string.detail_rel_all, items.size()));
+        mBinding.relAll.setOnClickListener(v -> RelActivity.start(this, getKey(), new ArrayList<>(items)));
+        mBinding.relLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void setRelated(Result result) {
+        List<Vod> items = new ArrayList<>();
+        for (Vod vod : result.getList()) if (!getId().equals(vod.getVodId())) items.add(vod);
+        if (items.isEmpty()) return;
+        setRelVods(items);
     }
 
     private void setText(TextView view, int resId, String text) {

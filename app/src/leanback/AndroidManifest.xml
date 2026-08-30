@@ -172,6 +172,12 @@
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme.Gallery" />
 
+        <activity
+            android:name=".ui.activity.RelActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme.Gallery" />
+
         <service
             android:name="com.android.cast.dlna.dmr.DLNARendererService"
             android:exported="false" />

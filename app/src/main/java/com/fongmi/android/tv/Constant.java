@@ -31,4 +31,6 @@ public class Constant {
     public static final int TIMEOUT_TRANSMIT = 60 * 1000;
     //搜尋線程數量
     public static final int THREAD_POOL = 10;
+    //相關推薦最大數量
+    public static final int REL_LIMIT = 20;
 }

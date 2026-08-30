@@ -8,6 +8,8 @@ import android.view.View;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.utils.Trans;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
@@ -93,6 +95,15 @@ public class Vod implements Parcelable {
 
     @SerializedName("vod_play_url")
     private String vodPlayUrl;
+
+    @Element(name = "rel", required = false)
+    private String relXml;
+
+    @SerializedName("vod_rel_vod")
+    private JsonElement vodRelVod;
+
+    @SerializedName("vod_rel_vod_list")
+    private List<Vod> vodRelVodList;
 
     @SerializedName("vod_tag")
     private String vodTag;
@@ -223,8 +234,57 @@ public class Vod implements Parcelable {
         return TextUtils.isEmpty(vodPlayUrl) ? "" : vodPlayUrl;
     }
 
+    public List<String> getRelIds() {
+        List<String> ids = new ArrayList<>();
+        if (vodRelVod != null) {
+            if (vodRelVod.isJsonArray()) {
+                for (JsonElement element : vodRelVod.getAsJsonArray()) {
+                    if (element.isJsonPrimitive()) addRelIds(ids, element.getAsString());
+                }
+            } else if (vodRelVod.isJsonPrimitive()) {
+                addRelIds(ids, vodRelVod.getAsString());
+            }
+        }
+        if (!TextUtils.isEmpty(relXml)) addRelIds(ids, relXml);
+        return ids;
+    }
+
+    private void addRelIds(List<String> ids, String raw) {
+        if (TextUtils.isEmpty(raw)) return;
+        for (String part : raw.split("[,，|;；]+")) {
+            String id = part.trim();
+            if (id.isEmpty() || "0".equals(id)) continue;
+            if (!id.contains("://")) {
+                int colon = id.indexOf(':');
+                if (colon > 0) id = id.substring(0, colon).trim();
+            }
+            if (id.isEmpty() || ids.contains(id)) continue;
+            ids.add(id);
+        }
+    }
+
+    public List<Vod> getRelVods() {
+        List<Vod> items = new ArrayList<>();
+        if (vodRelVodList == null) return items;
+        for (Vod vod : vodRelVodList) {
+            if (vod == null || vod.getVodId().isEmpty()) continue;
+            // 推荐列表条目默认按普通视频处理，源显式传入 tag（如 folder/manga）则保留覆盖
+            if (vod.getVodTag().isEmpty()) vod.setVodTag("file");
+            if (!items.contains(vod)) items.add(vod);
+        }
+        return items;
+    }
+
+    public boolean hasRel() {
+        return !getRelVods().isEmpty() || !getRelIds().isEmpty();
+    }
+
     public String getVodTag() {
         return TextUtils.isEmpty(vodTag) ? "" : vodTag;
+    }
+
+    public void setVodTag(String vodTag) {
+        this.vodTag = vodTag;
     }
 
     public String getVodPicThumb() {
@@ -417,6 +477,9 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodScore);
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
+        dest.writeString(this.relXml);
+        dest.writeString(this.vodRelVod == null ? null : this.vodRelVod.toString());
+        dest.writeTypedList(this.vodRelVodList);
         dest.writeString(this.vodTag);
         dest.writeString(this.vodPicThumb);
         dest.writeString(this.vodPicSlide);
@@ -450,6 +513,10 @@ public class Vod implements Parcelable {
         this.vodScore = in.readString();
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();
+        this.relXml = in.readString();
+        String rel = in.readString();
+        this.vodRelVod = rel == null ? null : JsonParser.parseString(rel);
+        this.vodRelVodList = in.createTypedArrayList(Vod.CREATOR);
         this.vodTag = in.readString();
         this.vodPicThumb = in.readString();
         this.vodPicSlide = in.readString();

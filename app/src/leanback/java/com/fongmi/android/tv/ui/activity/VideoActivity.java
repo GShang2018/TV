@@ -43,6 +43,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -55,6 +56,7 @@ import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Part;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
@@ -88,9 +90,10 @@ import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
 import com.fongmi.android.tv.ui.presenter.EpisodePresenter;
 import com.fongmi.android.tv.ui.presenter.FlagPresenter;
 import com.fongmi.android.tv.ui.presenter.GalleryPresenter;
-import com.fongmi.android.tv.ui.presenter.ParsePresenter;
 import com.fongmi.android.tv.ui.presenter.PartPresenter;
+import com.fongmi.android.tv.ui.presenter.ParsePresenter;
 import com.fongmi.android.tv.ui.presenter.QuickPresenter;
+import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -142,11 +145,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private ArrayObjectAdapter mQuickAdapter;
     private ArrayObjectAdapter mFlagAdapter;
     private ArrayObjectAdapter mPartAdapter;
+    private ArrayObjectAdapter mRelAdapter;
     private QualityAdapter mQualityAdapter;
     private ArrayObjectAdapter mGalleryAdapter;
     private PersonAdapter mDirectorAdapter;
     private PersonAdapter mActorAdapter;
     private GalleryPresenter mGalleryPresenter;
+    private VodPresenter mRelPresenter;
+    private List<Vod> mRelItems;
     private DanmakuContext mDanmakuContext;
     private ArrayPresenter mArrayPresenter;
     private FlagPresenter mFlagPresenter;
@@ -462,6 +468,19 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.gallery.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.gallery.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.gallery.setAdapter(new ItemBridgeAdapter(mGalleryAdapter = new ArrayObjectAdapter(mGalleryPresenter = new GalleryPresenter(url -> openGallery(mGalleryAdapter, url)))));
+        mBinding.rel.setHorizontalSpacing(ResUtil.dp2px(8));
+        mBinding.rel.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        mBinding.rel.setAdapter(new ItemBridgeAdapter(mRelAdapter = new ArrayObjectAdapter(mRelPresenter = new VodPresenter(new VodPresenter.OnClickListener() {
+            @Override
+            public void onItemClick(Vod item) {
+                setSearch(item);
+            }
+
+            @Override
+            public boolean onLongClick(Vod item) {
+                return false;
+            }
+        }, Style.rect()))));
         mBinding.directorList.setHasFixedSize(true);
         mBinding.directorList.setItemAnimator(null);
         mBinding.directorList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -522,6 +541,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.result.observe(this, this::setDetail);
+        mViewModel.related.observe(this, this::setRelated);
         mViewModel.player.observe(this, this::setPlayer);
         mViewModel.search.observe(this, this::setSearch);
     }
@@ -671,6 +691,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.requestFocus();
         setArtwork(item.getVodPic());
         getPart(item.getVodName());
+        setRel(item);
         App.removeCallbacks(mR4);
         checkHistory(item);
         checkFlag(item);
@@ -686,6 +707,38 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         } else {
             mBinding.gallery.setVisibility(View.GONE);
         }
+    }
+
+    private void setRel(Vod item) {
+        mRelAdapter.clear();
+        if (mRelItems != null) mRelItems.clear();
+        mBinding.relTitleLayout.setVisibility(View.GONE);
+        mBinding.rel.setVisibility(View.GONE);
+        List<Vod> relVods = item.getRelVods();
+        if (!relVods.isEmpty()) {
+            setRelVods(relVods);
+            return;
+        }
+        if (!item.hasRel()) return;
+        mViewModel.relatedContent(getKey(), item.getRelIds());
+    }
+
+    private void setRelVods(List<Vod> items) {
+        for (Vod vod : items) vod.setSite(getSite());
+        mRelItems = items;
+        mRelAdapter.addAll(0, items);
+        mBinding.relAll.setText(getString(R.string.detail_rel_all, items.size()));
+        mBinding.relAll.setOnClickListener(v -> RelActivity.start(this, getKey(), new ArrayList<>(items)));
+        mBinding.relTitleLayout.setVisibility(View.VISIBLE);
+        mBinding.rel.setVisibility(View.VISIBLE);
+        updateFocus();
+    }
+
+    private void setRelated(Result result) {
+        List<Vod> items = new ArrayList<>();
+        for (Vod vod : result.getList()) if (!getId().equals(vod.getVodId())) items.add(vod);
+        if (items.isEmpty()) return;
+        setRelVods(items);
     }
 
     private void showImage(String url) {
@@ -894,13 +947,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private int findFocusDown(int index) {
-        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick);
+        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.rel, R.id.quick);
         for (int i = 0; i < orders.size(); i++) if (i > index) if (isVisible(findViewById(orders.get(i)))) return orders.get(i);
         return 0;
     }
 
     private int findFocusUp(int index) {
-        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.quick);
+        List<Integer> orders = Arrays.asList(R.id.flag, R.id.quality, R.id.episodeHori, R.id.array, R.id.episodeVert, R.id.part, R.id.rel, R.id.quick);
         for (int i = orders.size() - 1; i >= 0; i--) if (i < index) if (isVisible(findViewById(orders.get(i)))) return orders.get(i);
         return 0;
     }
@@ -914,11 +967,17 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mFlagPresenter.setNextFocusDown(findFocusDown(0));
         mArrayPresenter.setNextFocusUp(findFocusUp(3));
         mPartPresenter.setNextFocusUp(findFocusUp(5));
+        mPartPresenter.setNextFocusDown(findFocusDown(5));
+        if (mRelPresenter != null) {
+            mRelPresenter.setNextFocusUp(findFocusUp(6));
+            mRelPresenter.setNextFocusDown(findFocusDown(6));
+        }
         notifyItemChanged(mBinding.flag, mFlagAdapter);
         notifyItemChanged(mBinding.quality, mQualityAdapter);
         notifyItemChanged(mBinding.array, mArrayAdapter);
         notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
         notifyItemChanged(mBinding.part, mPartAdapter);
+        if (mRelAdapter != null) notifyItemChanged(mBinding.rel, mRelAdapter);
     }
 
     private void showDisplayInfo() {

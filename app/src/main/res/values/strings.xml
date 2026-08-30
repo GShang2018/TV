@@ -36,6 +36,10 @@
     <string name="gallery_saved">Saved to gallery</string>
     <string name="gallery_save_fail">Save failed</string>
 
+    <!-- Related -->
+    <string name="detail_rel">Related</string>
+    <string name="detail_rel_all">All %d</string>
+
     <!-- Keep -->
     <string name="keep">Keep</string>
     <string name="keep_add">Added</string>

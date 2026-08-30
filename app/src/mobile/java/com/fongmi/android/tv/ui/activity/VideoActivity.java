@@ -67,6 +67,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -77,6 +78,7 @@ import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
@@ -106,6 +108,7 @@ import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.adapter.PersonAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
+import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
@@ -113,6 +116,8 @@ import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.ControlDialog;
+import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.crawler.SpiderDebug;
 import com.fongmi.android.tv.ui.dialog.DanmuDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
@@ -183,6 +188,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private SiteViewModel mViewModel;
     private FlagAdapter mFlagAdapter;
     private GalleryAdapter mGalleryAdapter;
+    private VodAdapter mRelAdapter;
+    private VodAdapter.OnClickListener mRelListener;
+    private List<Vod> mRelItems;
     private PersonAdapter mDirectorAdapter;
     private PersonAdapter mActorAdapter;
     private Vod mVod;
@@ -528,6 +536,23 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.gallery.setItemAnimator(null);
         mBinding.gallery.addItemDecoration(new SpaceItemDecoration(8));
         mBinding.gallery.setAdapter(mGalleryAdapter = new GalleryAdapter(position -> GalleryActivity.start(this, new ArrayList<>(mGalleryAdapter.getItems()), position)));
+        mBinding.rel.setHasFixedSize(true);
+        mBinding.rel.setItemAnimator(null);
+        mBinding.rel.addItemDecoration(new SpaceItemDecoration(8));
+        mBinding.rel.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mRelListener = new VodAdapter.OnClickListener() {
+            @Override
+            public void onItemClick(Vod item) {
+                DetailActivity.start(VideoActivity.this, getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+            }
+
+            @Override
+            public boolean onLongClick(Vod item) {
+                return false;
+            }
+        };
+        mBinding.rel.setAdapter(mRelAdapter = new VodAdapter(mRelListener, Style.land(), getRelSpec(Style.land())));
+        mRelItems = new ArrayList<>();
         mBinding.directorList.setHasFixedSize(true);
         mBinding.directorList.setItemAnimator(null);
         mBinding.directorList.addItemDecoration(new SpaceItemDecoration(8));
@@ -547,6 +572,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.directorList.setOnTouchListener(this::onHorizontalTouch);
         mBinding.actorList.setOnTouchListener(this::onHorizontalTouch);
         mBinding.gallery.setOnTouchListener(this::onHorizontalTouch);
+        mBinding.rel.setOnTouchListener(this::onHorizontalTouch);
     }
 
     private boolean onHorizontalTouch(View v, MotionEvent e) {
@@ -654,6 +680,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.result.observeForever(mObserveDetail);
+        mViewModel.related.observeForever(this::setRelated);
         mViewModel.player.observeForever(mObservePlayer);
         mViewModel.search.observeForever(mObserveSearch);
         mViewModel.download.observeForever(mObserveDownload);
@@ -736,6 +763,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setPosterOutline();
         setPersons(item);
         setGallery(item);
+        setRel(item);
         setArtwork(item.getVodPic());
         App.removeCallbacks(mR4);
         checkHistory(item);
@@ -888,6 +916,41 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             mBinding.galleryAll.setOnClickListener(v -> GalleryGridActivity.start(this, urls));
             mGalleryAdapter.addAll(items);
         }
+    }
+
+    private int[] getRelSpec(Style style) {
+        if (style.isList()) return new int[]{0, 0};
+        int width = ResUtil.dp2px(style.isLand() ? 150 : 105);
+        return new int[]{width, (int) (width / style.getRatio())};
+    }
+
+    private void setRel(Vod item) {
+        mRelAdapter.clear();
+        mRelItems.clear();
+        mBinding.relLayout.setVisibility(View.GONE);
+        List<Vod> relVods = item.getRelVods();
+        if (!relVods.isEmpty()) {
+            setRelVods(relVods);
+            return;
+        }
+        SpiderDebug.log("rel_check:ids=" + item.getRelIds().size() + ",has=" + item.hasRel());
+        if (!item.hasRel()) return;
+        mViewModel.relatedContent(getKey(), item.getRelIds());
+    }
+
+    private void setRelVods(List<Vod> items) {
+        mRelItems = items;
+        mRelAdapter.addAll(items);
+        mBinding.relAll.setText(getString(R.string.detail_rel_all, items.size()));
+        mBinding.relAll.setOnClickListener(v -> RelActivity.start(this, getKey(), new ArrayList<>(items)));
+        mBinding.relLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void setRelated(Result result) {
+        List<Vod> items = new ArrayList<>();
+        for (Vod vod : result.getList()) if (!getId().equals(vod.getVodId())) items.add(vod);
+        if (items.isEmpty()) return;
+        setRelVods(items);
     }
 
     private void showPoster() {

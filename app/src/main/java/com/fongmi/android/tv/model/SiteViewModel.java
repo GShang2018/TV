@@ -32,10 +32,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.Call;
 import okhttp3.Response;
@@ -45,6 +48,7 @@ public class SiteViewModel extends ViewModel {
     public MutableLiveData<Episode> ep;
     public MutableLiveData<Episode> episode;
     public MutableLiveData<Result> result;
+    public MutableLiveData<Result> related;
     public MutableLiveData<Result> player;
     public MutableLiveData<Result> search;
     public MutableLiveData<Result> action;
@@ -56,6 +60,7 @@ public class SiteViewModel extends ViewModel {
         this.ep = new MutableLiveData<>();
         this.episode = new MutableLiveData<>();
         this.result = new MutableLiveData<>();
+        this.related = new MutableLiveData<>();
         this.player = new MutableLiveData<>();
         this.search = new MutableLiveData<>();
         this.action = new MutableLiveData<>();
@@ -151,6 +156,56 @@ public class SiteViewModel extends ViewModel {
                 if (!result.getList().isEmpty()) Source.get().parse(result.getList().get(0).getVodFlags());
                 return result;
             }
+        });
+    }
+
+    public void relatedContent(String key, List<String> ids) {
+        execute(related, () -> {
+            Site site = VodConfig.get().getSite(key);
+            Result result = new Result();
+            result.setList(new ArrayList<>());
+            if (site.getType() == 3) {
+                // 部分爬虫源的 detailContent 一次只处理一个 id，逐 id 并发查询，失败单条跳过
+                Spider spider = site.recent().spider();
+                int limit = Math.min(ids.size(), Constant.REL_LIMIT);
+                AtomicInteger counter = new AtomicInteger();
+                ExecutorService pool = Executors.newFixedThreadPool(Math.min(4, limit));
+                List<Callable<Result>> tasks = new ArrayList<>();
+                for (int i = 0; i < limit; i++) {
+                    String id = ids.get(i);
+                    tasks.add(() -> {
+                        try {
+                            SpiderDebug.log("rel_fetch:" + counter.incrementAndGet() + "/" + limit);
+                            return Result.fromJson(spider.detailContent(Arrays.asList(id)));
+                        } catch (Throwable e) {
+                            SpiderDebug.log("rel_fetch_error:" + counter.get());
+                            return Result.empty();
+                        }
+                    });
+                }
+                for (Future<Result> future : pool.invokeAll(tasks, 12, TimeUnit.SECONDS)) {
+                    Result part;
+                    try {
+                        part = future.get();
+                    } catch (Exception e) {
+                        continue;
+                    }
+                    for (Vod vod : part.getList()) {
+                        if (!result.getList().contains(vod)) result.getList().add(vod);
+                    }
+                }
+                pool.shutdown();
+                SpiderDebug.log("rel_fetch_done,total=" + result.getList().size());
+            } else {
+                ArrayMap<String, String> params = new ArrayMap<>();
+                params.put("ac", site.getType() == 0 ? "videolist" : "detail");
+                params.put("ids", TextUtils.join(",", ids));
+                String relatedContent = call(site, params, true);
+                SpiderDebug.log(relatedContent);
+                result = Result.fromType(site.getType(), relatedContent);
+            }
+            for (Vod vod : result.getList()) vod.setSite(site);
+            return result;
         });
     }
 

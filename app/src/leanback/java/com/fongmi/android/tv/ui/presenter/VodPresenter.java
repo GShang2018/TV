@@ -22,6 +22,8 @@ public class VodPresenter extends Presenter {
     private final OnClickListener mListener;
     private final Style style;
     private final int[] size;
+    private int nextFocusUp;
+    private int nextFocusDown;
 
     public VodPresenter(OnClickListener listener) {
         this(listener, Style.land());
@@ -31,6 +33,14 @@ public class VodPresenter extends Presenter {
         this.mListener = listener;
         this.style = style;
         this.size = Product.getSpec(style);
+    }
+
+    public void setNextFocusUp(int nextFocusUp) {
+        this.nextFocusUp = nextFocusUp;
+    }
+
+    public void setNextFocusDown(int nextFocusDown) {
+        this.nextFocusDown = nextFocusDown;
     }
 
     public interface OnClickListener {
@@ -57,6 +67,8 @@ public class VodPresenter extends Presenter {
         BaseVodHolder holder = (BaseVodHolder) viewHolder;
         holder.setSize(size);
         holder.initView((Vod) object);
+        holder.view.setNextFocusUpId(nextFocusUp);
+        holder.view.setNextFocusDownId(nextFocusDown);
     }
 
     @Override

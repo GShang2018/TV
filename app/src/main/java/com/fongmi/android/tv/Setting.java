@@ -174,6 +174,14 @@ public class Setting {
 		Prefers.put("collectViewType", viewType);
 	}
 
+	public static int getRelViewType() {
+		return Prefers.getInt("relViewType", ViewType.CONFIG);
+	}
+
+	public static void putRelViewType(int viewType) {
+		Prefers.put("relViewType", viewType);
+	}
+
 	public static int getLiveViewType() {
 		return Prefers.getInt("liveViewType", ViewType.GRID);
 	}
