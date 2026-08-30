@@ -18,6 +18,13 @@ import java.util.concurrent.Executors;
 
 public class DebugLogStore {
 
+    // 日志等级：D=调试 I=信息 W=警告 E=错误
+    public static final int D = 1;
+    public static final int I = 2;
+    public static final int W = 3;
+    public static final int E = 4;
+
+    private static final String[] LEVELS = {"", "D", "I", "W", "E"};
     private static final Object LOCK = new Object();
     private static final ArrayDeque<String> LINES = new ArrayDeque<>();
     private static final ThreadLocal<SimpleDateFormat> FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US));
@@ -42,9 +49,14 @@ public class DebugLogStore {
     }
 
     public static void add(String tag, String msg) {
+        add(D, tag, msg);
+    }
+
+    public static void add(int level, String tag, String msg) {
         if (!isEnabled()) return;
         if (TextUtils.isEmpty(msg)) return;
-        String line = FORMAT.get().format(new Date()) + " [" + Thread.currentThread().getName() + "] " + safe(tag) + ": " + limit(msg);
+        int lv = level < D || level > E ? D : level;
+        String line = "[" + LEVELS[lv] + "] " + FORMAT.get().format(new Date()) + " [" + Thread.currentThread().getName() + "] " + safe(tag) + ": " + limit(msg);
         synchronized (LOCK) {
             LINES.addLast(line);
             if (LINES.size() > MAX_LINES) LINES.removeFirst();

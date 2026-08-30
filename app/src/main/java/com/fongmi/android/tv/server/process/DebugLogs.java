@@ -12,6 +12,14 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
 
+/**
+ * 调试日志网页：终端式日志流。
+ * 端点：
+ *  - /debug/logs      页面
+ *  - /debug/stream    轮询 JSON（version 不变返回 text:null）
+ *  - /debug/logs.txt  下载完整日志（UTF-8 BOM）
+ *  - /debug/clear     清空后跳回页面
+ */
 public class DebugLogs implements Process {
 
     @Override
@@ -31,8 +39,7 @@ public class DebugLogs implements Process {
     }
 
     private Response page() {
-        Response response = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", html());
-        return noCache(response, null);
+        return noCache(NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", html()), null);
     }
 
     private Response download() {
@@ -53,8 +60,7 @@ public class DebugLogs implements Process {
         boolean unchanged = version == paramLong(session, "v", -1);
         String text = unchanged ? null : DebugLogStore.text();
         String json = "{\"size\":" + DebugLogStore.size() + ",\"bytes\":" + DebugLogStore.bytes() + ",\"version\":" + version + ",\"text\":" + (unchanged ? "null" : "\"" + json(text) + "\"") + "}";
-        Response response = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "application/json; charset=utf-8", json);
-        return noCache(response, null);
+        return noCache(NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "application/json; charset=utf-8", json), null);
     }
 
     private long paramLong(IHTTPSession session, String key, long fallback) {
@@ -73,64 +79,63 @@ public class DebugLogs implements Process {
     }
 
     private String html() {
-        String logs = escape(DebugLogStore.text());
-        String localUrl = "http://127.0.0.1:" + com.github.catvod.Proxy.getPort() + "/debug/logs";
-        return "<!doctype html>"
-                + "<html><head><meta charset=\"utf-8\">"
-                + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">"
-                + "<title>\u8c03\u8bd5\u65e5\u5fd7</title>"
-                + "<style>" + css() + "</style></head><body>"
-                + "<div class=\"header\"><section class=\"topbar\"><h1>\u8c03\u8bd5\u65e5\u5fd7</h1><a href=\"/debug/logs\">\u5237\u65b0</a><a id=\"download\" href=\"/debug/logs.txt\" download=\"tv-debug-log.txt\">\u4e0b\u8f7d</a><a href=\"/debug/clear\">\u6e05\u7a7a</a><span id=\"meta\" class=\"meta\">" + DebugLogStore.size() + " \u884c \u00b7 " + DebugLogStore.bytes() / 1024 + " KB</span></section>"
-                + "<section class=\"tools\"><div class=\"chips\"><button class=\"chip on\" data-mode=\"all\">\u5168\u90e8</button><button class=\"chip\" data-mode=\"error\">\u9519\u8bef</button><button class=\"chip\" data-mode=\"quickjs\">QuickJS</button><button class=\"chip\" data-mode=\"py_spider\">Python</button><button class=\"chip\" data-mode=\"okhttp\">\u7f51\u7edc</button><button class=\"chip\" data-mode=\"server\">\u670d\u52a1</button><button class=\"chip\" data-mode=\"SpiderDebug\">\u722c\u866b</button><button class=\"chip\" data-mode=\"execute_error\">\u5f02\u5e38</button></div>"
-                + "<div class=\"search\"><input id=\"filter\" placeholder=\"\u8fc7\u6ee4\u5173\u952e\u8bcd...\"><button id=\"pause\">\u6682\u505c</button></div><div id=\"summary\" class=\"summary\"></div></section></div>"
-                + "<main><div id=\"logs\" class=\"logs\"></div><pre id=\"raw\" class=\"fallback\">" + logs + "</pre></main>"
-                + "<script>" + script() + "</script>"
-                + "</body></html>";
+        return "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">"
+                + "<title>调试日志</title><style>" + css() + "</style></head><body>"
+                + "<header><div class=\"wrap\">"
+                + "<div class=\"bar\"><h1>调试日志</h1><span id=\"meta\" class=\"meta\"></span></div>"
+                + "<div class=\"row\"><div id=\"levels\" class=\"levels\"></div></div>"
+                + "<div class=\"row\"><input id=\"q\" placeholder=\"检索关键词...\" autocomplete=\"off\" spellcheck=\"false\">"
+                + "<button id=\"pause\">暂停</button><button id=\"copy\">复制筛选</button>"
+                + "<a class=\"btn\" href=\"/debug/logs.txt\" download=\"tv-debug-log.txt\">导出</a>"
+                + "<a class=\"btn danger\" href=\"/debug/clear\">清空</a></div>"
+                + "</div></header>"
+                + "<main id=\"out\" class=\"wrap\"></main>"
+                + "<script>" + script() + "</script></body></html>";
     }
 
     private String css() {
-        return "html,body{box-sizing:border-box;width:100%;max-width:100%;margin:0;background:#f4f6f8;color:#1f2328;font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}*,*:before,*:after{box-sizing:inherit;min-width:0}html,body{height:100%;overflow:hidden}body{display:flex;flex-direction:column}"
-                + ".topbar{box-sizing:border-box;display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;max-width:100%;overflow:hidden;margin:0;padding:8px 8px 0;background:#f4f6f8}"
-                + "h1{margin:0 10px 0 0;font-size:17px;font-weight:650;white-space:nowrap}.meta{margin-left:auto;color:#656d76;font-size:12px;white-space:nowrap}"
-                + "a,button{appearance:none;border:1px solid #d0d7de;border-radius:7px;background:#fff;color:#24292f;padding:6px 9px;text-decoration:none;font:inherit;cursor:pointer;white-space:nowrap}button.on,.chip.on{background:#0969da;border-color:#0969da;color:#fff}a:active,button:active{background:#eaeef2}"
-                + ".header{box-sizing:border-box;flex:0 0 auto;width:100%;max-width:1280px;margin:0 auto;padding:0 8px;z-index:10}.header .topbar{border-radius:8px 8px 0 0;border:1px solid #d8dee4;border-bottom:none;box-shadow:0 2px 10px rgba(31,35,40,.04)}"
-                + ".tools{box-sizing:border-box;width:100%;max-width:100%;overflow:hidden;margin:0;padding:8px;background:#fff;border:1px solid #d8dee4;border-top:none;border-radius:0 0 8px 8px;box-shadow:0 2px 10px rgba(31,35,40,.04)}.chips{display:flex;flex-wrap:wrap;gap:6px;overflow:hidden;padding-bottom:2px}.chip{flex:0 0 auto}.search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;margin-top:6px}input{box-sizing:border-box;width:100%;min-width:0;border:1px solid #d0d7de;border-radius:7px;padding:7px 9px;font:inherit}.summary{margin-top:6px;color:#57606a;font-size:12px;white-space:normal;overflow-wrap:anywhere;word-break:break-all}"
-                + "main{box-sizing:border-box;flex:1 1 auto;width:100%;max-width:1280px;margin:0 auto;padding:8px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}"
-                + ".logs{box-sizing:border-box;display:grid;gap:8px;width:100%;max-width:100%;min-width:0}.fallback{box-sizing:border-box;max-width:100%;margin:0;background:#fff;border:1px solid #d8dee4;border-radius:8px;padding:10px;color:#57606a;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}.entry{box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;background:#fff;border:1px solid #d8dee4;border-radius:8px;padding:9px 10px}.entry.ok{border-left:4px solid #1a7f37}.entry.warn{border-left:4px solid #bf8700}.entry.err{border-left:4px solid #cf222e}.entry.raw{border-left:4px solid #8c959f}.top{display:flex;gap:8px;align-items:center;max-width:100%;min-width:0;overflow:hidden}.badge{flex:0 0 auto;border-radius:999px;padding:2px 7px;background:#eaeef2;color:#57606a;font-size:12px}.entry.ok .badge{background:#dafbe1;color:#116329}.entry.err .badge{background:#ffebe9;color:#cf222e}.title{min-width:0;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.time{margin-left:auto;color:#8c959f;font-size:12px;white-space:nowrap}.detail{box-sizing:border-box;max-width:100%;min-width:0;overflow:hidden;margin-top:5px;color:#57606a;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}.rawline{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden;margin-top:6px;padding-top:6px;border-top:1px dashed #d8dee4;color:#6e7781;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}"
-                + "@media(max-width:680px){.topbar{padding:7px 8px 0}h1{font-size:16px}.meta{flex-basis:100%;margin-left:0}.search{grid-template-columns:minmax(0,1fr) auto}.title{white-space:normal}.time{display:none}.entry{padding:8px}.detail{font-size:13px}}";
+        return "html,body{box-sizing:border-box;width:100%;max-width:100%;margin:0;background:#0d1117;color:#c9d1d9;font:14px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}*,*:before,*:after{box-sizing:inherit}html,body{height:100%;overflow:hidden}body{display:flex;flex-direction:column}"
+                + ".wrap{box-sizing:border-box;width:100%;max-width:1280px;margin:0 auto}"
+                + "header{box-sizing:border-box;flex:0 0 auto;width:100%;max-width:100%;background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px}"
+                + ".bar{display:flex;align-items:center;gap:8px}h1{margin:0 10px 0 0;font-size:16px;font-weight:650;white-space:nowrap}.meta{margin-left:auto;color:#8b949e;font-size:12px;white-space:nowrap}"
+                + ".row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.row:first-child{margin-top:0}.levels{display:flex;flex-wrap:wrap;gap:6px}"
+                + "button,.btn{appearance:none;border:1px solid #30363d;border-radius:6px;background:#21262d;color:#c9d1d9;padding:5px 10px;text-decoration:none;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}button.on{background:#1f6feb;border-color:#1f6feb;color:#fff}button i{font-style:normal;color:#8b949e;font-size:11px}button.on i{color:#cfe3ff}.btn.danger{color:#f85149}"
+                + "input{flex:1 1 200px;min-width:120px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:6px 10px;font:inherit;font-size:13px;outline:none}input:focus{border-color:#1f6feb}"
+                + "main{box-sizing:border-box;flex:1 1 auto;width:100%;max-width:100%;overflow-y:auto;overflow-x:hidden;padding:8px 14px 40px;-webkit-overflow-scrolling:touch}"
+                + ".e{box-sizing:border-box;display:flex;gap:8px;align-items:baseline;width:100%;min-width:0;padding:1px 10px;border-left:3px solid #30363d;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}.e:hover{background:#161b22}"
+                + ".e .l{flex:0 0 auto;font-weight:700}.e .b{flex:1 1 auto;min-width:0}.e .t,.e .h{color:#6e7681}"
+                + ".e.D .l{color:#8b949e}.e.D{border-color:#484f58}.e.I .l{color:#58a6ff}.e.I{border-color:#1f6feb}.e.W .l{color:#d29922}.e.W{border-color:#9e6a03;background:rgba(210,153,34,.06)}.e.E .l{color:#f85149}.e.E{border-color:#da3633;background:rgba(248,81,73,.08)}"
+                + "mark{background:#d29922;color:#0d1117;padding:0 1px;border-radius:2px}"
+                + ".empty{padding:30px;text-align:center;color:#6e7681}"
+                + "@media(max-width:680px){header{padding:8px 10px}.e{padding:1px 6px;font-size:12px}.meta{display:none}}";
     }
 
     private String script() {
-        return "const rawEl=document.getElementById('raw'),logs=document.getElementById('logs'),meta=document.getElementById('meta'),summary=document.getElementById('summary'),filter=document.getElementById('filter'),pause=document.getElementById('pause'),download=document.getElementById('download');"
-                + "let raw=rawEl.textContent,mode='all',paused=false,stick=true,lastVersion=0;"
-                + "addEventListener('scroll',()=>{stick=(innerHeight+scrollY)>=(document.body.scrollHeight-80)},{passive:true});"
-                + "document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');mode=b.dataset.mode;render()});"
-                + "filter.oninput=render;"
-                + "pause.onclick=()=>{paused=!paused;pause.textContent=paused?'\u7ee7\u7eed':'\u6682\u505c';pause.classList.toggle('on',paused)};"
-                + "download.onclick=()=>{paused=true;pause.textContent='\u7ee7\u7eed';pause.classList.add('on')};"
-                + "function esc(s){return String(s||'').replace(/[&<>\"']/g,c=>({'&':'\u0026amp;','<':'\u0026lt;','>':'\u0026gt;','\"':'\u0026quot;',\"'\":'\u0026#39;'}[c]))}"
-                + "function parse(line){const a=line.indexOf(' ['),b=line.indexOf('] ',a+2),c=line.indexOf(': ',b+2);return{line,time:a>0?line.slice(0,a):'',thread:a>0&&b>0?line.slice(a+2,b):'',tag:b>0&&c>0?line.slice(b+2,c):'',msg:c>0?line.slice(c+2):line}}"
-                + "function explain(r){const low=(r.tag+': '+r.msg).toLowerCase();let e={kind:'raw',state:'raw',badge:r.tag||'\u65e5\u5fd7',title:r.tag?'\u65e5\u5fd7: '+r.tag:'\u539f\u59cb\u65e5\u5fd7',detail:r.msg||r.line,raw:r.line,time:r.time};"
-                + "if(low.includes('error')||low.includes('exception')||low.includes('failed')||low.includes('timeout')||low.includes('unable')||low.includes('refused')){e.kind='error';e.state='err';e.badge='\u9519\u8bef';e.title='\u53d1\u73b0\u9519\u8bef\u6216\u5f02\u5e38';return e}"
-                + "if(r.tag==='quickjs'){e.kind='quickjs';e.state=r.msg.includes('[error]')?'err':r.msg.includes('[warn]')?'warn':'ok';e.badge='QuickJS';e.title='JS \u5f15\u64ce\u65e5\u5fd7';e.detail=r.msg;return e}"
-                + "if(r.tag==='py_spider'){e.kind='py_spider';e.state='ok';e.badge='Python';e.title='Python \u722c\u866b\u65e5\u5fd7';e.detail=r.msg;return e}"
-                + "if(r.tag==='okhttp'){e.kind='okhttp';e.state='err';e.badge='\u7f51\u7edc';e.title='HTTP \u8bf7\u6c42\u5f02\u5e38';e.detail=r.msg;return e}"
-                + "if(r.tag==='server'){e.kind='server';e.state='raw';e.badge='\u670d\u52a1';e.title='HTTP \u670d\u52a1\u8bf7\u6c42';e.detail=r.msg;return e}"
-                + "if(r.tag==='SpiderDebug'){e.kind='SpiderDebug';e.state='raw';e.badge='\u722c\u866b';e.title='\u722c\u866b\u8c03\u8bd5';e.detail=r.msg;return e}"
-                + "if(r.tag==='execute_error'){e.kind='error';e.state='err';e.badge='\u5f02\u5e38';e.title='\u6267\u884c\u5f02\u5e38';e.detail=r.msg;return e}"
-                + "return e}"
-                + "function pass(e,key){const all=(e.raw+' '+e.title+' '+e.detail).toLowerCase();if(key&&!all.includes(key))return false;if(mode==='all')return true;if(mode==='error')return e.kind==='error'||e.state==='err';return e.kind===mode}"
-                + "function render(){try{const key=filter.value.trim().toLowerCase();const rows=raw.split('\\n').filter(Boolean).map(parse).map(explain);let shown=0,err=0;const html=[];rows.forEach(e=>{if(e.kind==='error'||e.state==='err')err++;if(!pass(e,key))return;shown++;html.push('<div class=\"entry '+e.state+'\"><div class=\"top\"><span class=\"badge\">'+esc(e.badge)+'</span><span class=\"title\">'+esc(e.title)+'</span><span class=\"time\">'+esc(e.time)+'</span></div><div class=\"detail\">'+esc(e.detail)+'</div><code class=\"rawline\">'+esc(e.raw)+'</code></div>')});logs.innerHTML=html.join('')||'<div class=\"entry raw\"><div class=\"detail\">\u6ca1\u6709\u5339\u914d\u65e5\u5fd7</div></div>';summary.textContent='\u663e\u793a '+shown+'/'+rows.length+' \u884c \u00b7 \u9519\u8bef '+err+' \u6761';rawEl.hidden=true}catch(err){rawEl.hidden=false;logs.innerHTML='<div class=\"entry err\"><div class=\"detail\">\u65e5\u5fd7\u9875\u9762\u6e32\u67d3\u5931\u8d25\uff0c\u5df2\u663e\u793a\u539f\u59cb\u65e5\u5fd7\uff1a'+esc(err&&err.message?err.message:err)+'</div></div>';summary.textContent='\u6e32\u67d3\u5931\u8d25 \u00b7 \u5df2\u663e\u793a\u539f\u59cb\u65e5\u5fd7'}}"
-                + "async function poll(){try{if(!paused){const r=await fetch('/debug/stream?v='+lastVersion+'&_='+Date.now(),{cache:'no-store'});const j=await r.json();lastVersion=j.version||lastVersion;meta.textContent=j.size+' \u884c \u00b7 '+Math.ceil((j.bytes||0)/1024)+' KB';if(j.text!==null&&j.text!==undefined){raw=j.text||'';render();if(stick)scrollTo(0,document.body.scrollHeight)}}}catch(e){}setTimeout(poll,1500)}render();poll();";
+        return "const view=document.getElementById('out'),meta=document.getElementById('meta'),levels=document.getElementById('levels'),q=document.getElementById('q'),pause=document.getElementById('pause'),copy=document.getElementById('copy');"
+                + "let ver=0,text='',lvl='',lastRaw='',stick=true,paused=false;"
+                + "const esc=s=>String(s==null?'':s).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));"
+                + "const escRe=s=>s.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&');"
+                + "view.addEventListener('scroll',()=>{stick=view.scrollTop+view.clientHeight>=view.scrollHeight-40},{passive:true});"
+                + "function hl(s,k){const e=esc(s);if(!k)return e;return e.replace(new RegExp(escRe(k),'gi'),m=>'<mark>'+m+'</mark>')}"
+                + "function parse(){const rows=[];let cur=null;for(const raw of text.split('\\n')){if(/^\\[[DIWE]\\] /.test(raw)){cur=[raw[1],raw];rows.push(cur)}else if(cur){cur[1]+='\\n'+raw}else if(raw){rows.push(['',raw])}}return rows}"
+                + "function render(){"
+                + "const key=q.value.trim().toLowerCase();const rows=parse();const cnt={'':rows.length,D:0,I:0,W:0,E:0};rows.forEach(r=>cnt[r[0]]++);"
+                + "levels.innerHTML=['','D','I','W','E'].map(k=>'<button data-lvl=\"'+k+'\" class=\"'+(k===lvl?'on':'')+'\">'+(k?'['+k+']':'全部')+'<i>'+cnt[k]+'</i></button>').join('');"
+                + "Array.from(levels.children).forEach(b=>b.onclick=()=>{lvl=b.dataset.lvl;render()});"
+                + "const shown=rows.filter(r=>(!lvl||r[0]===lvl)&&(!key||r[1].toLowerCase().includes(key)));"
+                + "lastRaw=shown.map(r=>r[1]).join('\\n');"
+                + "view.innerHTML=shown.map(r=>{const m=/^\\[(.)\\] ([\\d\\-]+ [\\d:.]+) \\[([^\\]]*)\\] ([\\s\\S]*)$/.exec(r[1]);const lc=r[0]||'';if(m){return '<div class=\"e '+lc+'\"><span class=\"l '+lc+'\">['+lc+']</span><span class=\"b\">'+hl(m[2],key)+' <span class=\"h\">['+hl(m[3],key)+']</span> '+hl(m[4],key).replace(/\\n/g,'<br>')+'</span></div>'}return '<div class=\"e '+lc+'\">'+hl(r[1],key).replace(/\\n/g,'<br>')+'</div>'}).join('')||'<div class=\"empty\">没有匹配的日志</div>';"
+                + "meta.textContent=rows.length+' 行 · '+(text.length/1024).toFixed(1)+' KB';"
+                + "}"
+                + "pause.onclick=()=>{paused=!paused;pause.textContent=paused?'继续':'暂停';pause.classList.toggle('on',paused)};"
+                + "copy.onclick=()=>{const put=()=>{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(lastRaw);return Promise.reject()};put().catch(()=>{const ta=document.createElement('textarea');ta.value=lastRaw;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()})};"
+                + "q.oninput=render;"
+                + "async function poll(){if(!paused){try{const r=await fetch('/debug/stream?v='+ver+'&_='+Date.now(),{cache:'no-store'});const j=await r.json();if(j.version!==ver){ver=j.version||ver;text=j.text||'';render();if(stick)view.scrollTop=view.scrollHeight}}catch(e){}}setTimeout(poll,1500)}"
+                + "render();poll();";
     }
 
     private String json(String text) {
         if (TextUtils.isEmpty(text)) return "";
         return text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t");
-    }
-
-    private String escape(String text) {
-        if (TextUtils.isEmpty(text)) return "";
-        return text.replace("&", "\u0026amp;").replace("<", "\u0026lt;").replace(">", "\u0026gt;").replace("\"", "\u0026quot;").replace("'", "\u0026#39;");
     }
 }

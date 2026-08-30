@@ -57,6 +57,7 @@
     <string name="nav_vod">Vod</string>
     <string name="nav_live">Live</string>
     <string name="nav_setting">Setting</string>
+    <string name="nav_mine">Mine</string>
 
     <!-- Live -->
     <string name="tab_epg">EPG</string>
@@ -262,5 +263,62 @@
         <item>青色</item>
         <item>粉色</item>
     </string-array>
+
+    <!-- Mine -->
+    <string name="mine_title">My Videos</string>
+    <string name="mine_add">Add Video</string>
+    <string name="mine_edit">Edit Video</string>
+    <string name="mine_delete">Delete</string>
+    <string name="mine_export">Export Backup</string>
+    <string name="mine_import">Import Backup</string>
+    <string name="mine_import_success">Import success</string>
+    <string name="mine_import_fail">Import failed</string>
+    <string name="mine_export_success">Export success: %1$s</string>
+    <string name="mine_delete_confirm_title">Delete Records</string>
+    <string name="mine_delete_confirm_msg">Delete the selected videos?</string>
+    <string name="mine_delete_all_confirm_msg">Delete all videos?</string>
+    <string name="mine_empty">No videos yet, tap + to add</string>
+    <string name="mine_name_required">Name is required</string>
+    <string name="mine_saved">Saved</string>
+    <string name="mine_save_text">Save</string>
+    <string name="mine_play">Play</string>
+    <string name="mine_line">Line</string>
+    <string name="mine_episode">Episode</string>
+    <string name="mine_play_url_empty">No play URL recorded</string>
+    <string name="mine_group_basic">Basic Info</string>
+    <string name="mine_group_people">Cast &amp; Crew</string>
+    <string name="mine_group_media">Media &amp; Playback</string>
+    <string name="mine_group_extra">Advanced</string>
+    <string name="mine_label_vod_id">Vod ID</string>
+    <string name="mine_label_vod_name">Name *</string>
+    <string name="mine_label_type_name">Type</string>
+    <string name="mine_label_vod_year">Year</string>
+    <string name="mine_label_vod_area">Area</string>
+    <string name="mine_label_vod_remarks">Remarks</string>
+    <string name="mine_label_vod_tag">Tag</string>
+    <string name="mine_label_vod_director">Director</string>
+    <string name="mine_label_vod_actor">Actors</string>
+    <string name="mine_label_vod_content">Description</string>
+    <string name="mine_label_vod_pic">Poster URL</string>
+    <string name="mine_label_vod_play_from">Play Sources</string>
+    <string name="mine_label_vod_play_url">Play URLs</string>
+    <string name="mine_label_vod_score">Score</string>
+    <string name="mine_label_vod_lang">Language</string>
+    <string name="mine_label_vod_tv">TV Station</string>
+    <string name="mine_label_vod_class">Class</string>
+    <string name="mine_label_vod_pubdate">Publish Date</string>
+    <string name="mine_label_vod_duration">Duration</string>
+    <string name="mine_label_vod_author">Author</string>
+    <string name="mine_label_vod_pic_thumb">Thumbnail URL</string>
+    <string name="mine_label_vod_pic_slide">Slide Images</string>
+    <string name="mine_label_vod_pic_screenshot">Screenshots</string>
+    <string name="mine_format_play_from">Multiple lines, separated by $$$
+    </string>
+    <string name="mine_format_play_url">ep1$url#ep2$url…, lines separated by $$$
+    </string>
+    <string name="mine_format_pic_slide">Multiple images, separated by $$$
+    </string>
+    <string name="mine_format_pic_screenshot">Multiple images, separated by $$$
+    </string>
 
 </resources>

@@ -34,6 +34,7 @@ import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.FragmentStateManager;
 import com.fongmi.android.tv.ui.fragment.LiveFragment;
+import com.fongmi.android.tv.ui.fragment.MineFragment;
 import com.fongmi.android.tv.ui.fragment.SettingCustomFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
@@ -99,6 +100,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                 if (position == 2) return SettingPlayerFragment.newInstance();
                 if (position == 3) return SettingCustomFragment.newInstance();
                 if (position == 4) return LiveFragment.newInstance();
+                if (position == 5) return MineFragment.newInstance();
                 return null;
             }
         };
@@ -181,6 +183,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         mBinding.navigation.getMenu().findItem(R.id.setting).setVisible(true);
         // 直播页不再依赖订阅才显示，始终可见；无订阅时由直播首页展示"暂无订阅/添加订阅"
         mBinding.navigation.getMenu().findItem(R.id.live).setVisible(true);
+        mBinding.navigation.getMenu().findItem(R.id.mine).setVisible(true);
     }
 
     private boolean openLive() {
@@ -222,6 +225,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         if (item.getItemId() == R.id.vod) return mManager.change(0);
         if (item.getItemId() == R.id.setting) return mManager.change(1);
         if (item.getItemId() == R.id.live) return openLive();
+        if (item.getItemId() == R.id.mine) return mManager.change(5);
         return false;
     }
 
@@ -240,6 +244,8 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         if (!mBinding.navigation.getMenu().findItem(R.id.vod).isVisible()) {
             setNavigation();
         } else if (mManager.isVisible(4)) {
+            change(0);
+        } else if (mManager.isVisible(5)) {
             change(0);
         } else if (mManager.isVisible(3)) {
             change(1);

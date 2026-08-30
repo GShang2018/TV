@@ -12,6 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomVod;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.Download;
 import com.fongmi.android.tv.bean.History;
@@ -23,6 +24,7 @@ import com.fongmi.android.tv.bean.Reminder;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.db.dao.ConfigDao;
+import com.fongmi.android.tv.db.dao.CustomVodDao;
 import com.fongmi.android.tv.db.dao.DeviceDao;
 import com.fongmi.android.tv.db.dao.DownloadDao;
 import com.fongmi.android.tv.db.dao.HistoryDao;
@@ -42,10 +44,10 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-@Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class, Reminder.class, LiveHistory.class}, version = AppDatabase.VERSION)
+@Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class, Reminder.class, LiveHistory.class, CustomVod.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 36;
+    public static final int VERSION = 37;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
     public static final String BACKUP_SUFFIX = "tv.backup";
@@ -134,6 +136,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_33_34)
                 .addMigrations(MIGRATION_34_35)
                 .addMigrations(MIGRATION_35_36)
+                .addMigrations(MIGRATION_36_37)
                 .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
@@ -158,6 +161,15 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ReminderDao getReminderDao();
 
     public abstract LiveHistoryDao getLiveHistoryDao();
+
+    public abstract CustomVodDao getCustomVodDao();
+
+    static final Migration MIGRATION_36_37 = new Migration(36, 37) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `CustomVod` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `vodId` TEXT, `vodName` TEXT, `typeName` TEXT, `vodPic` TEXT, `vodRemarks` TEXT, `vodYear` TEXT, `vodArea` TEXT, `vodDirector` TEXT, `vodActor` TEXT, `vodContent` TEXT, `vodTv` TEXT, `vodClass` TEXT, `vodPubdate` TEXT, `vodDuration` TEXT, `vodAuthor` TEXT, `vodScore` TEXT, `vodLang` TEXT, `vodPlayFrom` TEXT, `vodPlayUrl` TEXT, `vodTag` TEXT, `vodPicThumb` TEXT, `vodPicSlide` TEXT, `vodPicScreenshot` TEXT, `createTime` INTEGER NOT NULL, `updateTime` INTEGER NOT NULL)");
+        }
+    };
 
     static final Migration MIGRATION_35_36 = new Migration(35, 36) {
         @Override

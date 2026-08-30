@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -98,7 +99,14 @@ public class App extends Application {
             @Override
             public void log(int priority, String tag, String message) {
                 super.log(priority, tag, message);
-                DebugLogStore.add(tag != null && !tag.isEmpty() ? tag : "Logger", message);
+                DebugLogStore.add(level(priority), tag != null && !tag.isEmpty() ? tag : "Logger", message);
+            }
+
+            private int level(int priority) {
+                if (priority >= Log.ERROR) return DebugLogStore.E;
+                if (priority == Log.WARN) return DebugLogStore.W;
+                if (priority == Log.INFO) return DebugLogStore.I;
+                return DebugLogStore.D;
             }
         };
     }

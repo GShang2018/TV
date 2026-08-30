@@ -11,24 +11,24 @@ public class Console implements QuickJSContext.Console {
     @Override
     public void log(String info) {
         Logger.t(TAG).d(info);
-        DebugLogStore.add(TAG, info);
+        DebugLogStore.add(DebugLogStore.D, TAG, info);
     }
 
     @Override
     public void info(String info) {
         Logger.t(TAG).i(info);
-        DebugLogStore.add(TAG, "[info] " + info);
+        DebugLogStore.add(DebugLogStore.I, TAG, info);
     }
 
     @Override
     public void warn(String info) {
         Logger.t(TAG).w(info);
-        DebugLogStore.add(TAG, "[warn] " + info);
+        DebugLogStore.add(DebugLogStore.W, TAG, info);
     }
 
     @Override
     public void error(String info) {
         Logger.t(TAG).e(info);
-        DebugLogStore.add(TAG, "[error] " + info);
+        DebugLogStore.add(DebugLogStore.E, TAG, info);
     }
 }

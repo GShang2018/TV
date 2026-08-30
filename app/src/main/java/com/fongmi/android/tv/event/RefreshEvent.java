@@ -27,6 +27,10 @@ public class RefreshEvent {
         EventBus.getDefault().post(new RefreshEvent(Type.KEEP));
     }
 
+    public static void mine() {
+        EventBus.getDefault().post(new RefreshEvent(Type.MINE));
+    }
+
     public static void size() {
         EventBus.getDefault().post(new RefreshEvent(Type.SIZE));
     }
@@ -73,6 +77,6 @@ public class RefreshEvent {
     }
 
     public enum Type {
-        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU
+        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, MINE, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU
     }
 }

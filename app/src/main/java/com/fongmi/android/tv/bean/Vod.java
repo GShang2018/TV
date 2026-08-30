@@ -429,6 +429,76 @@ public class Vod implements Parcelable {
         if (vodScore != null) this.vodScore = Trans.s2t(vodScore);
     }
 
+    // ==================== 补充 Setter（供代码构造 Vod 使用，如"我的"自定义影视） ====================
+
+    public void setVodRemarks(String vodRemarks) {
+        this.vodRemarks = vodRemarks;
+    }
+
+    public void setVodYear(String vodYear) {
+        this.vodYear = vodYear;
+    }
+
+    public void setVodArea(String vodArea) {
+        this.vodArea = vodArea;
+    }
+
+    public void setVodDirector(String vodDirector) {
+        this.vodDirector = vodDirector;
+    }
+
+    public void setVodActor(String vodActor) {
+        this.vodActor = vodActor;
+    }
+
+    public void setVodContent(String vodContent) {
+        this.vodContent = vodContent;
+    }
+
+    public void setVodTv(String vodTv) {
+        this.vodTv = vodTv;
+    }
+
+    public void setVodClass(String vodClass) {
+        this.vodClass = vodClass;
+    }
+
+    public void setVodPubdate(String vodPubdate) {
+        this.vodPubdate = vodPubdate;
+    }
+
+    public void setVodDuration(String vodDuration) {
+        this.vodDuration = vodDuration;
+    }
+
+    public void setVodAuthor(String vodAuthor) {
+        this.vodAuthor = vodAuthor;
+    }
+
+    public void setVodScore(String vodScore) {
+        this.vodScore = vodScore;
+    }
+
+    public void setVodPlayFrom(String vodPlayFrom) {
+        this.vodPlayFrom = vodPlayFrom;
+    }
+
+    public void setVodPlayUrl(String vodPlayUrl) {
+        this.vodPlayUrl = vodPlayUrl;
+    }
+
+    public void setVodPicThumb(String vodPicThumb) {
+        this.vodPicThumb = vodPicThumb;
+    }
+
+    public void setVodPicSlide(String vodPicSlide) {
+        this.vodPicSlide = vodPicSlide;
+    }
+
+    public void setVodPicScreenshot(String vodPicScreenshot) {
+        this.vodPicScreenshot = vodPicScreenshot;
+    }
+
     public void setVodFlags() {
         String[] playFlags = getVodPlayFrom().split("\\$\\$\\$");
         String[] playUrls = getVodPlayUrl().split("\\$\\$\\$");

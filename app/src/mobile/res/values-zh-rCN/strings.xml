@@ -57,6 +57,7 @@
     <string name="nav_vod">点播</string>
     <string name="nav_live">直播</string>
     <string name="nav_setting">设置</string>
+    <string name="nav_mine">我的</string>
 
     <!-- Live -->
     <string name="tab_epg">节目单</string>
@@ -251,5 +252,62 @@
     </string-array>
 
     <string name="setting_theme_color">主题色</string>
+
+    <!-- Mine -->
+    <string name="mine_title">我的影视</string>
+    <string name="mine_add">添加影视</string>
+    <string name="mine_edit">编辑影视</string>
+    <string name="mine_delete">删除</string>
+    <string name="mine_export">导出备份</string>
+    <string name="mine_import">导入备份</string>
+    <string name="mine_import_success">导入成功</string>
+    <string name="mine_import_fail">导入失败</string>
+    <string name="mine_export_success">导出成功：%1$s</string>
+    <string name="mine_delete_confirm_title">删除记录</string>
+    <string name="mine_delete_confirm_msg">确定删除选中的影视？</string>
+    <string name="mine_delete_all_confirm_msg">确定删除全部影视？</string>
+    <string name="mine_empty">暂无影视，点 + 添加</string>
+    <string name="mine_name_required">片名不能为空</string>
+    <string name="mine_saved">已保存</string>
+    <string name="mine_save_text">保存</string>
+    <string name="mine_play">播放</string>
+    <string name="mine_line">线路</string>
+    <string name="mine_episode">选集</string>
+    <string name="mine_play_url_empty">未录入播放地址</string>
+    <string name="mine_group_basic">基本信息</string>
+    <string name="mine_group_people">演职人员</string>
+    <string name="mine_group_media">媒体与播放</string>
+    <string name="mine_group_extra">高级信息</string>
+    <string name="mine_label_vod_id">影片ID</string>
+    <string name="mine_label_vod_name">片名 *</string>
+    <string name="mine_label_type_name">类型</string>
+    <string name="mine_label_vod_year">年份</string>
+    <string name="mine_label_vod_area">地区</string>
+    <string name="mine_label_vod_remarks">备注</string>
+    <string name="mine_label_vod_tag">标签</string>
+    <string name="mine_label_vod_director">导演</string>
+    <string name="mine_label_vod_actor">主演</string>
+    <string name="mine_label_vod_content">简介</string>
+    <string name="mine_label_vod_pic">海报地址</string>
+    <string name="mine_label_vod_play_from">播放线路</string>
+    <string name="mine_label_vod_play_url">播放地址</string>
+    <string name="mine_label_vod_score">评分</string>
+    <string name="mine_label_vod_lang">语言</string>
+    <string name="mine_label_vod_tv">电视台</string>
+    <string name="mine_label_vod_class">分类</string>
+    <string name="mine_label_vod_pubdate">上映日期</string>
+    <string name="mine_label_vod_duration">时长</string>
+    <string name="mine_label_vod_author">作者</string>
+    <string name="mine_label_vod_pic_thumb">缩略图地址</string>
+    <string name="mine_label_vod_pic_slide">轮播图</string>
+    <string name="mine_label_vod_pic_screenshot">截图</string>
+    <string name="mine_format_play_from">多个线路用 $$$ 分隔
+    </string>
+    <string name="mine_format_play_url">集数格式：集名$地址，多集用 # 分隔；多个线路用 $$$ 分隔
+    </string>
+    <string name="mine_format_pic_slide">多张图片用 $$$ 分隔
+    </string>
+    <string name="mine_format_pic_screenshot">多张图片用 $$$ 分隔
+    </string>
 
 </resources>
