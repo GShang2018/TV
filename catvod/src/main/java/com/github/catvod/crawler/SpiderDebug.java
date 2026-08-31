@@ -23,21 +23,19 @@ public class SpiderDebug {
         PrintWriter pw = new PrintWriter(sw);
         th.printStackTrace(pw);
         String msg = sw.toString();
+        // Logger 输出 logcat 后经 App 桥接统一写入 DebugLogStore，避免重复
         Logger.t(tag).e(msg);
-        DebugLogStore.add(DebugLogStore.E, tag, msg);
     }
 
     public static void log(String msg) {
         if (TextUtils.isEmpty(msg)) return;
         Logger.t(TAG).d(msg);
-        DebugLogStore.add(DebugLogStore.D, TAG, msg);
     }
 
     public static void log(String tag, String msg, Object... args) {
         if (TextUtils.isEmpty(msg)) return;
         String formatted = format(msg, args);
         Logger.t(tag).d(formatted);
-        DebugLogStore.add(DebugLogStore.D, tag, formatted);
     }
 
     private static String format(String msg, Object... args) {

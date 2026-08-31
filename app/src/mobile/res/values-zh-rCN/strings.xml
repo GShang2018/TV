@@ -255,6 +255,9 @@
 
     <!-- Mine -->
     <string name="mine_title">我的影视</string>
+    <string name="mine_mode_edit">编辑</string>
+    <string name="mine_mode_preview">预览</string>
+    <string name="mine_delete_one_confirm_msg">确定删除这条影视？</string>
     <string name="mine_add">添加影视</string>
     <string name="mine_edit">编辑影视</string>
     <string name="mine_delete">删除</string>

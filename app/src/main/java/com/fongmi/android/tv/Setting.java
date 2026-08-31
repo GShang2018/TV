@@ -174,6 +174,14 @@ public class Setting {
 		Prefers.put("collectViewType", viewType);
 	}
 
+	public static int getMineViewType() {
+		return Prefers.getInt("mineViewType", ViewType.LIST);
+	}
+
+	public static void putMineViewType(int viewType) {
+		Prefers.put("mineViewType", viewType);
+	}
+
 	public static int getRelViewType() {
 		return Prefers.getInt("relViewType", ViewType.CONFIG);
 	}

@@ -266,6 +266,9 @@
 
     <!-- Mine -->
     <string name="mine_title">My Videos</string>
+    <string name="mine_mode_edit">Edit</string>
+    <string name="mine_mode_preview">Preview</string>
+    <string name="mine_delete_one_confirm_msg">Delete this video?</string>
     <string name="mine_add">Add Video</string>
     <string name="mine_edit">Edit Video</string>
     <string name="mine_delete">Delete</string>

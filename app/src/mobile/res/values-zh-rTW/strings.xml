@@ -243,6 +243,9 @@
 
     <!-- Mine -->
     <string name="mine_title">我的影視</string>
+    <string name="mine_mode_edit">編輯</string>
+    <string name="mine_mode_preview">預覽</string>
+    <string name="mine_delete_one_confirm_msg">確定刪除這條影視？</string>
     <string name="mine_add">添加影視</string>
     <string name="mine_edit">編輯影視</string>
     <string name="mine_delete">刪除</string>

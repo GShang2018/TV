@@ -24,6 +24,26 @@
             android:textStyle="bold" />
 
         <ImageView
+            android:id="@+id/delete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mine_delete"
+            android:src="@drawable/ic_action_delete"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/mode"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mine_mode_edit"
+            android:src="@drawable/ic_action_edit"/>
+
+        <ImageView
             android:id="@+id/add"
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -51,15 +71,13 @@
             android:src="@drawable/ic_action_upload" />
 
         <ImageView
-            android:id="@+id/delete"
+            android:id="@+id/view"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/mine_delete"
-            android:src="@drawable/ic_action_delete"
-            android:visibility="gone"
-            tools:visibility="visible" />
+            android:src="@drawable/ic_action_view" />
+
 
     </LinearLayout>
 

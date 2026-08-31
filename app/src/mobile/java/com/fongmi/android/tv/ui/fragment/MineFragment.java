@@ -10,10 +10,12 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.CustomVod;
 import com.fongmi.android.tv.databinding.FragmentMineBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -21,9 +23,12 @@ import com.fongmi.android.tv.ui.activity.MineEditActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.MineAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.base.ViewType;
+import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.MineBackup;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.EventBus;
@@ -59,21 +64,64 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
         mBinding.add.setOnClickListener(view -> MineEditActivity.start(requireActivity()));
         mBinding.importBtn.setOnClickListener(this::onImport);
         mBinding.exportBtn.setOnClickListener(this::onExport);
+        mBinding.mode.setOnClickListener(this::onMode);
+        mBinding.view.setOnClickListener(this::onViewType);
         mBinding.delete.setOnClickListener(this::onDelete);
     }
 
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.getItemAnimator().setChangeDuration(0);
-        mBinding.recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         mBinding.recycler.setAdapter(mAdapter = new MineAdapter(this));
+        setLayout(Setting.getMineViewType());
+    }
+
+    private void setLayout(int viewType) {
+        int column = viewType == ViewType.LIST ? Product.getListColumn(requireActivity()) : (viewType == ViewType.PORTRAIT ? Product.getColumn(requireActivity()) : Product.getColumn(requireActivity()) - 1);
+        mBinding.recycler.setLayoutManager(new GridLayoutManager(getContext(), column));
+        int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1));
+        int imageWidth = (ResUtil.getScreenWidth(requireActivity()) - space) / column;
+        int imageHeight = viewType == ViewType.PORTRAIT ? imageWidth * 4 / 3 : imageWidth * 3 / 4;
+        mAdapter.setSize(new int[]{imageWidth, imageHeight});
+        mAdapter.setViewType(viewType);
+    }
+
+    /** 顶栏 编辑/预览 切换：编辑模式可改可删，预览模式纯浏览播放 */
+    private void onMode(View view) {
+        mAdapter.setEdit(!mAdapter.isEdit());
+        updateModeIcon();
+        updateDeleteVisibility();
+    }
+
+    /** 布局切换（竖版海报/横版海报/列表），与首页 ViewTypeMenu 一致 */
+    private void onViewType(View view) {
+        ViewTypeMenu.show(requireActivity(), view, R.menu.menu_view_type_simple, Setting.getMineViewType(), viewType -> {
+            Setting.putMineViewType(viewType);
+            setLayout(viewType);
+            mAdapter.notifyDataSetChanged();
+        });
+    }
+
+    private void updateModeIcon() {
+        if (mAdapter.isEdit()) {
+            mBinding.mode.setImageResource(R.drawable.ic_action_eye);
+            mBinding.mode.setContentDescription(getString(R.string.mine_mode_preview));
+        } else {
+            mBinding.mode.setImageResource(R.drawable.ic_action_edit);
+            mBinding.mode.setContentDescription(getString(R.string.mine_mode_edit));
+        }
+    }
+
+    private void updateDeleteVisibility() {
+        mBinding.delete.setVisibility(mAdapter.isEdit() && mAdapter.getItemCount() > 0 ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void getVod() {
         mAdapter.addAll(CustomVod.getAll());
         mBinding.empty.setVisibility(mAdapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
-        mBinding.delete.setVisibility(mAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE);
-        if (mAdapter.isDelete() && mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
+        if (mAdapter.getItemCount() == 0 && mAdapter.isEdit()) mAdapter.setEdit(false);
+        updateModeIcon();
+        updateDeleteVisibility();
     }
 
     private void onImport(View view) {
@@ -96,35 +144,19 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
     }
 
     private void onDelete(View view) {
-        if (mAdapter.isDelete()) {
-            new MaterialAlertDialogBuilder(requireActivity())
-                    .setTitle(R.string.mine_delete_confirm_title)
-                    .setMessage(R.string.mine_delete_all_confirm_msg)
-                    .setNegativeButton(R.string.dialog_negative, null)
-                    .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-                        mAdapter.clear();
-                        getVod();
-                    })
-                    .show();
-        } else if (mAdapter.getItemCount() > 0) {
-            mAdapter.setDelete(true);
-        } else {
-            mBinding.delete.setVisibility(View.GONE);
-        }
+        new MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(R.string.mine_delete_confirm_title)
+                .setMessage(R.string.mine_delete_all_confirm_msg)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    mAdapter.clear();
+                    getVod();
+                })
+                .show();
     }
 
     @Override
     public void onItemClick(CustomVod item) {
-        if (mAdapter.isDelete()) {
-            item.delete();
-            mAdapter.remove(item);
-            if (mAdapter.getItemCount() == 0) {
-                mBinding.delete.setVisibility(View.GONE);
-                mAdapter.setDelete(false);
-                mBinding.empty.setVisibility(View.VISIBLE);
-            }
-            return;
-        }
         play(item);
     }
 
@@ -134,9 +166,22 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
     }
 
     @Override
-    public boolean onLongClick() {
-        mAdapter.setDelete(!mAdapter.isDelete());
-        return true;
+    public void onItemDelete(CustomVod item) {
+        new MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(R.string.mine_delete_confirm_title)
+                .setMessage(R.string.mine_delete_one_confirm_msg)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                    item.delete();
+                    mAdapter.remove(item);
+                    if (mAdapter.getItemCount() == 0) {
+                        mAdapter.setEdit(false);
+                        updateModeIcon();
+                        mBinding.empty.setVisibility(View.VISIBLE);
+                    }
+                    updateDeleteVisibility();
+                })
+                .show();
     }
 
     /** 解析 CMS 标准播放串（$$$ 线路 / # 集数 / $ 名称分隔），选择后直链播放 */

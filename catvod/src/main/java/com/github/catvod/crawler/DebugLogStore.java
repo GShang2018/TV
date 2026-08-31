@@ -1,5 +1,6 @@
 package com.github.catvod.crawler;
 
+import android.os.Process;
 import android.text.TextUtils;
 
 import com.github.catvod.Init;
@@ -27,7 +28,7 @@ public class DebugLogStore {
     private static final String[] LEVELS = {"", "D", "I", "W", "E"};
     private static final Object LOCK = new Object();
     private static final ArrayDeque<String> LINES = new ArrayDeque<>();
-    private static final ThreadLocal<SimpleDateFormat> FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US));
+    private static final ThreadLocal<SimpleDateFormat> FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US));
     private static final String FILE_NAME = "tv-debug-log.txt";
     private static final int MAX_LINES = 2000;
     private static final int MAX_MESSAGE_CHARS = 12000;
@@ -56,7 +57,8 @@ public class DebugLogStore {
         if (!isEnabled()) return;
         if (TextUtils.isEmpty(msg)) return;
         int lv = level < D || level > E ? D : level;
-        String line = "[" + LEVELS[lv] + "] " + FORMAT.get().format(new Date()) + " [" + Thread.currentThread().getName() + "] " + safe(tag) + ": " + limit(msg);
+        // 与 logcat threadtime 格式保持一致：MM-dd HH:mm:ss.SSS PID TID 级别 TAG: 消息
+        String line = String.format(Locale.US, "%s %5d %5d %s %s: %s", FORMAT.get().format(new Date()), Process.myPid(), Process.myTid(), LEVELS[lv], safe(tag), limit(msg));
         synchronized (LOCK) {
             LINES.addLast(line);
             if (LINES.size() > MAX_LINES) LINES.removeFirst();
