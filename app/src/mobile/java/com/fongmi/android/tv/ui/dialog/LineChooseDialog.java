@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -42,7 +43,11 @@ public class LineChooseDialog extends BaseDialog implements LineChooseAdapter.On
     }
 
     public LineChooseDialog show(FragmentActivity activity) {
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        String tag = getClass().getName();
+        // 防抖：弹窗已存在（含关闭动画中）时不重复叠加，避免快速连点出现两层弹窗
+        if (manager.findFragmentByTag(tag) != null) return this;
+        show(manager, tag);
         return this;
     }
 

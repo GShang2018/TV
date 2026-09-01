@@ -9,6 +9,7 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
@@ -46,7 +47,11 @@ public class KeepChooseDialog extends BaseDialog implements KeepChooseAdapter.On
     }
 
     public KeepChooseDialog show(FragmentActivity activity) {
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        String tag = getClass().getName();
+        // 防抖：弹窗已存在（含关闭动画中）时不重复叠加，避免快速连点出现两层弹窗
+        if (manager.findFragmentByTag(tag) != null) return this;
+        show(manager, tag);
         return this;
     }
 

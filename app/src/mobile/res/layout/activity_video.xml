@@ -500,6 +500,19 @@
                             android:layout_height="0dp"
                             android:layout_weight="0.1" />
 
+                        <TextView
+                            android:id="@+id/flag_all"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="14sp"
+                            android:visibility="gone"
+                            app:drawableEndCompat="@drawable/ic_detail_more"
+                            app:drawableTint="?attr/colorOnSurface"
+                            tools:text="全部 4"
+                            tools:visibility="visible" />
+
                     </LinearLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -650,16 +663,41 @@
                             android:visibility="gone"
                             tools:visibility="visible">
 
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="16dp"
                                 android:layout_marginTop="16dp"
-                                android:layout_marginEnd="16dp"
-                                android:text="@string/detail_director_title"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:layout_marginEnd="12dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/detail_director_title"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1" />
+
+                                <TextView
+                                    android:id="@+id/director_all"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp"
+                                    android:visibility="gone"
+                                    app:drawableEndCompat="@drawable/ic_detail_more"
+                                    app:drawableTint="?attr/colorOnSurface"
+                                    tools:text="全部 1"
+                                    tools:visibility="visible" />
+
+                            </LinearLayout>
 
                             <androidx.recyclerview.widget.RecyclerView
                                 android:id="@+id/director_list"
@@ -684,16 +722,41 @@
                             android:visibility="gone"
                             tools:visibility="visible">
 
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="16dp"
                                 android:layout_marginTop="16dp"
-                                android:layout_marginEnd="16dp"
-                                android:text="@string/detail_actor_title"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:layout_marginEnd="12dp"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/detail_actor_title"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1" />
+
+                                <TextView
+                                    android:id="@+id/actor_all"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textSize="14sp"
+                                    android:visibility="gone"
+                                    app:drawableEndCompat="@drawable/ic_detail_more"
+                                    app:drawableTint="?attr/colorOnSurface"
+                                    tools:text="全部 12"
+                                    tools:visibility="visible" />
+
+                            </LinearLayout>
 
                             <androidx.recyclerview.widget.RecyclerView
                                 android:id="@+id/actor_list"

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -37,7 +38,11 @@ public class ReceiveDialog extends BaseDialog {
 
     public void show(FragmentActivity activity) {
         for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        String tag = getClass().getName();
+        // 防抖：弹窗已存在（含关闭动画中）时不重复叠加，避免快速连点出现两层弹窗
+        if (manager.findFragmentByTag(tag) != null) return;
+        show(manager, tag);
     }
 
     public void show(Fragment fragment) {

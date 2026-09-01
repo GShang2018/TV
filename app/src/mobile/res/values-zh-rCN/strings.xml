@@ -189,6 +189,9 @@
     <string name="detail_quality">画质</string>
     <string name="detail_gallery">剧照</string>
     <string name="detail_gallery_all">全部 %d \u00A0</string>
+    <string name="detail_flag_all">全部 %d</string>
+    <string name="detail_director_all">全部 %d</string>
+    <string name="detail_actor_all">全部 %d</string>
     <string name="gallery_counter">%d / %d</string>
     <string name="gallery_saved">已保存到相册</string>
     <string name="gallery_save_fail">保存失败</string>

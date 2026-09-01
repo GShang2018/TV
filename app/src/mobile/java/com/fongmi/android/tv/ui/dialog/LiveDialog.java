@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
@@ -39,7 +40,11 @@ public class LiveDialog extends BaseDialog implements LiveHomeAdapter.OnClickLis
 
     public void show(FragmentActivity activity) {
         for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        String tag = getClass().getName();
+        // 防抖：弹窗已存在（含关闭动画中）时不重复叠加，避免快速连点出现两层弹窗
+        if (manager.findFragmentByTag(tag) != null) return;
+        show(manager, tag);
         if (activity instanceof LiveCallback) callback = (LiveCallback) activity;
     }
 

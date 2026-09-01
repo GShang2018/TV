@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
@@ -72,7 +73,11 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
 
     public ControlDialog show(FragmentActivity activity) {
         for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return this;
-        show(activity.getSupportFragmentManager(), null);
+        FragmentManager manager = activity.getSupportFragmentManager();
+        String tag = getClass().getName();
+        // 防抖：弹窗已存在（含关闭动画中）时不重复叠加，避免快速连点出现两层弹窗
+        if (manager.findFragmentByTag(tag) != null) return this;
+        show(manager, tag);
         this.listener = (Listener) activity;
         this.activity = activity;
         return this;

@@ -116,6 +116,7 @@ import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.ControlDialog;
+import com.fongmi.android.tv.ui.dialog.DetailAllDialog;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.crawler.SpiderDebug;
 import com.fongmi.android.tv.ui.dialog.DanmuDialog;
@@ -193,6 +194,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private List<Vod> mRelItems;
     private PersonAdapter mDirectorAdapter;
     private PersonAdapter mActorAdapter;
+    private List<Flag> mFlags;
+    private List<PersonAdapter.Person> mDirectors;
+    private List<PersonAdapter.Person> mActors;
     private Vod mVod;
     private GestureDetector mGestureDetector;
     private List<Dialog> mDialogs;
@@ -758,7 +762,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.currentSite.setText(getSite().getName());
         setText(mBinding.content, 0, Html.fromHtml(removeImg(item.getVodContent())));
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
-        mFlagAdapter.addAll(item.getVodFlags());
+        mFlags = item.getVodFlags();
+        mFlagAdapter.addAll(mFlags);
+        setFlagAll();
         setOther(item);
         setPosterOutline();
         setPersons(item);
@@ -869,20 +875,54 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setPersons(Vod item) {
-        List<PersonAdapter.Person> directors = parsePersons(item.getVodDirector());
-        List<PersonAdapter.Person> actors = parsePersons(item.getVodActor());
-        if (directors.isEmpty()) {
+        mDirectors = parsePersons(item.getVodDirector());
+        mActors = parsePersons(item.getVodActor());
+        if (mDirectors.isEmpty()) {
             mBinding.directorLayout.setVisibility(View.GONE);
         } else {
-            mDirectorAdapter.setItems(directors);
+            mDirectorAdapter.setItems(mDirectors);
             mBinding.directorLayout.setVisibility(View.VISIBLE);
+            mBinding.directorAll.setVisibility(mDirectors.size() > 1 ? View.VISIBLE : View.GONE);
+            if (mDirectors.size() > 1) {
+                mBinding.directorAll.setText(getString(R.string.detail_director_all, mDirectors.size()));
+                mBinding.directorAll.setOnClickListener(v -> showAll(DetailAllDialog.create().persons(R.string.detail_director_title, new ArrayList<>(mDirectors))));
+            }
         }
-        if (actors.isEmpty()) {
+        if (mActors.isEmpty()) {
             mBinding.actorLayout.setVisibility(View.GONE);
         } else {
-            mActorAdapter.setItems(actors);
+            mActorAdapter.setItems(mActors);
             mBinding.actorLayout.setVisibility(View.VISIBLE);
+            mBinding.actorAll.setVisibility(mActors.size() > 1 ? View.VISIBLE : View.GONE);
+            if (mActors.size() > 1) {
+                mBinding.actorAll.setText(getString(R.string.detail_actor_all, mActors.size()));
+                mBinding.actorAll.setOnClickListener(v -> showAll(DetailAllDialog.create().persons(R.string.detail_actor_title, new ArrayList<>(mActors))));
+            }
         }
+    }
+
+    // 线路"全部 N"入口：多于 1 条线路时展示，点击弹出纵向两列网格弹窗
+    private void setFlagAll() {
+        boolean visible = mFlags != null && mFlags.size() > 1;
+        mBinding.flagAll.setVisibility(visible ? View.VISIBLE : View.GONE);
+        if (!visible) return;
+        mBinding.flagAll.setText(getString(R.string.detail_flag_all, mFlags.size()));
+        mBinding.flagAll.setOnClickListener(v -> showAll(DetailAllDialog.create().flags(new ArrayList<>(mFlags))));
+    }
+
+    // "全部"弹窗统一接线：线路点击复用主列表切换逻辑，导演/演员点击复用人员作品搜索跳转
+    private void showAll(DetailAllDialog dialog) {
+        dialog.listener(new DetailAllDialog.OnClickListener() {
+            @Override
+            public void onFlagClick(Flag item) {
+                onItemClick(item);
+            }
+
+            @Override
+            public void onPersonClick(Result result) {
+                FolderActivity.start(VideoActivity.this, getKey(), result);
+            }
+        }).show(this);
     }
 
     private List<PersonAdapter.Person> parsePersons(String text) {
