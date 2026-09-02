@@ -323,7 +323,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void toggleView(View view) {
-        int current = mBinding.pager.getCurrentItem();
+        // 列表加载中 mAdapter 可能为空（IndexOutOfBounds），与 onFilter 同样先做空保护
+        if (mAdapter.getItemCount() == 0) return;
+        int current = Math.min(mBinding.pager.getCurrentItem(), mAdapter.getItemCount() - 1);
         Class type = mAdapter.get(current);
         int currentViewType = "home".equals(type.getTypeId()) ? Setting.getHomeViewType() : Setting.getCategoryViewType(getSite().getKey(), type.getTypeId());
         ViewTypeMenu.show(getActivity(), view, R.menu.menu_view_type, currentViewType, viewType -> {

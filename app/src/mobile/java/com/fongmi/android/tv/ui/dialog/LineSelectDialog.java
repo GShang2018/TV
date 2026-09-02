@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -128,12 +130,19 @@ public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.On
 
     @Override
     public void onLineClick(Depot item) {
-        dismiss();
         Config target = getParent(item);
-        if (target == null) return;
-        Notify.progress(requireContext());
+        if (target == null) { dismiss(); return; }
+        // 先落库选中线路并收起弹层
         if (target.isDepot()) target.line(item.getUrl()).save();
         else target.update();
+        Context context = requireContext();
+        dismiss();
+        // 等底部弹层收拢动画结束再进入加载态，避免加载动画与关闭动画重叠（默认收拢约 200ms）
+        App.post(() -> load(context, target), 200);
+    }
+
+    private void load(Context context, Config target) {
+        Notify.progress(context);
         if (target.getType() == 0) VodConfig.load(target, getCallback());
         else LiveConfig.load(target, getCallback());
     }
