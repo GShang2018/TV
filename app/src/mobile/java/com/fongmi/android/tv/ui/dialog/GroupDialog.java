@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -9,6 +10,7 @@ import androidx.fragment.app.FragmentManager;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.databinding.DialogTypeBinding;
 import com.fongmi.android.tv.ui.adapter.GroupTabAdapter;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -64,6 +66,19 @@ public class GroupDialog implements GroupTabAdapter.OnClickListener {
         if (adapter.getItemCount() == 0) return;
         dialog.getWindow().setDimAmount(0);
         dialog.show();
+        capScrollHeight();
+    }
+
+    // 与 TypeDialog 共用 dialog_type 布局：分组太多时 wrap_content 的 ScrollView 没有滚动余量，
+    // 最后一行会被窗口裁掉且无法露出，故内容高于屏幕 65% 时把滚动区压到该高度内，保证可滚动到底
+    private void capScrollHeight() {
+        binding.scroll.post(() -> {
+            int max = ResUtil.getScreenHeight() * 65 / 100;
+            if (binding.scroll.getHeight() <= max) return;
+            ViewGroup.LayoutParams params = binding.scroll.getLayoutParams();
+            params.height = max;
+            binding.scroll.setLayoutParams(params);
+        });
     }
 
     @Override
