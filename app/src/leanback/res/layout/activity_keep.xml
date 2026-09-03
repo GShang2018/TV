@@ -80,12 +80,14 @@
             android:src="@drawable/ic_action_view" />
 
         <ImageView
-            android:id="@+id/delete"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:id="@+id/checkAll"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
             android:background="@drawable/selector_image"
-            android:src="@drawable/ic_action_delete"
-            android:focusable="false"
+            android:focusable="true"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_action_select_all"
             android:visibility="gone"
             tools:visibility="visible" />
 
@@ -94,12 +96,30 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
         android:paddingBottom="24dp" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/delete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/selector_image"
+        android:focusable="true"
+        android:gravity="center"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="@string/select_delete"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
+</LinearLayout>

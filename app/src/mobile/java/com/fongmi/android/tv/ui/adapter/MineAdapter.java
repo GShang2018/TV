@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,16 +17,18 @@ import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.utils.ImgUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 	private final OnClickListener mListener;
 	private final List<CustomVod> mItems;
+	private final Set<Integer> mChecked = new HashSet<>();
 	private int width, height;
 	private int viewType;
-	// 编辑模式：点击=修改、长按=删除；预览模式：纯浏览播放
-	private boolean edit;
+	private boolean select;
 
 	public MineAdapter(OnClickListener listener) {
 		this.mItems = new ArrayList<>();
@@ -36,18 +39,7 @@ public class MineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 		void onItemClick(CustomVod item);
 
-		void onEdit(CustomVod item);
-
-		void onItemDelete(CustomVod item);
-	}
-
-	public boolean isEdit() {
-		return edit;
-	}
-
-	public void setEdit(boolean edit) {
-		this.edit = edit;
-		notifyItemRangeChanged(0, mItems.size());
+		void onSelectChanged(int count);
 	}
 
 	public void setSize(int[] size) {
@@ -59,24 +51,63 @@ public class MineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 		this.viewType = viewType;
 	}
 
+	public boolean isSelect() {
+		return select;
+	}
+
+	public void setSelect(boolean select) {
+		this.select = select;
+		if (!select) mChecked.clear();
+		notifyItemRangeChanged(0, mItems.size());
+		mListener.onSelectChanged(mChecked.size());
+	}
+
+	public boolean isChecked(int position) {
+		return mChecked.contains(position);
+	}
+
+	public void setChecked(int position, boolean checked) {
+		if (checked) mChecked.add(position);
+		else mChecked.remove(position);
+		notifyItemChanged(position);
+		mListener.onSelectChanged(mChecked.size());
+	}
+
+	public boolean isAllChecked() {
+		return mItems.size() > 0 && mChecked.size() == mItems.size();
+	}
+
+	public void setAll(boolean checked) {
+		if (checked) {
+			for (int i = 0; i < mItems.size(); i++) mChecked.add(i);
+		} else {
+			mChecked.clear();
+		}
+		notifyDataSetChanged();
+		mListener.onSelectChanged(mChecked.size());
+	}
+
+	public int getSelectCount() {
+		return mChecked.size();
+	}
+
+	public List<CustomVod> getSelected() {
+		List<CustomVod> items = new ArrayList<>();
+		for (int i = 0; i < mItems.size(); i++) {
+			if (mChecked.contains(i)) items.add(mItems.get(i));
+		}
+		return items;
+	}
+
 	public void addAll(List<CustomVod> items) {
 		mItems.clear();
 		mItems.addAll(items);
+		mChecked.clear();
+		if (select) {
+			select = false;
+			mListener.onSelectChanged(0);
+		}
 		notifyDataSetChanged();
-	}
-
-	public void remove(CustomVod item) {
-		int index = mItems.indexOf(item);
-		if (index == -1) return;
-		mItems.remove(index);
-		notifyItemRemoved(index);
-	}
-
-	public void clear() {
-		mItems.clear();
-		setEdit(false);
-		notifyDataSetChanged();
-		CustomVod.deleteAll();
 	}
 
 	@Override
@@ -102,48 +133,54 @@ public class MineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 	@Override
 	public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 		CustomVod item = mItems.get(position);
-		if (holder instanceof ListHolder) bindList((ListHolder) holder, item);
-		else bindGrid((GridHolder) holder, item);
+		if (holder instanceof ListHolder) bindList((ListHolder) holder, item, position);
+		else bindGrid((GridHolder) holder, item, position);
 	}
 
-	private void bindList(ListHolder holder, CustomVod item) {
+	private void bindList(ListHolder holder, CustomVod item, int position) {
 		holder.binding.name.setText(item.getVodName());
 		holder.binding.year.setText(item.getVodYear());
 		holder.binding.year.setVisibility(TextUtils.isEmpty(item.getVodYear()) ? View.GONE : View.VISIBLE);
 		holder.binding.remark.setText(item.getVodRemarks());
 		holder.binding.remark.setVisibility(TextUtils.isEmpty(item.getVodRemarks()) ? View.GONE : View.VISIBLE);
 		holder.binding.site.setText(getLineText(holder, item));
+		bindCheck(holder.binding.check, position);
 		ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
-		holder.binding.getRoot().setOnClickListener(view -> {
-			if (edit) mListener.onEdit(item);
-			else mListener.onItemClick(item);
-		});
-		holder.binding.getRoot().setOnLongClickListener(view -> {
-			if (!edit) return false;
-			mListener.onItemDelete(item);
-			return true;
-		});
+		setClickListener(holder.binding.getRoot(), position, item);
 	}
 
-	private void bindGrid(GridHolder holder, CustomVod item) {
+	private void bindGrid(GridHolder holder, CustomVod item, int position) {
 		holder.binding.image.getLayoutParams().width = width;
 		holder.binding.image.getLayoutParams().height = height;
 		holder.binding.name.setText(item.getVodName());
 		holder.binding.remark.setText(item.getVodRemarks());
 		holder.binding.remark.setVisibility(TextUtils.isEmpty(item.getVodRemarks()) ? View.GONE : View.VISIBLE);
 		holder.binding.site.setText(getLineText(holder, item));
-		holder.binding.site.setVisibility(TextUtils.isEmpty(item.getVodPlayFrom()) ? View.GONE : View.VISIBLE);
+		// 选择模式下隐藏左侧站点标签，避免遮挡左上角 CheckBox
+		holder.binding.site.setVisibility(select ? View.GONE : (TextUtils.isEmpty(item.getVodPlayFrom()) ? View.GONE : View.VISIBLE));
 		holder.binding.progress.setVisibility(View.GONE);
-		holder.binding.delete.setVisibility(View.GONE);
+		bindCheck(holder.binding.check, position);
 		ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
-		holder.binding.getRoot().setOnClickListener(view -> {
-			if (edit) mListener.onEdit(item);
-			else mListener.onItemClick(item);
-		});
-		holder.binding.getRoot().setOnLongClickListener(view -> {
-			if (!edit) return false;
-			mListener.onItemDelete(item);
+		setClickListener(holder.binding.getRoot(), position, item);
+	}
+
+	private void bindCheck(CheckBox check, int position) {
+		boolean checked = mChecked.contains(position);
+		check.setVisibility(select ? View.VISIBLE : View.GONE);
+		check.setChecked(checked);
+	}
+
+	private void setClickListener(View root, int position, CustomVod item) {
+		root.setOnLongClickListener(view -> {
+			if (!select) {
+				setSelect(true);
+				setChecked(position, true);
+			}
 			return true;
+		});
+		root.setOnClickListener(view -> {
+			if (select) setChecked(position, !isChecked(position));
+			else mListener.onItemClick(item);
 		});
 	}
 

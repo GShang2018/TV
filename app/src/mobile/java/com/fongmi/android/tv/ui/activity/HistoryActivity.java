@@ -25,6 +25,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
+
 public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnClickListener {
 
     private ActivityHistoryBinding mBinding;
@@ -51,6 +53,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
         mBinding.back.setOnClickListener(v -> onBackPressed());
         mBinding.sync.setOnClickListener(this::onSync);
         mBinding.view.setOnClickListener(this::toggleView);
+        mBinding.checkAll.setOnClickListener(this::onCheckAll);
         mBinding.delete.setOnClickListener(this::onDelete);
     }
 
@@ -85,26 +88,26 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
 
     private void getHistory() {
         mAdapter.addAll(History.get());
-        mBinding.delete.setVisibility(mAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void onSync(View view) {
         SyncDialog.create().history().show(this);
     }
 
-    private void onDelete(View view) {
-        if (mAdapter.isDelete()) {
-            new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_delete_record).setMessage(R.string.dialog_delete_history).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> mAdapter.clear()).show();
-        } else if (mAdapter.getItemCount() > 0) {
-            mAdapter.setDelete(true);
-        } else {
-            mBinding.delete.setVisibility(View.GONE);
-        }
+    private void onCheckAll(View view) {
+        mAdapter.setAll(!mAdapter.isAllChecked());
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRefreshEvent(RefreshEvent event) {
-        if (event.getType().equals(RefreshEvent.Type.HISTORY)) getHistory();
+    private void onDelete(View view) {
+        int count = mAdapter.getSelectCount();
+        if (count == 0) return;
+        new MaterialAlertDialogBuilder(this)
+                .setMessage(getString(R.string.dialog_delete_select, count))
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.select_delete, (dialog, which) -> {
+                    for (History item : mAdapter.getSelected()) item.delete();
+                    getHistory();
+                }).show();
     }
 
     @Override
@@ -113,22 +116,27 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     @Override
-    public void onItemDelete(History item) {
-        mAdapter.remove(item.delete());
-        if (mAdapter.getItemCount() > 0) return;
-        mBinding.delete.setVisibility(View.GONE);
-        mAdapter.setDelete(false);
+    public void onSelectChanged(int count) {
+        boolean select = mAdapter.isSelect();
+        mBinding.sync.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.view.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.checkAll.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.checkAll.setImageResource(mAdapter.isAllChecked() ? R.drawable.ic_action_select_all : R.drawable.ic_action_select_none);
+        mBinding.delete.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.delete.setEnabled(count > 0);
+        mBinding.delete.setAlpha(count > 0 ? 1.0f : 0.4f);
+        mBinding.back.setImageResource(select ? R.drawable.ic_action_close : R.drawable.ic_control_back);
+        mBinding.title.setText(select ? getString(R.string.select_count, count) : getString(R.string.app_history));
     }
 
-    @Override
-    public boolean onLongClick() {
-        mAdapter.setDelete(!mAdapter.isDelete());
-        return true;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        if (event.getType().equals(RefreshEvent.Type.HISTORY)) getHistory();
     }
 
     @Override
     public void onBackPressed() {
-        if (mAdapter.isDelete()) mAdapter.setDelete(false);
+        if (mAdapter.isSelect()) mAdapter.setSelect(false);
         else super.onBackPressed();
     }
 }

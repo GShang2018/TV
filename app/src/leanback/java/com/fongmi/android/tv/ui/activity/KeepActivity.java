@@ -77,6 +77,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
         mBinding.importBtn.setOnClickListener(this::onImport);
         mBinding.exportBtn.setOnClickListener(this::onExport);
         mBinding.viewToggle.setOnClickListener(this::toggleView);
+        mBinding.checkAll.setOnClickListener(this::onCheckAll);
         mBinding.delete.setOnClickListener(this::onDelete);
     }
 
@@ -131,12 +132,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
         folders.add(def);
         folders.addAll(KeepFolder.getAll());
         mFolderAdapter.addAll(folders);
-        mBinding.delete.setVisibility(mFolderAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void getKeep() {
         mAdapter.addAll(Keep.getVod(mFolderId));
-        mBinding.delete.setVisibility(mAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void showFolder() {
@@ -173,7 +172,37 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
         mBinding.importBtn.setVisibility(folder ? View.VISIBLE : View.GONE);
         mBinding.exportBtn.setVisibility(folder ? View.VISIBLE : View.GONE);
         mBinding.viewToggle.setVisibility(folder ? View.GONE : View.VISIBLE);
+        mBinding.checkAll.setVisibility(View.GONE);
+        mBinding.delete.setVisibility(View.GONE);
+        mBinding.back.setImageResource(R.drawable.ic_action_arrow);
+    }
+
+    private boolean isSelecting() {
+        return mMode == MODE_FOLDER ? mFolderAdapter.isSelect() : mAdapter.isSelect();
+    }
+
+    private int getSelectCount() {
+        return mMode == MODE_FOLDER ? mFolderAdapter.getSelectCount() : mAdapter.getSelectCount();
+    }
+
+    private void updateSelectUI() {
+        if (!isSelecting()) {
+            updateToolbar();
+            return;
+        }
+        int count = getSelectCount();
+        mBinding.back.setImageResource(R.drawable.ic_action_close);
+        mBinding.title.setText(getString(R.string.select_count, count));
+        mBinding.add.setVisibility(View.GONE);
+        mBinding.importBtn.setVisibility(View.GONE);
+        mBinding.exportBtn.setVisibility(View.GONE);
+        mBinding.viewToggle.setVisibility(View.GONE);
+        mBinding.checkAll.setVisibility(View.VISIBLE);
+        boolean all = mMode == MODE_FOLDER ? mFolderAdapter.isAllChecked() : mAdapter.isAllChecked();
+        mBinding.checkAll.setImageResource(all ? R.drawable.ic_action_select_all : R.drawable.ic_action_select_none);
         mBinding.delete.setVisibility(View.VISIBLE);
+        mBinding.delete.setEnabled(count > 0);
+        mBinding.delete.setAlpha(count > 0 ? 1.0f : 0.4f);
     }
 
     private void createFolder() {
@@ -209,24 +238,31 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
         Notify.show(file != null ? R.string.keep_export_success : R.string.keep_import_fail);
     }
 
+    private void onCheckAll(View view) {
+        if (mMode == MODE_FOLDER) mFolderAdapter.setAll(!mFolderAdapter.isAllChecked());
+        else mAdapter.setAll(!mAdapter.isAllChecked());
+    }
+
     private void onDelete(View view) {
-        if (mMode == MODE_FOLDER) {
-            if (mFolderAdapter.isDelete()) {
-                mFolderAdapter.setDelete(false);
-            } else if (mFolderAdapter.getItemCount() > 0) {
-                mFolderAdapter.setDelete(true);
-            } else {
-                mBinding.delete.setVisibility(View.GONE);
-            }
-        } else {
-            if (mAdapter.isDelete()) {
-                mAdapter.setDelete(false);
-            } else if (mAdapter.getItemCount() > 0) {
-                mAdapter.setDelete(true);
-            } else {
-                mBinding.delete.setVisibility(View.GONE);
-            }
-        }
+        int count = getSelectCount();
+        if (count == 0) return;
+        new MaterialAlertDialogBuilder(this)
+                .setMessage(getString(R.string.dialog_delete_select, count))
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.select_delete, (dialog, which) -> {
+                    if (mMode == MODE_FOLDER) {
+                        for (KeepFolder item : mFolderAdapter.getSelected()) KeepBackup.deleteFolder(item);
+                        getFolder();
+                    } else {
+                        for (Keep item : mAdapter.getSelected()) {
+                            // 在收藏夹视图中删除，只从当前收藏夹移出；在全部视图中删除，取消所有收藏
+                            if (mMode == MODE_KEEP) item.deleteFromFolder(mFolderId);
+                            else item.delete();
+                        }
+                        getKeep();
+                    }
+                    mBinding.recycler.requestFocus();
+                }).show();
     }
 
     private void loadConfig(Config config, Keep item) {
@@ -277,18 +313,8 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     @Override
-    public void onItemDelete(Keep item) {
-        // 在收藏夹视图中删除，只从当前收藏夹移出；在全部视图中删除，取消所有收藏
-        if (mMode == MODE_KEEP) item.deleteFromFolder(mFolderId);
-        else item.delete();
-        mAdapter.delete(item);
-        if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
-    }
-
-    @Override
-    public boolean onLongClick() {
-        mAdapter.setDelete(true);
-        return true;
+    public void onSelectChanged(int count) {
+        updateSelectUI();
     }
 
     @Override
@@ -297,20 +323,13 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     @Override
-    public void onItemDelete(KeepFolder item) {
-        if (item.getId() == 0) return;
-        new MaterialAlertDialogBuilder(this).setTitle(R.string.keep_folder_delete).setMessage(R.string.keep_folder_delete_msg).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-            KeepBackup.deleteFolder(item);
-            getFolder();
-        }).show();
-    }
-
-    @Override
     public void onBackPressed() {
-        if (mMode == MODE_KEEP) {
+        if (isSelecting()) {
+            if (mMode == MODE_FOLDER) mFolderAdapter.setSelect(false);
+            else mAdapter.setSelect(false);
+            mBinding.recycler.requestFocus();
+        } else if (mMode == MODE_KEEP) {
             showFolder();
-        } else if (mFolderAdapter.isDelete()) {
-            mFolderAdapter.setDelete(false);
         } else {
             super.onBackPressed();
         }

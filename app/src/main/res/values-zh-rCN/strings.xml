@@ -184,6 +184,10 @@
     <string name="dialog_delete_record">删除全部记录？</string>
     <string name="dialog_delete_keep">收藏记录将会全部删除。</string>
     <string name="dialog_delete_history">观看记录将会全部删除。</string>
+    <string name="dialog_delete_select">确认删除这 %1$d 项内容？</string>
+    <string name="select_count">已选择 %1$d 项</string>
+    <string name="select_delete">删除</string>
+    <string name="custom_line">自定义线路</string>
     <string name="dialog_reset_app">重置App?</string>
     <string name="dialog_reset_app_data">所有数据将会被重置，App即将被关闭.</string>
     <string name="dialog_restore">还原备份数据？</string>

@@ -3,12 +3,12 @@ package com.fongmi.android.tv.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
 import com.fongmi.android.tv.databinding.AdapterVodListBinding;
@@ -18,15 +18,18 @@ import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final OnClickListener mListener;
     private final List<History> mItems;
+    private final Set<Integer> mChecked = new HashSet<>();
     private int width, height;
     private int viewType = ViewType.GRID;
-    private boolean delete;
+    private boolean select;
 
     public HistoryAdapter(OnClickListener listener) {
         this.mListener = listener;
@@ -37,9 +40,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         void onItemClick(History item);
 
-        void onItemDelete(History item);
-
-        boolean onLongClick();
+        void onSelectChanged(int count);
     }
 
     public void setSize(int[] size) {
@@ -51,33 +52,63 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.viewType = viewType;
     }
 
-    public boolean isDelete() {
-        return delete;
+    public boolean isSelect() {
+        return select;
     }
 
-    public void setDelete(boolean delete) {
-        this.delete = delete;
+    public void setSelect(boolean select) {
+        this.select = select;
+        if (!select) mChecked.clear();
         notifyItemRangeChanged(0, mItems.size());
+        mListener.onSelectChanged(mChecked.size());
+    }
+
+    public boolean isChecked(int position) {
+        return mChecked.contains(position);
+    }
+
+    public void setChecked(int position, boolean checked) {
+        if (checked) mChecked.add(position);
+        else mChecked.remove(position);
+        notifyItemChanged(position);
+        mListener.onSelectChanged(mChecked.size());
+    }
+
+    public boolean isAllChecked() {
+        return mItems.size() > 0 && mChecked.size() == mItems.size();
+    }
+
+    public void setAll(boolean checked) {
+        if (checked) {
+            for (int i = 0; i < mItems.size(); i++) mChecked.add(i);
+        } else {
+            mChecked.clear();
+        }
+        notifyDataSetChanged();
+        mListener.onSelectChanged(mChecked.size());
+    }
+
+    public int getSelectCount() {
+        return mChecked.size();
+    }
+
+    public List<History> getSelected() {
+        List<History> items = new ArrayList<>();
+        for (int i = 0; i < mItems.size(); i++) {
+            if (mChecked.contains(i)) items.add(mItems.get(i));
+        }
+        return items;
     }
 
     public void addAll(List<History> items) {
         mItems.clear();
         mItems.addAll(items);
+        mChecked.clear();
+        if (select) {
+            select = false;
+            mListener.onSelectChanged(0);
+        }
         notifyDataSetChanged();
-    }
-
-    public void clear() {
-        mItems.clear();
-        setDelete(false);
-        notifyDataSetChanged();
-        History.delete(VodConfig.getCid());
-    }
-
-    public void remove(History item) {
-        int index = mItems.indexOf(item);
-        if (index == -1) return;
-        mItems.remove(index);
-        notifyItemRemoved(index);
     }
 
     @Override
@@ -115,31 +146,43 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             listHolder.binding.progress.setMax((int) item.getDuration());
             listHolder.binding.progress.setProgress((int) item.getPosition());
             listHolder.binding.progress.setVisibility(View.VISIBLE);
+            bindCheck(listHolder.binding.check, position);
             ImgUtil.loadPoster(item.getVodName(), item.getVodPic(), listHolder.binding.image);
-            setClickListener(listHolder.binding.getRoot(), item);
+            setClickListener(listHolder.binding.getRoot(), position, item);
         } else {
             ViewHolder viewHolder = (ViewHolder) holder;
             viewHolder.binding.image.getLayoutParams().width = width;
             viewHolder.binding.image.getLayoutParams().height = height;
             viewHolder.binding.name.setText(item.getVodName());
             viewHolder.binding.site.setText(item.getSiteName());
-            viewHolder.binding.site.setVisibility(item.getSiteVisible());
-            viewHolder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
-            viewHolder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
+            viewHolder.binding.site.setVisibility(select ? View.GONE : item.getSiteVisible());
             viewHolder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
             viewHolder.binding.progress.setMax((int) item.getDuration());
             viewHolder.binding.progress.setProgress((int) item.getPosition());
             viewHolder.binding.progress.setVisibility(View.VISIBLE);
+            bindCheck(viewHolder.binding.check, position);
             ImgUtil.loadVod(item.getVodName(), item.getVodPic(), viewHolder.binding.image);
             BaseVodHolder.setTagMaxWidth(viewHolder.binding.image, 12, viewHolder.binding.site, viewHolder.binding.remark);
-            setClickListener(viewHolder.binding.getRoot(), item);
+            setClickListener(viewHolder.binding.getRoot(), position, item);
         }
     }
 
-    private void setClickListener(View root, History item) {
-        root.setOnLongClickListener(view -> mListener.onLongClick());
+    private void bindCheck(CheckBox check, int position) {
+        boolean checked = mChecked.contains(position);
+        check.setVisibility(select ? View.VISIBLE : View.GONE);
+        check.setChecked(checked);
+    }
+
+    private void setClickListener(View root, int position, History item) {
+        root.setOnLongClickListener(view -> {
+            if (!select) {
+                setSelect(true);
+                setChecked(position, true);
+            }
+            return true;
+        });
         root.setOnClickListener(view -> {
-            if (isDelete()) mListener.onItemDelete(item);
+            if (select) setChecked(position, !isChecked(position));
             else mListener.onItemClick(item);
         });
     }

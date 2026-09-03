@@ -23,6 +23,8 @@ import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import java.util.List;
+
 public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListener {
 
     private DialogSiteBinding binding;
@@ -30,6 +32,7 @@ public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListene
     private SiteAdapter adapter;
     private boolean search;
     private boolean change;
+    private boolean updating;
 
     public static SiteDialog create() {
         return new SiteDialog();
@@ -87,13 +90,16 @@ public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListene
 
     @Override
     protected void initEvent() {
-        binding.selectAll.setOnClickListener(v -> selectAll(true));
-        binding.selectNone.setOnClickListener(v -> selectAll(false));
+        binding.selectAll.setOnCheckedChangeListener((buttonView, checked) -> {
+            if (updating) return;
+            selectAll(checked);
+        });
         binding.switchSubscribe.setVisibility(change ? View.VISIBLE : View.GONE);
         binding.switchSubscribe.setOnClickListener(v -> {
             SubscriptionActivity.start(requireActivity(), 0, true);
             dismiss();
         });
+        updateSelect();
     }
 
     private void setSearchView() {
@@ -108,19 +114,34 @@ public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListene
             }
         });
         if (VodConfig.get().getSites().size() < 10) binding.searchInput.setVisibility(View.GONE);
-        if (!search) {
-            binding.selectAll.setVisibility(View.GONE);
-            binding.selectNone.setVisibility(View.GONE);
-        }
+        if (!search) binding.selectAll.setVisibility(View.GONE);
     }
 
     private void searchSite() {
         adapter.keyword(binding.keyword.getText().toString().trim());
+        updateSelect();
     }
 
     private void selectAll(boolean searchable) {
         adapter.getItems().forEach(site -> site.setSearchable(searchable).save());
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+        updateSelect();
+    }
+
+    // 同步顶部开关：当前列表全部参与搜索时开，否则关
+    private void updateSelect() {
+        List<Site> items = adapter.getItems();
+        boolean all = items.size() > 0;
+        for (Site site : items) {
+            if (!site.isSearchable()) {
+                all = false;
+                break;
+            }
+        }
+        updating = true;
+        binding.selectAll.setChecked(all);
+        binding.selectAll.setEnabled(items.size() > 0);
+        updating = false;
     }
 
     @Override
@@ -133,5 +154,6 @@ public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListene
     public void onSearchClick(Site item) {
         item.setSearchable(!item.isSearchable()).save();
         adapter.notifyItemChanged(adapter.getItems().indexOf(item));
+        updateSelect();
     }
 }

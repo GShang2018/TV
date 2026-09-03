@@ -16,6 +16,16 @@
         android:paddingStart="16dp"
         android:paddingEnd="12dp">
 
+        <CheckBox
+            android:id="@+id/check"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="4dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
         <TextView
             android:id="@+id/name"
             android:layout_width="0dp"
@@ -38,17 +48,6 @@
             app:drawableEndCompat="@drawable/ic_detail_more"
             app:drawableTint="?attr/colorOnSurface"
             tools:text="全部 10" />
-
-        <ImageView
-            android:id="@+id/delete"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/keep_folder_delete"
-            android:src="@drawable/ic_action_delete"
-            android:visibility="gone"
-            tools:visibility="visible" />
 
     </LinearLayout>
 

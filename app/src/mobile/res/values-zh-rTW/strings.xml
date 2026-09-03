@@ -94,7 +94,6 @@
     <string name="dialog_custom_site_api">API 位址</string>
     <string name="setting_custom_vod">自訂站點</string>
     <string name="custom_site_list">自訂站源列表</string>
-    <string name="custom_line">自訂線路</string>
     <string name="error_custom_site_empty">請輸入站點名稱和 API 位址</string>
     <string name="custom_site_added">自訂站點已新增</string>
     <string name="custom_site_updated">自訂站點已更新</string>

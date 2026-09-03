@@ -49,6 +49,8 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
 
     @Override
     protected void initEvent() {
+        mBinding.back.setOnClickListener(v -> onBackPressed());
+        mBinding.checkAll.setOnClickListener(this::onCheckAll);
         mBinding.delete.setOnClickListener(this::onDelete);
         mBinding.viewToggle.setOnClickListener(this::toggleView);
     }
@@ -99,23 +101,25 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     private void getHistory() {
-        mBinding.delete.setFocusable(false);
         mAdapter.addAll(History.get());
-        App.post(() -> {
-            mBinding.delete.setVisibility(mAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE);
-            mBinding.delete.setFocusable(true);
-        }, 500);
         mBinding.recycler.requestFocus();
     }
 
+    private void onCheckAll(View view) {
+        mAdapter.setAll(!mAdapter.isAllChecked());
+    }
+
     private void onDelete(View view) {
-        if (mAdapter.isDelete()) {
-            new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_delete_record).setMessage(R.string.dialog_delete_history).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> mAdapter.clear()).show();
-        } else if (mAdapter.getItemCount() > 0) {
-            mAdapter.setDelete(true);
-        } else {
-            mBinding.delete.setVisibility(View.GONE);
-        }
+        int count = mAdapter.getSelectCount();
+        if (count == 0) return;
+        new MaterialAlertDialogBuilder(this)
+                .setMessage(getString(R.string.dialog_delete_select, count))
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.select_delete, (dialog, which) -> {
+                    for (History item : mAdapter.getSelected()) item.delete();
+                    getHistory();
+                    mBinding.recycler.requestFocus();
+                }).show();
     }
 
     @Override
@@ -124,25 +128,16 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     @Override
-    public void onItemDelete(History item) {
-        mBinding.delete.setFocusable(false);
-        int index = mAdapter.delete(item.delete());
-        if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
-        App.post(() -> {
-            mBinding.delete.setFocusable(true);
-        }, 300);
-        if (mAdapter.getItemCount() > 0) {
-            int nextIndex = index + 1;
-            if (index == mAdapter.getItemCount()) nextIndex = index - 1;
-            View view  = mBinding.recycler.getLayoutManager().findViewByPosition(nextIndex);
-            if (view != null) view.requestFocus();
-        }
-    }
-
-    @Override
-    public boolean onLongClick() {
-        mAdapter.setDelete(true);
-        return true;
+    public void onSelectChanged(int count) {
+        boolean select = mAdapter.isSelect();
+        mBinding.back.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.checkAll.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.checkAll.setImageResource(mAdapter.isAllChecked() ? R.drawable.ic_action_select_all : R.drawable.ic_action_select_none);
+        mBinding.delete.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.delete.setEnabled(count > 0);
+        mBinding.delete.setAlpha(count > 0 ? 1.0f : 0.4f);
+        mBinding.viewToggle.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.title.setText(select ? getString(R.string.select_count, count) : getString(R.string.home_history));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -160,8 +155,10 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
 
     @Override
     public void onBackPressed() {
-        if (mAdapter.isDelete()) mAdapter.setDelete(false);
-        else super.onBackPressed();
+        if (mAdapter.isSelect()) {
+            mAdapter.setSelect(false);
+            mBinding.recycler.requestFocus();
+        } else super.onBackPressed();
     }
 
     @Override

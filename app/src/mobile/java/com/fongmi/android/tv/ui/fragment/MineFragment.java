@@ -61,12 +61,13 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
 
     @Override
     protected void initEvent() {
+        mBinding.exit.setOnClickListener(view -> mAdapter.setSelect(false));
         mBinding.add.setOnClickListener(view -> MineEditActivity.start(requireActivity()));
         mBinding.importBtn.setOnClickListener(this::onImport);
         mBinding.exportBtn.setOnClickListener(this::onExport);
-        mBinding.mode.setOnClickListener(this::onMode);
-        mBinding.view.setOnClickListener(this::onViewType);
+        mBinding.checkAll.setOnClickListener(this::onCheckAll);
         mBinding.delete.setOnClickListener(this::onDelete);
+        mBinding.view.setOnClickListener(this::onViewType);
     }
 
     private void setRecyclerView() {
@@ -86,14 +87,6 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
         mAdapter.setViewType(viewType);
     }
 
-    /** 顶栏 编辑/预览 切换：编辑模式可改可删，预览模式纯浏览播放 */
-    private void onMode(View view) {
-        mAdapter.setEdit(!mAdapter.isEdit());
-        updateModeIcon();
-        updateDeleteVisibility();
-    }
-
-    /** 布局切换（竖版海报/横版海报/列表），与首页 ViewTypeMenu 一致 */
     private void onViewType(View view) {
         ViewTypeMenu.show(requireActivity(), view, R.menu.menu_view_type_simple, Setting.getMineViewType(), viewType -> {
             Setting.putMineViewType(viewType);
@@ -102,26 +95,10 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
         });
     }
 
-    private void updateModeIcon() {
-        if (mAdapter.isEdit()) {
-            mBinding.mode.setImageResource(R.drawable.ic_action_eye);
-            mBinding.mode.setContentDescription(getString(R.string.mine_mode_preview));
-        } else {
-            mBinding.mode.setImageResource(R.drawable.ic_action_edit);
-            mBinding.mode.setContentDescription(getString(R.string.mine_mode_edit));
-        }
-    }
-
-    private void updateDeleteVisibility() {
-        mBinding.delete.setVisibility(mAdapter.isEdit() && mAdapter.getItemCount() > 0 ? View.VISIBLE : View.INVISIBLE);
-    }
-
     private void getVod() {
         mAdapter.addAll(CustomVod.getAll());
         mBinding.empty.setVisibility(mAdapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
-        if (mAdapter.getItemCount() == 0 && mAdapter.isEdit()) mAdapter.setEdit(false);
-        updateModeIcon();
-        updateDeleteVisibility();
+        updateSelectUI();
     }
 
     private void onImport(View view) {
@@ -143,16 +120,37 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
         else Notify.show(R.string.mine_import_fail);
     }
 
+    private void onCheckAll(View view) {
+        mAdapter.setAll(!mAdapter.isAllChecked());
+    }
+
     private void onDelete(View view) {
+        int count = mAdapter.getSelectCount();
+        if (count == 0) return;
         new MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(R.string.mine_delete_confirm_title)
-                .setMessage(R.string.mine_delete_all_confirm_msg)
+                .setMessage(getString(R.string.dialog_delete_select, count))
                 .setNegativeButton(R.string.dialog_negative, null)
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-                    mAdapter.clear();
+                .setPositiveButton(R.string.select_delete, (dialog, which) -> {
+                    for (CustomVod item : mAdapter.getSelected()) item.delete();
                     getVod();
                 })
                 .show();
+    }
+
+    private void updateSelectUI() {
+        boolean select = mAdapter.isSelect();
+        int count = mAdapter.getSelectCount();
+        mBinding.exit.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.add.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.importBtn.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.exportBtn.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.view.setVisibility(select ? View.GONE : View.VISIBLE);
+        mBinding.checkAll.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.checkAll.setImageResource(mAdapter.isAllChecked() ? R.drawable.ic_action_select_all : R.drawable.ic_action_select_none);
+        mBinding.delete.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.delete.setEnabled(count > 0);
+        mBinding.delete.setAlpha(count > 0 ? 1.0f : 0.4f);
+        mBinding.title.setText(select ? getString(R.string.select_count, count) : getString(R.string.mine_title));
     }
 
     @Override
@@ -161,27 +159,8 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
     }
 
     @Override
-    public void onEdit(CustomVod item) {
-        MineEditActivity.start(requireActivity(), item.getId());
-    }
-
-    @Override
-    public void onItemDelete(CustomVod item) {
-        new MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(R.string.mine_delete_confirm_title)
-                .setMessage(R.string.mine_delete_one_confirm_msg)
-                .setNegativeButton(R.string.dialog_negative, null)
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-                    item.delete();
-                    mAdapter.remove(item);
-                    if (mAdapter.getItemCount() == 0) {
-                        mAdapter.setEdit(false);
-                        updateModeIcon();
-                        mBinding.empty.setVisibility(View.VISIBLE);
-                    }
-                    updateDeleteVisibility();
-                })
-                .show();
+    public void onSelectChanged(int count) {
+        updateSelectUI();
     }
 
     /** 解析 CMS 标准播放串（$$$ 线路 / # 集数 / $ 名称分隔），选择后直链播放 */

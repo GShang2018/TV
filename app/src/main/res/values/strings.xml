@@ -191,6 +191,10 @@
     <string name="dialog_delete_record">Delete all records?</string>
     <string name="dialog_delete_keep">All keep records will be removed.</string>
     <string name="dialog_delete_history">All history records will be removed.</string>
+    <string name="dialog_delete_select">Delete the selected %1$d item(s)?</string>
+    <string name="select_count">Selected %1$d</string>
+    <string name="select_delete">Delete</string>
+    <string name="custom_line">Custom Line</string>
     <string name="dialog_reset_app">Reset app?</string>
     <string name="dialog_reset_app_data">All app data will be reset, and app will be shutdown.</string>
     <string name="dialog_restore">Restore backup data?</string>
