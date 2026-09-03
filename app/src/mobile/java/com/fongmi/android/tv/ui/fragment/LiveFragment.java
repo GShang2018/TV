@@ -99,7 +99,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mBinding.logo.setOnClickListener(this::onLogo);
         // 与点播一致：logo 长按刷新配置
         mBinding.logo.setOnLongClickListener(this::onRefresh);
-        mBinding.siteBox.setOnClickListener(this::onSite);
+        mBinding.siteView.setOnClickListener(this::onSite);
         mBinding.keep.setOnClickListener(this::onKeep);
         mBinding.view.setOnClickListener(this::toggleView);
         mBinding.history.setOnClickListener(this::onHistory);
@@ -143,6 +143,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         String site = getHome().getName();
         if (site.isEmpty()) site = LiveConfig.get().getConfig().getDesc();
         mBinding.site.setText(site.isEmpty() ? getString(R.string.live_source) : site);
+        // 与点播首页一致：按“首页显示名称”开关控制名称显隐
+        mBinding.siteView.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
         loadLogo();
     }
 

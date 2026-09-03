@@ -377,8 +377,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         return new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(32);
-                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(32);
+                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(26);
+                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(26);
                 // 默认图标保持圆形裁剪（Vod.Circle），CENTER_CROP 不缩放图标本身、仅裁剪超出圆形区域的部分，避免方形边缘锯齿
                 mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build());
                 mBinding.logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -388,8 +388,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
             @Override
             public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(32);
-                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(32);
+                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(26);
+                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(26);
                 // 站点有 logo 图像时恢复圆形裁剪
                 mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build());
                 mBinding.logo.setScaleType(ImageView.ScaleType.CENTER_CROP);

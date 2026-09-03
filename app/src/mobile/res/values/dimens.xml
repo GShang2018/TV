@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 收紧底部导航“图标-文字”垂直间距（覆盖 Material 默认 4dp） -->
+    <dimen name="m3_navigation_item_active_indicator_label_padding">0dp</dimen>
+</resources>
