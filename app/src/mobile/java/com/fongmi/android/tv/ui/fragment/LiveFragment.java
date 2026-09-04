@@ -3,9 +3,11 @@ package com.fongmi.android.tv.ui.fragment;
 import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.util.SparseArray;
+import android.animation.ValueAnimator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -143,9 +145,34 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         String site = getHome().getName();
         if (site.isEmpty()) site = LiveConfig.get().getConfig().getDesc();
         mBinding.site.setText(site.isEmpty() ? getString(R.string.live_source) : site);
-        // 与点播首页一致：按“首页显示名称”开关控制名称显隐
-        mBinding.siteView.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
         loadLogo();
+        // 名称就绪后：胶囊由仅 logo 的圆形横向展开出名称
+        expandSiteView();
+    }
+
+    private void expandSiteView() {
+        if (!Setting.isHomeDisplayName()) {
+            mBinding.siteView.setVisibility(View.GONE);
+            return;
+        }
+        if (mBinding.site.getText().length() == 0) return;
+        final View siteView = mBinding.siteView;
+        siteView.setVisibility(View.VISIBLE);
+        final ViewGroup.LayoutParams params = siteView.getLayoutParams();
+        params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        siteView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        final int target = Math.max(siteView.getMeasuredWidth(), 1);
+        params.width = 0;
+        siteView.requestLayout();
+        ValueAnimator animator = ValueAnimator.ofInt(0, target);
+        animator.setDuration(280);
+        animator.setInterpolator(new DecelerateInterpolator());
+        animator.addUpdateListener(animation -> {
+            params.width = (Integer) animation.getAnimatedValue();
+            siteView.setAlpha(0.2f + 0.8f * animation.getAnimatedFraction());
+            siteView.requestLayout();
+        });
+        animator.start();
     }
 
     private void loadLogo() {

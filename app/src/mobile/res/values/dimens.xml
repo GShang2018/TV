@@ -2,4 +2,8 @@
 <resources>
     <!-- 收紧底部导航“图标-文字”垂直间距（覆盖 Material 默认 4dp） -->
     <dimen name="m3_navigation_item_active_indicator_label_padding">0dp</dimen>
+    <!-- 图标容器上下 margin（默认 8dp）：调小使图标上移、贴近文字 -->
+    <dimen name="design_bottom_navigation_margin">4dp</dimen>
+    <!-- 文字距底 padding（默认 10dp）：调大使文字整体上移、缩小与图标间距 -->
+    <dimen name="design_bottom_navigation_label_padding">12dp</dimen>
 </resources>

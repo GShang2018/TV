@@ -5,9 +5,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.animation.ValueAnimator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -155,6 +157,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         if (TextUtils.isEmpty(site)) site = config.getDesc();
         mBinding.site.setText(site);
         mBinding.site.setSelected(true);
+        // 名称就绪后：胶囊由仅 logo 的圆形横向展开出名称
+        expandSiteView();
     }
 
     private void setAppBarView() {
@@ -162,6 +166,32 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         mBinding.siteView.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
         mBinding.searchIcon.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
         mBinding.topSpace.setVisibility(Setting.isHomeDisplayName() ? View.VISIBLE : View.GONE);
+        // 名称尚未就绪时，胶囊保持仅 logo 的圆形（名称宽度为 0）
+        if (Setting.isHomeDisplayName()) {
+            mBinding.siteView.getLayoutParams().width = 0;
+            mBinding.siteView.setAlpha(0f);
+        }
+    }
+
+    private void expandSiteView() {
+        if (!Setting.isHomeDisplayName() || TextUtils.isEmpty(mBinding.site.getText())) return;
+        final View siteView = mBinding.siteView;
+        siteView.setVisibility(View.VISIBLE);
+        final ViewGroup.LayoutParams params = siteView.getLayoutParams();
+        params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        siteView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        final int target = Math.max(siteView.getMeasuredWidth(), 1);
+        params.width = 0;
+        siteView.requestLayout();
+        ValueAnimator animator = ValueAnimator.ofInt(0, target);
+        animator.setDuration(280);
+        animator.setInterpolator(new DecelerateInterpolator());
+        animator.addUpdateListener(animation -> {
+            params.width = (Integer) animation.getAnimatedValue();
+            siteView.setAlpha(0.2f + 0.8f * animation.getAnimatedFraction());
+            siteView.requestLayout();
+        });
+        animator.start();
     }
 
     private void setRecyclerView() {
@@ -377,8 +407,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         return new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(26);
-                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(26);
+                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(30);
+                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(30);
                 // 默认图标保持圆形裁剪（Vod.Circle），CENTER_CROP 不缩放图标本身、仅裁剪超出圆形区域的部分，避免方形边缘锯齿
                 mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build());
                 mBinding.logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -388,8 +418,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
             @Override
             public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(26);
-                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(26);
+                mBinding.logo.getLayoutParams().width = ResUtil.dp2px(30);
+                mBinding.logo.getLayoutParams().height = ResUtil.dp2px(30);
                 // 站点有 logo 图像时恢复圆形裁剪
                 mBinding.logo.setShapeAppearanceModel(ShapeAppearanceModel.builder().setAllCornerSizes(ShapeAppearanceModel.PILL).build());
                 mBinding.logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
