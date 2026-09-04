@@ -244,7 +244,16 @@ public class Config {
     }
 
     public boolean isCustom() {
+        return !TextUtils.isEmpty(getUrl()) && getUrl().startsWith(CustomLine.PREFIX);
+    }
+
+    // 是否为传统“自定义”单源列表（自定义://sites，站点存于全局 custom.json）
+    public boolean isCustomSites() {
         return CUSTOM.equals(getUrl());
+    }
+
+    public String getCustomLineId() {
+        return isCustom() ? CustomLine.getLineId(getUrl()) : "";
     }
 
     public String getDesc() {

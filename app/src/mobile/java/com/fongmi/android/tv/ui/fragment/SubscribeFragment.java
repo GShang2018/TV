@@ -16,6 +16,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.databinding.FragmentSubscribeBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
@@ -37,6 +38,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.OnClickListener {
@@ -82,25 +84,35 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
     }
 
     public void refresh() {
-        List<Config> items = Config.getAll(getType());
+        List<Config> items = new ArrayList<>();
         if (getType() == 0) {
-            int index = -1;
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i).isCustom()) {
-                    index = i;
-                    break;
-                }
+            // 自定义入口：传统自定义 + 用户自建的多条自定义线路
+            items.add(Config.custom());
+            for (CustomLine line : CustomLine.getAll()) items.add(toConfig(line));
+            for (Config config : Config.getAll(getType())) {
+                if (config.isCustom()) continue;
+                items.add(config);
             }
-            if (index > 0) items.add(0, items.remove(index));
-            else if (index < 0) items.add(0, Config.custom());
+        } else {
+            items.addAll(Config.getAll(getType()));
         }
         String active = Prefers.getString("config_" + getType(), null);
         mBinding.empty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
         mAdapter.addAll(items, active);
     }
 
+    private Config toConfig(CustomLine line) {
+        return new Config().type(0).url(CustomLine.getUrl(line.getId())).name(line.getName());
+    }
+
     @Override
     public void onSelect(Config item) {
+        // 自定义线路直接作为当前点播源使用（不入库），避免与列表重复
+        if (item.isCustom() && !item.isCustomSites()) {
+            Prefers.put("config_" + getType(), item.getUrl());
+            setConfig(item);
+            return;
+        }
         item.update();
         setConfig(item);
     }
@@ -116,22 +128,56 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
 
     @Override
     public void onCustom(Config item) {
-        CustomSiteActivity.start(getActivity());
+        if (item.isCustomSites()) CustomSiteActivity.start(getActivity());
+        else CustomSiteActivity.start(getActivity(), item.getCustomLineId(), item.getName());
     }
 
     @Override
     public void onEdit(Config item) {
+        if (item.isCustom() && !item.isCustomSites()) {
+            mDialog = SubscribeDialog.edit(this, getType(), item);
+            mDialog.show();
+            return;
+        }
         mDialog = SubscribeDialog.edit(this, getType(), item);
         mDialog.show();
     }
 
     @Override
     public void onCopy(Config item) {
+        if (item.isCustom() && !item.isCustomSites()) {
+            copyCustomLine(item);
+            return;
+        }
         Util.copy(item.getUrl());
+    }
+
+    private void copyCustomLine(Config item) {
+        CustomLine source = CustomLine.find(item.getCustomLineId());
+        if (source == null) return;
+        CustomLine copy = new CustomLine();
+        copy.setId("line_" + java.util.UUID.randomUUID().toString().substring(0, 8));
+        copy.setName(source.getName());
+        copy.setUrl(source.getUrl());
+        copy.setSites(new ArrayList<>(source.getSites()));
+        copy.save();
+        Notify.show(R.string.custom_line_copied);
+        refresh();
     }
 
     @Override
     public void onDelete(Config item) {
+        if (item.isCustom() && !item.isCustomSites()) {
+            new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.custom_line_delete_title).setMessage(R.string.custom_line_delete_msg).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
+                CustomLine line = CustomLine.find(item.getCustomLineId());
+                if (line != null) line.delete();
+                // 同步清除曾作为源加载时写入数据库的 custom://<id> 记录
+                Config.delete(item.getUrl(), getType());
+                Notify.show(R.string.custom_line_deleted);
+                refresh();
+            }).show();
+            return;
+        }
         new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.subscribe_delete_title).setMessage(R.string.subscribe_delete).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
             Config.delete(item.getUrl(), getType());
             if (getType() == 0) Config.delete(item.getUrl(), 1);

@@ -17,6 +17,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.bean.CustomSite;
 import com.fongmi.android.tv.databinding.ActivityCustomSiteBinding;
 import com.fongmi.android.tv.databinding.DialogLinkBinding;
@@ -52,9 +53,18 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
 
     private ActivityCustomSiteBinding mBinding;
     private CustomSiteListAdapter mAdapter;
+    // 为空表示管理全局自定义站点(custom.json)；非空表示管理某条自定义线路的站点
+    private String mLineId;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, CustomSiteActivity.class));
+    }
+
+    public static void start(Activity activity, String lineId, String lineName) {
+        Intent intent = new Intent(activity, CustomSiteActivity.class);
+        intent.putExtra("line", lineId);
+        intent.putExtra("title", lineName);
+        activity.startActivity(intent);
     }
 
     @Override
@@ -64,6 +74,9 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        mLineId = getIntent().getStringExtra("line");
+        String title = getIntent().getStringExtra("title");
+        if (title != null && !title.isEmpty()) mBinding.title.setText(title);
         mAdapter = new CustomSiteListAdapter(this);
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
@@ -74,7 +87,10 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     @Override
     protected void initEvent() {
         mBinding.back.setOnClickListener(v -> onBackPress());
-        mBinding.add.setOnClickListener(v -> CustomSiteDialog.create(this).setOnSaved(this::refreshList).show());
+        mBinding.add.setOnClickListener(v -> {
+            if (mLineId == null) CustomSiteDialog.create(this).setOnSaved(this::refreshList).show();
+            else CustomSiteDialog.create(this, mLineId).setOnSaved(this::refreshList).show();
+        });
         mBinding.share.setOnClickListener(v -> onShare());
         mBinding.importBtn.setOnClickListener(v -> onImport());
         mBinding.check.setOnClickListener(v -> onCheck());
@@ -91,23 +107,42 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     }
 
     private void refreshList() {
-        List<CustomSite> items = CustomSite.getAll();
+        List<CustomSite> items = readSites();
         mBinding.empty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
         mAdapter.addAll(items);
         // 进入页面自动检测一次可用性，不弹进度框，圆点实时更新
         if (!items.isEmpty()) startCheck(false);
     }
 
+    private CustomLine getLine() {
+        return mLineId == null ? null : CustomLine.find(mLineId);
+    }
+
+    private List<CustomSite> readSites() {
+        CustomLine line = getLine();
+        return line == null ? new ArrayList<>(CustomSite.getAll()) : line.sites();
+    }
+
+    private void writeSites(List<CustomSite> items) {
+        CustomLine line = getLine();
+        if (line == null) CustomSite.saveAll(items);
+        else line.sites(items).save();
+    }
+
     @Override
     public void onToggle(CustomSite item, boolean enabled) {
         item.setEnabled(enabled);
-        item.save();
+        List<CustomSite> items = readSites();
+        items.remove(item);
+        items.add(item);
+        writeSites(items);
         refreshConfig();
     }
 
     @Override
     public void onEdit(CustomSite item) {
-        CustomSiteDialog.create(this, item).setOnSaved(this::refreshList).show();
+        if (mLineId == null) CustomSiteDialog.create(this, item).setOnSaved(this::refreshList).show();
+        else CustomSiteDialog.create(this, mLineId, item).setOnSaved(this::refreshList).show();
     }
 
     @Override
@@ -118,7 +153,9 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     @Override
     public void onDelete(CustomSite item) {
         new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_delete_custom_site_title).setMessage(R.string.dialog_delete_custom_site).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-            item.delete();
+            List<CustomSite> items = readSites();
+            items.remove(item);
+            writeSites(items);
             Notify.show(R.string.custom_site_deleted);
             refreshConfig();
             refreshList();
@@ -128,7 +165,7 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     // ==================== 分享 ====================
 
     private void onShare() {
-        List<CustomSite> items = CustomSite.getAll();
+        List<CustomSite> items = readSites();
         if (items.isEmpty()) {
             Notify.show(R.string.custom_site_empty);
             return;
@@ -149,7 +186,7 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     private String buildShareJson() {
         JsonObject object = new JsonObject();
         JsonArray array = new JsonArray();
-        for (CustomSite item : CustomSite.getAll()) {
+        for (CustomSite item : readSites()) {
             array.add(App.gson().toJsonTree(item));
         }
         object.add("sites", array);
@@ -295,7 +332,7 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
                     return;
                 }
 
-                List<CustomSite> existing = new ArrayList<>(CustomSite.getAll());
+                List<CustomSite> existing = new ArrayList<>(readSites());
                 int added = 0;
                 for (JsonElement element : array) {
                     CustomSite item = App.gson().fromJson(element, CustomSite.class);
@@ -308,7 +345,7 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
                     App.post(() -> Notify.show(R.string.custom_site_import_fail));
                     return;
                 }
-                CustomSite.saveAll(existing);
+                writeSites(existing);
                 App.post(() -> {
                     Notify.show(R.string.custom_site_import_success);
                     refreshList();
@@ -327,7 +364,7 @@ public class CustomSiteActivity extends BaseActivity implements CustomSiteListAd
     }
 
     private void startCheck(boolean manual) {
-        List<CustomSite> items = CustomSite.getAll();
+        List<CustomSite> items = readSites();
         if (items.isEmpty()) {
             if (manual) Notify.show(R.string.custom_site_empty);
             return;

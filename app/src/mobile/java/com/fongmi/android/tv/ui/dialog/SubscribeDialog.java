@@ -13,6 +13,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.databinding.DialogSubscribeBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
@@ -26,6 +27,9 @@ import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
+import java.util.ArrayList;
+import java.util.UUID;
+
 public class SubscribeDialog {
 
     private final DialogSubscribeBinding binding;
@@ -34,6 +38,8 @@ public class SubscribeDialog {
     private Config editing;
     private boolean append;
     private boolean init;
+    // true = 编辑/新建的是“自定义线路”
+    private boolean custom;
     private int type;
 
     public static SubscribeDialog create(Fragment fragment, int type) {
@@ -71,6 +77,10 @@ public class SubscribeDialog {
         return editing != null;
     }
 
+    private boolean isLineEdit() {
+        return isEdit() && editing.isCustom() && !editing.isCustomSites();
+    }
+
     private void initDialog() {
         int titleRes = isEdit() ? R.string.subscribe_edit_title : (type == 0 ? R.string.subscribe_add_vod : R.string.subscribe_add_live);
         int positiveRes = isEdit() ? R.string.dialog_edit : R.string.subscribe_positive;
@@ -80,13 +90,41 @@ public class SubscribeDialog {
     }
 
     private void initView() {
-        binding.epgInput.setVisibility(type == 1 ? View.VISIBLE : View.GONE);
-        binding.use.setChecked(!isEdit());
-        binding.use.setVisibility(isEdit() ? View.GONE : View.VISIBLE);
-        if (isEdit()) {
+        // 点播新增：顶部提供“自定义线路 / 远程订阅”模式选择，默认自定义线路
+        if (type == 0 && !isEdit()) {
+            binding.group.setVisibility(View.VISIBLE);
+            binding.modeCustom.setChecked(true);
+            custom = true;
+            applyCustomUi(true);
+        } else if (isLineEdit()) {
+            custom = true;
+            applyCustomUi(true);
+            binding.name.setText(editing.getName());
+            CustomLine line = CustomLine.find(editing.getCustomLineId());
+            binding.url.setText(line == null ? "" : line.getUrl());
+        } else {
+            custom = false;
+            applyCustomUi(false);
+        }
+        if (!custom && isEdit()) {
             binding.name.setText(editing.getName());
             binding.url.setText(editing.getUrl());
             if (type == 1) binding.epg.setText(editing.getEpg());
+        }
+    }
+
+    private void applyCustomUi(boolean custom) {
+        binding.epgInput.setVisibility(View.GONE);
+        binding.use.setVisibility(View.GONE);
+        if (custom) {
+            binding.choose.setHint(R.string.custom_line_addr);
+            binding.choose.setEndIconMode(com.google.android.material.textfield.TextInputLayout.END_ICON_NONE);
+        } else {
+            binding.choose.setHint(R.string.subscribe_url);
+            binding.choose.setEndIconMode(com.google.android.material.textfield.TextInputLayout.END_ICON_CUSTOM);
+            binding.epgInput.setVisibility(type == 1 ? View.VISIBLE : View.GONE);
+            binding.use.setChecked(!isEdit());
+            binding.use.setVisibility(isEdit() ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -95,10 +133,16 @@ public class SubscribeDialog {
         init = true;
         binding.choose.setEndIconOnClickListener(this::onChoose);
         binding.epgInput.setEndIconOnClickListener(this::onChoose);
+        binding.group.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            custom = checkedId == binding.modeCustom.getId();
+            applyCustomUi(custom);
+        });
         binding.url.addTextChangedListener(new CustomTextListener() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                detect(s.toString());
+                // 自定义线路的“地址”只是备注，不做协议自动补全
+                if (!custom) detect(s.toString());
             }
         });
         binding.url.setOnEditorActionListener((textView, actionId, event) -> {
@@ -129,19 +173,58 @@ public class SubscribeDialog {
     }
 
     private void onPositive(DialogInterface dialog, int which) {
-        String url = UrlUtil.fixUrl(binding.url.getText().toString().trim());
-        String name = binding.name.getText().toString().trim();
-        String epg = binding.epg.getText().toString().trim();
-        if (url.isEmpty()) {
-            Notify.show(R.string.subscribe_edit_empty);
-            return;
-        }
-        if (isEdit()) {
-            onEditPositive(url, name, epg);
+        if (custom) {
+            onCustomPositive();
         } else {
-            onAddPositive(url, name, epg);
+            String url = UrlUtil.fixUrl(binding.url.getText().toString().trim());
+            String name = binding.name.getText().toString().trim();
+            String epg = binding.epg.getText().toString().trim();
+            if (url.isEmpty()) {
+                Notify.show(R.string.subscribe_edit_empty);
+                return;
+            }
+            if (isEdit()) onEditPositive(url, name, epg);
+            else onAddPositive(url, name, epg);
         }
     }
+
+    // ==================== 自定义线路 ====================
+
+    private void onCustomPositive() {
+        String name = binding.name.getText().toString().trim();
+        String address = binding.url.getText().toString().trim();
+        if (name.isEmpty()) {
+            Notify.show(R.string.custom_line_empty);
+            return;
+        }
+        Util.hideKeyboard(binding.url);
+        dialog.dismiss();
+        if (isLineEdit()) updateCustomLine(name, address);
+        else createCustomLine(name, address);
+    }
+
+    private void createCustomLine(String name, String address) {
+        CustomLine line = new CustomLine();
+        line.setId("line_" + UUID.randomUUID().toString().substring(0, 8));
+        line.setName(name);
+        line.setUrl(address);
+        line.setSites(new ArrayList<>());
+        line.save();
+        Notify.show(R.string.custom_line_added);
+        refresh();
+    }
+
+    private void updateCustomLine(String name, String address) {
+        CustomLine line = CustomLine.find(editing.getCustomLineId());
+        if (line == null) return;
+        line.setName(name);
+        line.setUrl(address);
+        line.save();
+        Notify.show(R.string.custom_line_updated);
+        refresh();
+    }
+
+    // ==================== 远程订阅 ====================
 
     private void onAddPositive(String url, String name, String epg) {
         Config config = Config.find(url, name, type);

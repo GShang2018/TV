@@ -326,4 +326,14 @@
     <string name="mine_format_pic_screenshot">Multiple images, separated by $$$
     </string>
 
+    <string name="custom_line_add_mode">Custom Line</string>
+    <string name="custom_line_remote_mode">Remote Subscribe</string>
+    <string name="custom_line_addr">Address (optional)</string>
+    <string name="custom_line_empty">Please enter a name</string>
+    <string name="custom_line_added">Line created</string>
+    <string name="custom_line_updated">Line saved</string>
+    <string name="custom_line_copied">Line copied</string>
+    <string name="custom_line_deleted">Line deleted</string>
+    <string name="custom_line_delete_title">Delete Line</string>
+    <string name="custom_line_delete_msg">Delete this custom line and its sites?</string>
 </resources>

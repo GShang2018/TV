@@ -303,4 +303,14 @@
     <string name="mine_format_pic_screenshot">多張圖片用 $$$ 分隔
     </string>
 
+    <string name="custom_line_add_mode">自訂線路</string>
+    <string name="custom_line_remote_mode">遠端訂閱</string>
+    <string name="custom_line_addr">地址（可選）</string>
+    <string name="custom_line_empty">請填寫線路名稱</string>
+    <string name="custom_line_added">線路已建立</string>
+    <string name="custom_line_updated">線路已儲存</string>
+    <string name="custom_line_copied">線路已複製</string>
+    <string name="custom_line_deleted">線路已刪除</string>
+    <string name="custom_line_delete_title">刪除線路</string>
+    <string name="custom_line_delete_msg">確定刪除該線路及其站點？</string>
 </resources>

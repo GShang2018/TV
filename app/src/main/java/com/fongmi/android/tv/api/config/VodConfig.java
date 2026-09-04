@@ -7,6 +7,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.bean.CustomSite;
 import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.bean.Parse;
@@ -244,12 +245,19 @@ public class VodConfig {
     private JsonObject getCustomObject() {
         JsonObject object = new JsonObject();
         JsonArray array = new JsonArray();
-        for (CustomSite custom : CustomSite.getAll()) if (custom.getEnabled()) array.add(App.gson().toJsonTree(custom.toSite()));
+        // 自定义线路站点来源：传统自定义使用全局 custom.json，其余按线路 id 取各自站点列表
+        List<CustomSite> customs = config.isCustomSites() ? CustomSite.getAll() : getLineCustomSites();
+        for (CustomSite custom : customs) if (custom.getEnabled()) array.add(App.gson().toJsonTree(custom.toSite()));
         object.add("sites", array);
         object.add("rules", new JsonArray());
         object.add("doh", new JsonArray());
         object.add("parses", new JsonArray());
         return object;
+    }
+
+    private List<CustomSite> getLineCustomSites() {
+        CustomLine line = CustomLine.find(config.getCustomLineId());
+        return line == null ? Collections.emptyList() : line.getSites();
     }
 
     private void initLive(JsonObject object) {

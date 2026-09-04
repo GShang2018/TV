@@ -18,6 +18,7 @@ import java.lang.reflect.Method;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.databinding.ItemSubscribeBinding;
 
 import java.util.ArrayList;
@@ -63,7 +64,8 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
 
     @Override
     public long getItemId(int position) {
-        return mItems.get(position).getId();
+        Config item = mItems.get(position);
+        return item.getId() == 0 ? item.getUrl().hashCode() : item.getId();
     }
 
     @NonNull
@@ -78,10 +80,19 @@ public class SubscribeAdapter extends RecyclerView.Adapter<SubscribeAdapter.View
         boolean checked = TextUtils.equals(active, item.getUrl());
         holder.binding.name.setText(item.getDesc());
         if (item.isCustom()) {
-            holder.binding.url.setText(getString(holder, R.string.custom_site_list));
+            boolean legacy = item.isCustomSites();
+            if (legacy) {
+                holder.binding.url.setText(getString(holder, R.string.custom_site_list));
+            } else {
+                CustomLine line = CustomLine.find(item.getCustomLineId());
+                String address = line == null ? "" : line.getUrl();
+                holder.binding.url.setText(TextUtils.isEmpty(address) ? "" : address);
+                holder.binding.more.setVisibility(View.VISIBLE);
+                holder.binding.more.setOnClickListener(v -> showMoreMenu(holder, item));
+            }
             holder.binding.source.setVisibility(View.GONE);
-            holder.binding.more.setVisibility(View.GONE);
             holder.binding.switchBtn.setVisibility(View.VISIBLE);
+            if (legacy) holder.binding.more.setVisibility(View.GONE);
             holder.binding.name.setOnClickListener(v -> mListener.onCustom(item));
             holder.binding.url.setOnClickListener(v -> mListener.onCustom(item));
         } else {

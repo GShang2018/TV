@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.bean.CustomSite;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.databinding.DialogCustomSiteBinding;
@@ -22,6 +23,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.List;
 import java.util.UUID;
 
 public class CustomSiteDialog {
@@ -29,23 +31,33 @@ public class CustomSiteDialog {
     private final DialogCustomSiteBinding binding;
     private final Context context;
     private final CustomSite custom;
+    // 非空表示保存到指定自定义线路，空表示保存到全局 custom.json
+    private final String lineId;
     private AlertDialog dialog;
     private Runnable onSaved;
 
     public static CustomSiteDialog create(Fragment fragment) {
-        return new CustomSiteDialog(fragment.requireContext(), null);
+        return new CustomSiteDialog(fragment.requireContext(), null, null);
     }
 
     public static CustomSiteDialog create(Fragment fragment, CustomSite custom) {
-        return new CustomSiteDialog(fragment.requireContext(), custom);
+        return new CustomSiteDialog(fragment.requireContext(), custom, null);
     }
 
     public static CustomSiteDialog create(FragmentActivity activity) {
-        return new CustomSiteDialog(activity, null);
+        return new CustomSiteDialog(activity, null, null);
+    }
+
+    public static CustomSiteDialog create(FragmentActivity activity, String lineId) {
+        return new CustomSiteDialog(activity, null, lineId);
     }
 
     public static CustomSiteDialog create(FragmentActivity activity, CustomSite custom) {
-        return new CustomSiteDialog(activity, custom);
+        return new CustomSiteDialog(activity, custom, null);
+    }
+
+    public static CustomSiteDialog create(FragmentActivity activity, String lineId, CustomSite custom) {
+        return new CustomSiteDialog(activity, custom, lineId);
     }
 
     public CustomSiteDialog setOnSaved(Runnable onSaved) {
@@ -53,9 +65,10 @@ public class CustomSiteDialog {
         return this;
     }
 
-    private CustomSiteDialog(Context context, CustomSite custom) {
+    private CustomSiteDialog(Context context, CustomSite custom, String lineId) {
         this.context = context;
         this.custom = custom;
+        this.lineId = lineId;
         this.binding = DialogCustomSiteBinding.inflate(LayoutInflater.from(context));
     }
 
@@ -105,12 +118,25 @@ public class CustomSiteDialog {
         }
         target.setName(name);
         target.setApi(api);
-        target.save();
+        doSave(target);
         Notify.show(edit ? R.string.custom_site_updated : R.string.custom_site_added);
         refresh();
         Util.hideKeyboard(binding.api);
         if (onSaved != null) onSaved.run();
         dialog.dismiss();
+    }
+
+    private void doSave(CustomSite target) {
+        if (lineId == null) {
+            target.save();
+        } else {
+            CustomLine line = CustomLine.find(lineId);
+            if (line == null) return;
+            List<CustomSite> items = line.sites();
+            items.remove(target);
+            items.add(target);
+            line.sites(items).save();
+        }
     }
 
     private void refresh() {
