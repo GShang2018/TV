@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="4dp" />
+            <solid android:color="#f5f5f5" />
+        </shape>
+    </item>
+    <item>
+        <selector>
+            <!-- 选中：主题色背景 -->
+            <item android:state_selected="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="4dp" />
+                    <solid android:color="?attr/colorPrimary" />
+                    <padding
+                        android:bottom="5dp"
+                        android:left="10dp"
+                        android:right="10dp"
+                        android:top="5dp" />
+                </shape>
+            </item>
+            <!-- 未选中：描边样式 -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="4dp" />
+                    <stroke
+                        android:width="1dp"
+                        android:color="?attr/colorOutline" />
+                    <padding
+                        android:bottom="5dp"
+                        android:left="10dp"
+                        android:right="10dp"
+                        android:top="5dp" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

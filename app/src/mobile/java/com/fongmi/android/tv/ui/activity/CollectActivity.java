@@ -13,7 +13,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -56,7 +55,8 @@ import com.github.catvod.net.OkHttp;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.flexbox.FlexboxLayoutManager;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -323,7 +323,8 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         DialogTypeBinding binding = DialogTypeBinding.inflate(getLayoutInflater());
         FlexboxLayout flexbox = binding.flexbox;
         flexbox.removeAllViews();
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this).setView(binding.getRoot()).create();
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(binding.getRoot());
         for (int i = 0; i < sites.size(); i++) {
             Site site = sites.get(i);
             TextView textView = (TextView) LayoutInflater.from(this).inflate(R.layout.adapter_type_dialog, flexbox, false);
@@ -335,8 +336,15 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
             });
             flexbox.addView(textView);
         }
-        dialog.getWindow().setDimAmount(0);
+        // 底部弹出，并强制一次性完全展开；skipCollapsed 使向下拖拽直接滑出关闭，不停留在中间高度
         dialog.show();
+        View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        if (sheet != null) {
+            BottomSheetBehavior behavior = BottomSheetBehavior.from(sheet);
+            behavior.setFitToContents(true);
+            behavior.setSkipCollapsed(true);
+            sheet.post(() -> behavior.setState(BottomSheetBehavior.STATE_EXPANDED));
+        }
     }
 
     @Override

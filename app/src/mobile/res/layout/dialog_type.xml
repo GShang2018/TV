@@ -5,9 +5,16 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingLeft="16dp"
-    android:paddingTop="16dp"
+    android:paddingTop="8dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp">
+
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_bottom_sheet_handle" />
 
     <ScrollView
         android:id="@+id/scroll"
