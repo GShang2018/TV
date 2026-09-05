@@ -29,6 +29,7 @@ import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.activity.VodActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.base.ViewType;
+import com.fongmi.android.tv.web.WebHomeArt;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
@@ -200,7 +201,7 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     public void onItemClick(Vod item) {
         getActivity().setResult(Activity.RESULT_OK);
         if (item.isFolder()) VodActivity.start(getActivity(), item.getSiteKey(), Result.folder(item));
-        else VideoActivity.collect(getActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+        else VideoActivity.collect(getActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), WebHomeArt.fallback(item.getVodPic()));
     }
 
     @Override

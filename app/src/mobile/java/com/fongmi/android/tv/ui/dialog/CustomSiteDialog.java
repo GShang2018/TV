@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -35,6 +36,8 @@ public class CustomSiteDialog {
     private final String lineId;
     private AlertDialog dialog;
     private Runnable onSaved;
+    private ArrayAdapter<CharSequence> mTypeAdapter;
+    private int siteTypePosition;
 
     public static CustomSiteDialog create(Fragment fragment) {
         return new CustomSiteDialog(fragment.requireContext(), null, null);
@@ -79,9 +82,30 @@ public class CustomSiteDialog {
     }
 
     private void initView() {
+        setSiteType();
         if (custom == null) return;
         binding.name.setText(custom.getName());
-        binding.api.setText(custom.getApi());
+        boolean webHome = !TextUtils.isEmpty(custom.getHomePage());
+        setSiteTypePosition(webHome ? 1 : 0);
+        binding.siteType.setText(mTypeAdapter.getItem(webHome ? 1 : 0), false);
+        binding.api.setText(webHome ? custom.getHomePage() : custom.getApi());
+    }
+
+    private void setSiteType() {
+        mTypeAdapter = ArrayAdapter.createFromResource(context, R.array.dialog_site_types, android.R.layout.simple_spinner_item);
+        mTypeAdapter.setDropDownViewResource(R.layout.item_site_type_dropdown);
+        binding.siteType.setAdapter(mTypeAdapter);
+        binding.siteType.setOnItemClickListener((parent, view, position, id) -> setSiteTypePosition(position));
+        setSiteTypePosition(0);
+    }
+
+    private void setSiteTypePosition(int position) {
+        siteTypePosition = position;
+        binding.apiLayout.setHint(position == 1 ? R.string.dialog_custom_site_homepage : R.string.dialog_custom_site_api);
+    }
+
+    private boolean isWebHome() {
+        return siteTypePosition == 1;
     }
 
     private void initDialog() {
@@ -110,14 +134,25 @@ public class CustomSiteDialog {
         if (target == null) {
             target = new CustomSite();
             target.setKey("custom_" + UUID.randomUUID().toString().substring(0, 8));
+            target.setStyle(Style.rect());
+        }
+        target.setName(name);
+        if (isWebHome()) {
+            // WebHome 站点：homePage 驱动网页首页，api 用壳蜘蛛，不参与搜索
+            target.setType(3);
+            target.setSearchable(0);
+            target.setQuickSearch(0);
+            target.setFilterable(0);
+            target.setApi("csp_Builtin");
+            target.setHomePage(api);
+        } else {
             target.setType(1);
             target.setSearchable(1);
             target.setQuickSearch(1);
             target.setFilterable(1);
-            target.setStyle(Style.rect());
+            target.setApi(api);
+            target.setHomePage(null);
         }
-        target.setName(name);
-        target.setApi(api);
         doSave(target);
         Notify.show(edit ? R.string.custom_site_updated : R.string.custom_site_added);
         refresh();

@@ -43,7 +43,7 @@ import com.fongmi.android.tv.ui.adapter.SearchAdapter;
 import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.adapter.WordAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.base.ViewType;
+import com.fongmi.android.tv.web.WebHomeArt;import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.ViewTypeMenu;
@@ -393,7 +393,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     @Override
     public void onItemClick(Vod item) {
         if (item.isFolder()) FolderActivity.start(this, item.getSiteKey(), Result.folder(item));
-        else VideoActivity.collect(this, item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+        else VideoActivity.collect(this, item.getSiteKey(), item.getVodId(), item.getVodName(), WebHomeArt.fallback(item.getVodPic()));
     }
 
     @Override

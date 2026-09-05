@@ -92,6 +92,14 @@
     <string name="dialog_site_title">選擇站點</string>
     <string name="dialog_custom_site_name">站點名稱</string>
     <string name="dialog_custom_site_api">API 位址</string>
+    <string name="dialog_custom_site_homepage">homePage 位址</string>
+    <string name="dialog_site_type_label">站點類型</string>
+    <string name="dialog_site_type_cms">蘋果CMS</string>
+    <string name="dialog_site_type_webhome">WebHome</string>
+    <string-array name="dialog_site_types">
+        <item>@string/dialog_site_type_cms</item>
+        <item>@string/dialog_site_type_webhome</item>
+    </string-array>
     <string name="setting_custom_vod">自訂站點</string>
     <string name="custom_site_list">自訂站源列表</string>
     <string name="error_custom_site_empty">請輸入站點名稱和 API 位址</string>

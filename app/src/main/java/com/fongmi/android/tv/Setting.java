@@ -354,6 +354,14 @@ public class Setting {
         Prefers.put("change", change);
     }
 
+    public static boolean isDriveCheck() {
+        return Prefers.getBoolean("drive_check", true);
+    }
+
+    public static void putDriveCheck(boolean driveCheck) {
+        Prefers.put("drive_check", driveCheck);
+    }
+
     public static boolean getUpdate() {
         return Prefers.getBoolean("update", true);
     }

@@ -104,6 +104,10 @@ public class Site implements Parcelable {
     private Style style;
 
     @Ignore
+    @SerializedName(value = "homePage", alternate = {"home_page", "webHome", "web_home"})
+    private String homePage;
+
+    @Ignore
     private boolean activated;
 
     public static Site objectFrom(JsonElement element) {
@@ -247,6 +251,18 @@ public class Site implements Parcelable {
         return header;
     }
 
+    public String getHomePage() {
+        return TextUtils.isEmpty(homePage) ? "" : homePage;
+    }
+
+    public void setHomePage(String homePage) {
+        this.homePage = homePage;
+    }
+
+    public boolean hasHomePage() {
+        return !TextUtils.isEmpty(homePage);
+    }
+
     public Style getStyle() {
         return style;
     }
@@ -363,6 +379,7 @@ public class Site implements Parcelable {
         dest.writeStringList(this.categories);
         dest.writeParcelable(this.style, flags);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
+        dest.writeString(this.homePage);
     }
 
     protected Site(Parcel in) {
@@ -384,6 +401,7 @@ public class Site implements Parcelable {
         this.categories = in.createStringArrayList();
         this.style = in.readParcelable(Style.class.getClassLoader());
         this.activated = in.readByte() != 0;
+        this.homePage = in.readString();
     }
 
     public static final Creator<Site> CREATOR = new Creator<>() {

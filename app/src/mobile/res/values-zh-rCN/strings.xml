@@ -100,6 +100,14 @@
     <string name="dialog_site_source">选择直播源</string>
     <string name="dialog_custom_site_name">站点名称</string>
     <string name="dialog_custom_site_api">API 地址</string>
+    <string name="dialog_custom_site_homepage">homePage 地址</string>
+    <string name="dialog_site_type_label">站点类型</string>
+    <string name="dialog_site_type_cms">苹果CMS</string>
+    <string name="dialog_site_type_webhome">WebHome</string>
+    <string-array name="dialog_site_types">
+        <item>@string/dialog_site_type_cms</item>
+        <item>@string/dialog_site_type_webhome</item>
+    </string-array>
     <string name="setting_custom_vod">自定义站点</string>
     <string name="custom_site_list">自定义站源列表</string>
     <string name="error_custom_site_empty">请输入站点名称和 API 地址</string>

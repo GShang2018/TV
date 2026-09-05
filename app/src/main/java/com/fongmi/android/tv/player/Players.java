@@ -43,6 +43,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
+import com.fongmi.android.tv.web.WebHomeHeaders;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.exo.ProxyLoadControl;
 import com.fongmi.android.tv.server.Server;
@@ -741,7 +742,13 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void setMediaSource(Result result, int timeout) {
-        setMediaSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+        Map<String, String> headers = result.getHeaders();
+        // WebHome 直链播放（带 UA/Referer 的网盘直链等）：Result 无 header 时用会话头
+        if (headers == null || headers.isEmpty()) {
+            Map<String, String> extra = WebHomeHeaders.take();
+            if (extra != null && !extra.isEmpty()) headers = extra;
+        }
+        setMediaSource(headers, result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), timeout);
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {

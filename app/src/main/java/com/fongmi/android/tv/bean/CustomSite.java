@@ -48,6 +48,17 @@ public class CustomSite {
     @SerializedName("enabled")
     private Boolean enabled;
 
+    @SerializedName("homePage")
+    private String homePage;
+
+    public String getHomePage() {
+        return homePage == null ? "" : homePage;
+    }
+
+    public void setHomePage(String homePage) {
+        this.homePage = homePage;
+    }
+
     public static File getFile() {
         return new File(Path.tv(), FILE_NAME);
     }
@@ -162,6 +173,7 @@ public class CustomSite {
         site.setSearchable(getSearchable());
         site.setQuickSearch(getQuickSearch());
         site.setFilterable(getFilterable());
+        site.setHomePage(getHomePage());
         site.setStyle(getStyle());
         return site;
     }

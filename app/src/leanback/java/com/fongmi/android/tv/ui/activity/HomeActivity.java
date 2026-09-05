@@ -8,6 +8,10 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.widget.FrameLayout;
+
+import com.fongmi.android.tv.web.HomeWebController;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -97,6 +101,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private boolean confirm;
     private Clock mClock;
     private View mFocus;
+    private HomeWebController mWeb;
+    private WebView mHomeWeb;
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -213,13 +219,81 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     public void homeContent() {
+        homeContent(false);
+    }
+
+    public void homeContent(boolean forceNative) {
         mResult = Result.empty();
         String title = getHome().getName();
         mBinding.title.setText(title.isEmpty() ? ResUtil.getString(R.string.app_name) : title);
         if (getHome().getKey().isEmpty()) return;
+        if (!forceNative && getHome().hasHomePage() && showWebHome()) return;
+        hideWebHome();
         mFocus = getCurrentFocus();
         getHomeFragment().mBinding.progressLayout.showProgress();
         mViewModel.homeContent();
+    }
+
+    private boolean showWebHome() {
+        ensureWebView();
+        if (!mWeb.load(getHome())) {
+            hideWebHome();
+            return false;
+        }
+        mBinding.webProgress.setVisibility(View.VISIBLE);
+        try {
+            if (getHomeFragment().inited) getHomeFragment().mBinding.progressLayout.showContent();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        mBinding.typeRow.setVisibility(View.GONE);
+        mBinding.pager.setVisibility(View.GONE);
+        mBinding.webOverlay.setVisibility(View.VISIBLE);
+        return true;
+    }
+
+    private void hideWebHome() {
+        if (mWeb != null) mWeb.hide();
+        mBinding.webOverlay.setVisibility(View.GONE);
+        mBinding.webProgress.setVisibility(View.GONE);
+        mBinding.typeRow.setVisibility(View.VISIBLE);
+        mBinding.pager.setVisibility(View.VISIBLE);
+    }
+
+    private void ensureWebView() {
+        if (mWeb != null) return;
+        if (mHomeWeb == null) {
+            mHomeWeb = new WebView(this);
+            mHomeWeb.setFocusable(true);
+            mHomeWeb.setFocusableInTouchMode(true);
+            mHomeWeb.setNextFocusUpId(mBinding.title.getId());
+            mBinding.webOverlay.addView(mHomeWeb, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        }
+        mWeb = new HomeWebController(this, mHomeWeb, new HomeWebController.Listener() {
+            @Override
+            public void onWebLoading() {
+                mBinding.webProgress.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onWebReady() {
+                mBinding.webProgress.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onWebError() {
+                mBinding.webProgress.setVisibility(View.GONE);
+                hideWebHome();
+                homeContent(true);
+            }
+
+            @Override
+            public void onExit() {
+                mBinding.webProgress.setVisibility(View.GONE);
+                hideWebHome();
+                homeContent(true);
+            }
+        });
     }
 
     public void setTypes(Result result) {
@@ -603,6 +677,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         boolean isHomeFragment = mBinding.pager.getCurrentItem() == 0;
+        // WebHome 可见时 BACK 统一走两步返回（页面层级 → WebView 历史 → 退出确认），
+        // 避免 TV 上 WebView 持有焦点时 BACK 被当作按键直接喂给页面导致“返回不了”
+        if (mWeb != null && mWeb.isVisible() && event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isBackKey(event)) {
+            if (mWeb.handleBack()) return true;
+            if (!confirm) setConfirm();
+            else finish();
+            return true;
+        }
+        if (mWeb != null && mWeb.isVisible() && mWeb.dispatchKeyEvent(event)) return true;
         if (isHomeFragment && KeyUtil.isMenuKey(event)) {
             if (Setting.getHomeMenuKey() == 0) MenuDialog.create(this).show();
             else if (Setting.getHomeMenuKey() == 1) SiteDialog.create(this).show();
@@ -625,12 +708,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mClock.start();
         setTitleView();
         setHomeUI();
+        if (mWeb != null) mWeb.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mClock.stop();
+        if (mWeb != null) mWeb.onPause();
     }
 
     @Override
@@ -640,6 +725,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void onBackPress() {
+        if (mWeb != null && mWeb.isVisible()) {
+            if (mWeb.handleBack()) return;
+            if (!confirm) setConfirm();
+            else finish();
+            return;
+        }
         if (isVisible(mBinding.recycler) && mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else if (mPageAdapter != null && getHomeFragment().inited && getHomeFragment().mBinding.progressLayout.isProgress()) {
@@ -671,6 +762,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mWeb != null) mWeb.destroy();
         WallConfig.get().clear();
         LiveConfig.get().clear();
         VodConfig.get().clear();

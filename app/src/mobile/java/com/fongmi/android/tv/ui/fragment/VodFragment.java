@@ -10,11 +10,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.webkit.WebView;
+import android.widget.FrameLayout;
+
+import com.fongmi.android.tv.web.HomeWebController;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.activity.OnBackPressedCallback;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
@@ -96,6 +101,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 	private List<String> mHots;
 	private Result mResult;
 	private LineSelectDialog mLineDialog;
+	private HomeWebController mWeb;
+	private WebView mHomeWeb;
+	private OnBackPressedCallback mBackCallback;
 
     public static VodFragment newInstance() {
         return new VodFragment();
@@ -411,12 +419,101 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void homeContent() {
+        homeContent(false);
+    }
+
+    private void homeContent(boolean forceNative) {
         setSiteText();
+        if (!forceNative && getSite().hasHomePage() && showWebHome()) return;
+        hideWebHome();
         showProgress();
         setFabVisible(0);
         mAdapter.clear();
         mViewModel.homeContent();
         mBinding.pager.setAdapter(new PageAdapter(getChildFragmentManager()));
+    }
+
+    private boolean showWebHome() {
+        ensureWebView();
+        if (!mWeb.load(getSite())) {
+            hideWebHome();
+            return false;
+        }
+        hideProgress();
+        mBinding.retry.setVisibility(View.GONE);
+        mBinding.emptyState.setVisibility(View.GONE);
+        mBinding.filter.setVisibility(View.GONE);
+        mBinding.top.setVisibility(View.INVISIBLE);
+        mBinding.typeLayout.setVisibility(View.GONE);
+        mBinding.pager.setVisibility(View.GONE);
+        mBinding.webOverlay.setVisibility(View.VISIBLE);
+        mBinding.webProgress.setVisibility(View.VISIBLE);
+        if (mBackCallback != null) mBackCallback.setEnabled(true);
+        return true;
+    }
+
+    private void hideWebHome() {
+        if (mWeb != null) mWeb.hide();
+        mBinding.webOverlay.setVisibility(View.GONE);
+        mBinding.webProgress.setVisibility(View.GONE);
+        mBinding.typeLayout.setVisibility(View.VISIBLE);
+        mBinding.pager.setVisibility(View.VISIBLE);
+        if (mBackCallback != null) mBackCallback.setEnabled(false);
+    }
+
+    private void ensureWebView() {
+        if (mWeb != null || mHomeWeb != null) return;
+        mHomeWeb = new WebView(requireActivity());
+        mHomeWeb.setFocusable(true);
+        mHomeWeb.setFocusableInTouchMode(true);
+        mBinding.webOverlay.addView(mHomeWeb, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        mWeb = new HomeWebController(requireActivity(), mHomeWeb, new HomeWebController.Listener() {
+            @Override
+            public void onWebLoading() {
+                mBinding.webProgress.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onWebReady() {
+                mBinding.webProgress.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onWebError() {
+                mBinding.webProgress.setVisibility(View.GONE);
+                hideWebHome();
+                homeContent(true);
+            }
+
+            @Override
+            public void onExit() {
+                mBinding.webProgress.setVisibility(View.GONE);
+                hideWebHome();
+                homeContent(true);
+            }
+        });
+        registerBackCallback();
+    }
+
+    private void registerBackCallback() {
+        if (mBackCallback != null) return;
+        mBackCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                if (mWeb == null || !mWeb.isVisible()) {
+                    setEnabled(false);
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                    return;
+                }
+                if (!mWeb.handleBack()) {
+                    setEnabled(false);
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                }
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackCallback);
     }
 
     private void setLogo() {
@@ -582,8 +679,29 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (mWeb != null) mWeb.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mWeb != null) mWeb.onPause();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (mWeb != null) {
+            mWeb.destroy();
+            mWeb = null;
+        }
+        mHomeWeb = null;
+        if (mBackCallback != null) {
+            mBackCallback.remove();
+            mBackCallback = null;
+        }
         App.removeCallbacks(mRunnable);
         EventBus.getDefault().unregister(this);
     }

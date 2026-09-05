@@ -99,6 +99,7 @@
         </LinearLayout>
 
         <RelativeLayout
+            android:id="@+id/typeRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
@@ -136,6 +137,23 @@
             android:id="@+id/pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <FrameLayout
+            android:id="@+id/webOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:id="@+id/webProgress"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/white"
+                android:visibility="gone" />
+
+        </FrameLayout>
 
     </LinearLayout>
 </LinearLayout>

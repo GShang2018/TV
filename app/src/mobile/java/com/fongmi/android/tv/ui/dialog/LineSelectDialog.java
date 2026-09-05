@@ -19,6 +19,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.CustomLine;
 import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.databinding.DialogLineSelectBinding;
 import com.fongmi.android.tv.databinding.DialogSubscribeBinding;
@@ -96,10 +97,18 @@ public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.On
         if (!all) return config.getLineList();
         List<Depot> lines = new ArrayList<>();
         mapping.clear();
+        // 自定义线路与设置页同源（CustomLine），保证首页选择器与设置页状态一致
+        if (config.getType() == 0) {
+            for (CustomLine line : CustomLine.getAll()) {
+                Config target = new Config().type(0).url(CustomLine.getUrl(line.getId())).name(line.getName());
+                lines.add(new Depot(target.getUrl(), target.getDesc()));
+                mapping.put(target.getUrl(), target);
+            }
+        }
         List<Config> items = Config.getAll(config.getType());
         for (Config item : items) {
-            // 传统“自定义”入口已由用户自建线路取代，不再自动注入 custom://sites
-            if (item.isCustom() && item.isCustomSites()) continue;
+            // 库内 custom:// 行统一由上方 CustomLine 来源提供，跳过避免重复
+            if (item.isCustom()) continue;
             if (item.isDepot()) {
                 for (Depot depot : item.getLineList()) {
                     lines.add(new Depot(depot.getUrl(), depot.getName()));
