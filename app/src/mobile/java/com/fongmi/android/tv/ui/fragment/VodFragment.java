@@ -275,18 +275,16 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void setFabVisible(int position) {
+        // 链接入口已常驻顶栏，不再作为悬浮按钮参与显隐切换
         if (mAdapter.getItemCount() == 0) {
             mBinding.top.setVisibility(View.INVISIBLE);
-            mBinding.link.setVisibility(View.VISIBLE);
             mBinding.filter.setVisibility(View.GONE);
         } else if (mAdapter.get(position).getFilters().size() > 0) {
             mBinding.top.setVisibility(View.INVISIBLE);
-            mBinding.link.setVisibility(View.GONE);
             mBinding.filter.show();
-        } else if (position == 0 || mAdapter.get(position).getFilters().isEmpty()) {
+        } else {
             mBinding.top.setVisibility(View.INVISIBLE);
             mBinding.filter.setVisibility(View.GONE);
-            mBinding.link.show();
         }
     }
 
@@ -302,7 +300,6 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         getFragment().scrollToTop();
         mBinding.top.setVisibility(View.INVISIBLE);
         if (mBinding.filter.getVisibility() == View.INVISIBLE) mBinding.filter.show();
-        else if (mBinding.link.getVisibility() == View.INVISIBLE) mBinding.link.show();
     }
 
     private void onLink(View view) {
