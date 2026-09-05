@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -302,7 +303,11 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         mViews.clear();
         if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
         setPosition(LiveConfig.get().find(items));
-        mBinding.typeLayout.post(this::checkTypeOverflow);
+        // 数据就绪后统一刷新标签文字样式（单行 + 超长省略号）并检测是否溢出显示“更多”
+        mBinding.typeLayout.post(() -> {
+            applyTabTextStyle();
+            checkTypeOverflow();
+        });
     }
 
     private void setPosition(int[] position) {
@@ -331,6 +336,25 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         // TabLayout 继承 HorizontalScrollView，可向左或向右滚动即说明标签溢出
         boolean overflow = mBinding.type.getWidth() > 0 && (mBinding.type.canScrollHorizontally(1) || mBinding.type.canScrollHorizontally(-1));
         mBinding.typeMore.setVisibility(overflow ? View.VISIBLE : View.GONE);
+    }
+
+    // 分组标签文字最多一行，超出显示尾部省略号
+    private void applyTabTextStyle() {
+        ViewGroup strip = (ViewGroup) mBinding.type.getChildAt(0);
+        if (strip == null) return;
+        for (int i = 0; i < strip.getChildCount(); i++) setTabTextStyle(strip.getChildAt(i));
+    }
+
+    private void setTabTextStyle(View view) {
+        if (view instanceof TextView) {
+            TextView text = (TextView) view;
+            text.setSingleLine(true);
+            text.setMaxLines(1);
+            text.setEllipsize(TextUtils.TruncateAt.END);
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) setTabTextStyle(group.getChildAt(i));
+        }
     }
 
     private void onTypeMore(View view) {

@@ -86,8 +86,7 @@ public class SubscribeFragment extends BaseFragment implements SubscribeAdapter.
     public void refresh() {
         List<Config> items = new ArrayList<>();
         if (getType() == 0) {
-            // 自定义入口：传统自定义 + 用户自建的多条自定义线路
-            items.add(Config.custom());
+            // 用户自建的多条自定义线路 + 远程订阅；不再预置传统“自定义”入口（随时可由 + 创建线路）
             for (CustomLine line : CustomLine.getAll()) items.add(toConfig(line));
             for (Config config : Config.getAll(getType())) {
                 if (config.isCustom()) continue;

@@ -121,8 +121,15 @@ public class SubscribeDialog {
             binding.choose.setEndIconMode(com.google.android.material.textfield.TextInputLayout.END_ICON_NONE);
         } else {
             binding.choose.setHint(R.string.subscribe_url);
+            // setEndIconMode() 每次切换都会用 delegate 自带监听覆盖此前设置的监听，
+            // 切回“远程订阅”后必须重新挂载文件夹图标与点击监听，否则无法点击选择本地文件
             binding.choose.setEndIconMode(com.google.android.material.textfield.TextInputLayout.END_ICON_CUSTOM);
+            binding.choose.setEndIconDrawable(R.drawable.ic_action_choose);
+            binding.choose.setEndIconOnClickListener(this::onChoose);
             binding.epgInput.setVisibility(type == 1 ? View.VISIBLE : View.GONE);
+            binding.epgInput.setEndIconMode(com.google.android.material.textfield.TextInputLayout.END_ICON_CUSTOM);
+            binding.epgInput.setEndIconDrawable(R.drawable.ic_action_choose);
+            binding.epgInput.setEndIconOnClickListener(this::onChoose);
             binding.use.setChecked(!isEdit());
             binding.use.setVisibility(isEdit() ? View.GONE : View.VISIBLE);
         }

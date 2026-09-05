@@ -97,8 +97,9 @@ public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.On
         List<Depot> lines = new ArrayList<>();
         mapping.clear();
         List<Config> items = Config.getAll(config.getType());
-        if (!containsCustom(items)) items.add(0, Config.custom());
         for (Config item : items) {
+            // 传统“自定义”入口已由用户自建线路取代，不再自动注入 custom://sites
+            if (item.isCustom() && item.isCustomSites()) continue;
             if (item.isDepot()) {
                 for (Depot depot : item.getLineList()) {
                     lines.add(new Depot(depot.getUrl(), depot.getName()));
@@ -110,11 +111,6 @@ public class LineSelectDialog extends BaseDialog implements LineSelectAdapter.On
             }
         }
         return lines;
-    }
-
-    private boolean containsCustom(List<Config> items) {
-        for (Config item : items) if (item.isCustom()) return true;
-        return false;
     }
 
     private String getSelected() {
