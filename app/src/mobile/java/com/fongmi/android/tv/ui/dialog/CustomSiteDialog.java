@@ -92,7 +92,10 @@ public class CustomSiteDialog {
     }
 
     private void setSiteType() {
-        mTypeAdapter = ArrayAdapter.createFromResource(context, R.array.dialog_site_types, android.R.layout.simple_spinner_item);
+        // 注意：MaterialAutoCompleteTextView 下拉弹层由 DropDownListView 渲染 adapter.getView()，
+        // 不走 getDropDownView，因此行布局必须作为 createFromResource 的 getView 资源（第三参），
+        // setDropDownViewResource 仅对 Spinner 生效，此处保留仅作兜底
+        mTypeAdapter = ArrayAdapter.createFromResource(context, R.array.dialog_site_types, R.layout.item_site_type_dropdown);
         mTypeAdapter.setDropDownViewResource(R.layout.item_site_type_dropdown);
         binding.siteType.setAdapter(mTypeAdapter);
         binding.siteType.setOnItemClickListener((parent, view, position, id) -> setSiteTypePosition(position));
