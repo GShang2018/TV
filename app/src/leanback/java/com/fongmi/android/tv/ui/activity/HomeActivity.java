@@ -390,9 +390,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void toggleView(View view) {
         int current = mBinding.pager.getCurrentItem();
-        int currentViewType = current == 0 ? Setting.getHomeViewType() : Setting.getCategoryViewType(getHome().getKey(), ((Class) mAdapter.get(current)).getTypeId());
+        int currentViewType = current == 0 ? Setting.getHomeViewType(getHome().getKey()) : Setting.getCategoryViewType(getHome().getKey(), ((Class) mAdapter.get(current)).getTypeId());
         ViewTypeMenu.show(this, view, R.menu.menu_view_type, currentViewType, viewType -> {
-            if (current == 0) Setting.putHomeViewType(viewType);
+            if (current == 0) Setting.putHomeViewType(getHome().getKey(), viewType);
             else Setting.putCategoryViewType(getHome().getKey(), ((Class) mAdapter.get(current)).getTypeId(), viewType);
             refreshAllFragments();
         });
@@ -403,7 +403,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private Style getHomeViewStyle() {
-        switch (Setting.getHomeViewType()) {
+        switch (Setting.getHomeViewType(getHome().getKey())) {
             case ViewType.PORTRAIT:
                 return Style.rect();
             case ViewType.LIST:

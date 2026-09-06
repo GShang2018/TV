@@ -367,9 +367,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         if (mAdapter.getItemCount() == 0) return;
         int current = Math.min(mBinding.pager.getCurrentItem(), mAdapter.getItemCount() - 1);
         Class type = mAdapter.get(current);
-        int currentViewType = "home".equals(type.getTypeId()) ? Setting.getHomeViewType() : Setting.getCategoryViewType(getSite().getKey(), type.getTypeId());
+        int currentViewType = "home".equals(type.getTypeId()) ? Setting.getHomeViewType(getSite().getKey()) : Setting.getCategoryViewType(getSite().getKey(), type.getTypeId());
         ViewTypeMenu.show(getActivity(), view, R.menu.menu_view_type, currentViewType, viewType -> {
-            if ("home".equals(type.getTypeId())) Setting.putHomeViewType(viewType);
+            if ("home".equals(type.getTypeId())) Setting.putHomeViewType(getSite().getKey(), viewType);
             else Setting.putCategoryViewType(getSite().getKey(), type.getTypeId(), viewType);
             TypeFragment fragment = getFragment();
             if (fragment != null) fragment.refreshStyle();

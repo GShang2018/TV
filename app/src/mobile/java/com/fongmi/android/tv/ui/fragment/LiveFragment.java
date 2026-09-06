@@ -82,6 +82,12 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         return LiveConfig.get().getHome();
     }
 
+    // 当前直播源标识：Live.name（布局状态按源记忆，切换源后不延续上一源的布局）
+    private String getKey() {
+        String key = getHome().getName();
+        return key.isEmpty() ? "default" : key;
+    }
+
     @Override
     protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
         return mBinding = FragmentLiveBinding.inflate(inflater, container, false);
@@ -200,7 +206,7 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     private void setGrid() {
-        int viewType = Setting.getLiveViewType();
+        int viewType = Setting.getLiveViewType(getKey());
         for (int i = 0; i < mViews.size(); i++) {
             int position = mViews.keyAt(i);
             RecyclerView recycler = mViews.get(position);
@@ -220,8 +226,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
     }
 
     private void toggleView(View view) {
-        ViewTypeMenu.show(requireContext(), view, R.menu.menu_view_type_live, Setting.getLiveViewType(), viewType -> {
-            Setting.putLiveViewType(viewType);
+        ViewTypeMenu.show(requireContext(), view, R.menu.menu_view_type_live, Setting.getLiveViewType(getKey()), viewType -> {
+            Setting.putLiveViewType(getKey(), viewType);
             setGrid();
         });
     }
@@ -510,12 +516,12 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
             recycler.setPadding(padding, padding, padding, padding);
             ChannelGridAdapter adapter = new ChannelGridAdapter(LiveFragment.this);
             // 新页面必须设置当前视图类型，否则默认 GRID 导致列表模式下仍用宫格条目渲染
-            adapter.setType(Setting.getLiveViewType());
+            adapter.setType(Setting.getLiveViewType(getKey()));
             adapter.addAll(group.getChannel());
             if (group.getPosition() >= 0 && group.getPosition() < group.getChannel().size()) {
                 adapter.setSelected(group.getChannel().get(group.getPosition()));
             }
-            setLayoutManager(recycler, adapter, Setting.getLiveViewType());
+            setLayoutManager(recycler, adapter, Setting.getLiveViewType(getKey()));
             recycler.setAdapter(adapter);
             mAdapters.put(position, adapter);
             mViews.put(position, recycler);

@@ -68,6 +68,12 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         return VodConfig.get().getHome();
     }
 
+    // 供首页历史行 presenter 获取当前站点 key：历史行形状跟随当前站点的首页布局
+    @Override
+    public String getSiteKey() {
+        return getHome().getKey();
+    }
+
     @Override
     protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
         return mBinding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -128,7 +134,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
         mResult = result;
         int index = getRecommendIndex();
         if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
-        int homeViewType = Setting.getHomeViewType();
+        int homeViewType = Setting.getHomeViewType(getHome().getKey());
         Style style;
         if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             style = Style.rect();
@@ -151,7 +157,7 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
     public void refreshWithStyle() {
         if (mResult == null || mResult.getList().isEmpty()) return;
         final Style style;
-        int homeViewType = Setting.getHomeViewType();
+        int homeViewType = Setting.getHomeViewType(getHome().getKey());
         if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.PORTRAIT) {
             style = Style.rect();
         } else if (homeViewType == com.fongmi.android.tv.ui.base.ViewType.LIST) {

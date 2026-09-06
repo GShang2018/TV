@@ -150,6 +150,15 @@ public class Setting {
 		Prefers.put("homeViewType", viewType);
 	}
 
+	// 首页布局按站点记忆：key = 站点 key（该站未设置过则用站点配置样式 CONFIG，避免切换站点后延续上一站布局）
+	public static int getHomeViewType(String key) {
+		return Prefers.getInt("homeViewType_" + key, ViewType.CONFIG);
+	}
+
+	public static void putHomeViewType(String key, int viewType) {
+		Prefers.put("homeViewType_" + key, viewType);
+	}
+
 	public static int getHistoryViewType() {
 		return Prefers.getInt("historyViewType", 3);
 	}
@@ -190,12 +199,13 @@ public class Setting {
 		Prefers.put("relViewType", viewType);
 	}
 
-	public static int getLiveViewType() {
-		return Prefers.getInt("liveViewType", ViewType.GRID);
+	// 直播布局按直播源记忆：key = Live.name（该源未设置过则默认宫格，避免切换源后延续上一源的布局）
+	public static int getLiveViewType(String key) {
+		return Prefers.getInt("liveViewType_" + key, ViewType.GRID);
 	}
 
-	public static void putLiveViewType(int viewType) {
-		Prefers.put("liveViewType", viewType);
+	public static void putLiveViewType(String key, int viewType) {
+		Prefers.put("liveViewType_" + key, viewType);
 	}
 
 	public static int getLiveKeepViewType() {

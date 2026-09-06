@@ -36,6 +36,11 @@ public class HistoryPresenter extends Presenter {
         void onItemDelete(History item);
 
         boolean onLongClick();
+
+        // 当前首页所属站点 key（用于按站点记忆首页布局），无站点时返回空串走全局默认
+        default String getSiteKey() {
+            return "";
+        }
     }
 
     public boolean isDelete() {
@@ -47,7 +52,10 @@ public class HistoryPresenter extends Presenter {
     }
 
     private Style getViewStyle() {
-        return Setting.getHomeViewType() == ViewType.PORTRAIT ? Style.rect() : Style.land();
+        // 跟随当前站点首页布局（key 由 HomeFragment 动态提供），无站点时回退全局默认
+        String key = mListener == null ? "" : mListener.getSiteKey();
+        int viewType = key.isEmpty() ? Setting.getHomeViewType() : Setting.getHomeViewType(key);
+        return viewType == ViewType.PORTRAIT ? Style.rect() : Style.land();
     }
 
     public void refreshLayout() {

@@ -83,7 +83,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     private int getViewType() {
         String typeId = getArguments().getString("typeId");
-        if ("home".equals(typeId)) return Setting.getHomeViewType();
+        if ("home".equals(typeId)) return Setting.getHomeViewType(getKey());
         return Setting.getCategoryViewType(getKey(), typeId);
     }
 
