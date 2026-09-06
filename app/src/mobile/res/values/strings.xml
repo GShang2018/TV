@@ -89,6 +89,7 @@
     <string name="live_reminder_add">Reserved, will remind</string>
     <string name="live_reminder_cancel">Reservation cancelled</string>
     <string name="live_reminder">%1$s will air soon</string>
+    <string name="live_reminder_permission">Notifications are disabled. Please allow them in system settings to get reminded</string>
 
     <!-- Vod -->
     <string name="vod_home">Home</string>
@@ -334,6 +335,7 @@
     <string name="mine_format_pic_screenshot">Multiple images, separated by $$$
     </string>
 
+    <string name="dialog_subscribe_mode_label">Subscribe Type</string>
     <string name="custom_line_add_mode">Custom Line</string>
     <string name="custom_line_remote_mode">Remote Subscribe</string>
     <string name="custom_line_addr">Address (optional)</string>

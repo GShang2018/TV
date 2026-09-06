@@ -81,6 +81,14 @@ public class ImgUtil {
         else Glide.with(App.get()).asBitmap().load(url).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
     }
 
+    // 台标大图加载：显式 override 目标尺寸，请求尺寸与 view 布局时序解耦（对齐点播封面按固定像素发起请求的逻辑），
+    // 首次解码分辨率即 ≥ 显示需求，避免"点击重绑后按更大尺寸重新解码才变清晰"
+    public static void loadLive(String url, ImageView view, int width, int height) {
+        view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
+        if (TextUtils.isEmpty(url)) view.setImageResource(R.drawable.ic_img_empty);
+        else Glide.with(App.get()).asBitmap().load(url).override(width, height).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
+    }
+
     // 台标 logo 加载：加载中 placeholder 居中不缩放，加载完成后 FIT_CENTER 等比缩放完整显示不裁剪
     public static void loadLogo(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);

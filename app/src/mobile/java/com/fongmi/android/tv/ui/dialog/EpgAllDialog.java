@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.content.Intent;
-import android.provider.CalendarContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +19,6 @@ import com.fongmi.android.tv.databinding.DialogEpgAllBinding;
 import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.ui.adapter.EpgAllAdapter;
 import com.fongmi.android.tv.ui.adapter.EpgDateAdapter;
-import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.text.SimpleDateFormat;
@@ -133,20 +130,13 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
         dismiss();
     }
 
-    // 预约：调起系统日历新建事件提醒（预填节目标题与时间，由用户在日历中确认保存）
+    // 预约/取消预约：转发给播放页统一处理（写入闹钟/删除记录），本地刷新卡片状态
     @Override
     public void onReserve(EpgData item) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_INSERT).setData(CalendarContract.Events.CONTENT_URI);
-            intent.putExtra(CalendarContract.Events.TITLE, item.getTitle());
-            intent.putExtra(CalendarContract.Events.DESCRIPTION, mChannel.getName());
-            intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, item.getStartTime());
-            intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, item.getEndTime());
-            requireContext().startActivity(intent);
-            Notify.show(getString(R.string.live_epg_reserve_toast));
-        } catch (Exception e) {
-            Notify.show(getString(R.string.live_epg_reserve_fail));
-        }
+        if (mListener != null) mListener.onReserve(item);
+        mEpgAdapter.notifyDataSetChanged();
+        // 首次预约会弹通知权限申请（异步返回），授权后再刷一次确保角标与数据库一致
+        binding.list.postDelayed(() -> mEpgAdapter.notifyDataSetChanged(), 800);
     }
 
     private void setDate(String date) {
@@ -192,5 +182,8 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
     public interface OnClickListener {
 
         void onItemClick(EpgData item);
+
+        // 预约 / 取消预约，转发给播放页统一处理
+        void onReserve(EpgData item);
     }
 }

@@ -8,6 +8,10 @@
         <item name="cornerSize">8dp</item>
     </style>
 
+    <style name="Vod.Logo">
+        <item name="cornerSize">4dp</item>
+    </style>
+
     <style name="Vod.Image">
         <item name="cornerSizeTopLeft">8dp</item>
         <item name="cornerSizeTopRight">8dp</item>

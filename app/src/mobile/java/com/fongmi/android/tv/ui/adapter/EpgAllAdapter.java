@@ -44,7 +44,7 @@ public class EpgAllAdapter extends RecyclerView.Adapter<EpgAllAdapter.ViewHolder
         // 回看 / 正在播放的节目
         void onItemClick(EpgData item);
 
-        // 预约：调起系统日历新建事件
+        // 预约 / 取消预约
         void onReserve(EpgData item);
     }
 

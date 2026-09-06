@@ -443,29 +443,72 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/channelList"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:clipToPadding="false"
-                        android:overScrollMode="never"
-                        android:paddingTop="4dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:paddingBottom="8dp"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:itemCount="10"
-                        tools:listitem="@layout/adapter_channel_live" />
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/channelEmpty"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="@string/live_empty"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp"
-                        android:visibility="gone" />
+                        <!-- 频道列表顶部工具栏：右侧为形态切换按钮（台标在左/台标在上放大） -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical|end"
+                            android:orientation="horizontal"
+                            android:paddingStart="4dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="2dp">
+
+                            <ImageView
+                                android:id="@+id/channelLocate"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:padding="6dp"
+                                android:src="@drawable/ic_my_location"
+                                tools:ignore="ContentDescription" />
+
+                            <ImageView
+                                android:id="@+id/channelViewSwitch"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:padding="6dp"
+                                android:src="@drawable/ic_view_list"
+                                tools:ignore="ContentDescription" />
+
+                        </LinearLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1">
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/channelList"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:clipToPadding="false"
+                                android:overScrollMode="never"
+                                android:paddingStart="4dp"
+                                android:paddingEnd="4dp"
+                                android:paddingBottom="8dp"
+                                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                                tools:itemCount="10"
+                                tools:listitem="@layout/adapter_channel_live" />
+
+                            <TextView
+                                android:id="@+id/channelEmpty"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="@string/live_empty"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="13sp"
+                                android:visibility="gone" />
+
+                        </FrameLayout>
+
+                    </LinearLayout>
 
                 </FrameLayout>
 

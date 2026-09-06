@@ -84,6 +84,7 @@
     <string name="live_reminder_add">已預約，到點提醒</string>
     <string name="live_reminder_cancel">已取消預約</string>
     <string name="live_reminder">%1$s 即將播出</string>
+    <string name="live_reminder_permission">通知權限未開啟，到點無法提醒，請到系統設定中允許通知</string>
 
     <!-- Vod -->
     <string name="vod_home">推薦</string>
@@ -311,6 +312,7 @@
     <string name="mine_format_pic_screenshot">多張圖片用 $$$ 分隔
     </string>
 
+    <string name="dialog_subscribe_mode_label">訂閱類型</string>
     <string name="custom_line_add_mode">自訂線路</string>
     <string name="custom_line_remote_mode">遠端訂閱</string>
     <string name="custom_line_addr">地址（可選）</string>

@@ -34,17 +34,13 @@ public class ReminderReceiver extends BroadcastReceiver {
                 .putExtra("group", reminder.getGroupName())
                 .putExtra("channel", reminder.getChannelName())
                 .putExtra("empty", false);
-        PendingIntent contentIntent = PendingIntent.getActivity(context, requestCode(reminder), play, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent contentIntent = PendingIntent.getActivity(context, reminder.getRequestCode(), play, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Notify.DEFAULT)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(reminder.getProgramTitle())
                 .setContentText(context.getString(R.string.live_reminder, reminder.getChannelName()))
                 .setContentIntent(contentIntent)
                 .setAutoCancel(true);
-        NotificationManagerCompat.from(context).notify(requestCode(reminder), builder.build());
-    }
-
-    private static int requestCode(Reminder reminder) {
-        return (int) (reminder.getStartTime() & 0x7FFFFFFF);
+        NotificationManagerCompat.from(context).notify(reminder.getRequestCode(), builder.build());
     }
 }

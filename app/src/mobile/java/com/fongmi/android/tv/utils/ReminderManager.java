@@ -34,10 +34,6 @@ public class ReminderManager {
                 .setAction(ACTION)
                 .putExtra("channelName", reminder.getChannelName())
                 .putExtra("startTime", reminder.getStartTime());
-        return PendingIntent.getBroadcast(context, requestCode(reminder), intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-    }
-
-    private static int requestCode(Reminder reminder) {
-        return (int) (reminder.getStartTime() & 0x7FFFFFFF);
+        return PendingIntent.getBroadcast(context, reminder.getRequestCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 }

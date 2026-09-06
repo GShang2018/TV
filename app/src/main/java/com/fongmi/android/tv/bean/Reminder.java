@@ -62,4 +62,9 @@ public class Reminder {
     public void setCreateTime(long createTime) {
         this.createTime = createTime;
     }
+
+    // 统一取号：频道名 + 开始时间混合哈希，避免不同频道同时段节目 requestCode 相同导致 PendingIntent 互相覆盖
+    public int getRequestCode() {
+        return (getChannelName() + "_" + getStartTime()).hashCode() & 0x7FFFFFFF;
+    }
 }

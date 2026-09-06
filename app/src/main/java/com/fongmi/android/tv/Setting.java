@@ -175,6 +175,15 @@ public class Setting {
 		Prefers.put("keepViewType", viewType);
 	}
 
+	// 直播换台列表形态：0=台标在左(横排) 1=台标在上(大台标)
+	public static int getLiveChannelViewType() {
+		return Prefers.getInt("liveChannelViewType", 0);
+	}
+
+	public static void putLiveChannelViewType(int viewType) {
+		Prefers.put("liveChannelViewType", viewType);
+	}
+
 	public static int getCollectViewType() {
 		return Prefers.getInt("collectViewType", 3);
 	}

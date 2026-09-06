@@ -36,6 +36,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 
 public class MineFragment extends BaseFragment implements MineAdapter.OnClickListener {
@@ -67,6 +68,7 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
         mBinding.exportBtn.setOnClickListener(this::onExport);
         mBinding.checkAll.setOnClickListener(this::onCheckAll);
         mBinding.delete.setOnClickListener(this::onDelete);
+        mBinding.edit.setOnClickListener(this::onEditSelected);
         mBinding.view.setOnClickListener(this::onViewType);
     }
 
@@ -137,6 +139,14 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
                 .show();
     }
 
+    /** 底部 编辑 按钮：仅选中 1 条可点，进入编辑页（先退出选择模式） */
+    private void onEditSelected(View view) {
+        List<CustomVod> selected = mAdapter.getSelected();
+        if (selected.size() != 1) return;
+        mAdapter.setSelect(false);
+        MineEditActivity.start(requireActivity(), selected.get(0).getId());
+    }
+
     private void updateSelectUI() {
         boolean select = mAdapter.isSelect();
         int count = mAdapter.getSelectCount();
@@ -150,6 +160,11 @@ public class MineFragment extends BaseFragment implements MineAdapter.OnClickLis
         mBinding.delete.setVisibility(select ? View.VISIBLE : View.GONE);
         mBinding.delete.setEnabled(count > 0);
         mBinding.delete.setAlpha(count > 0 ? 1.0f : 0.4f);
+        // 编辑仅对单选有意义：恰好选中 1 条可点，多选/未选置灰
+        boolean single = select && count == 1;
+        mBinding.edit.setVisibility(select ? View.VISIBLE : View.GONE);
+        mBinding.edit.setEnabled(single);
+        mBinding.edit.setAlpha(single ? 1.0f : 0.4f);
         mBinding.title.setText(select ? getString(R.string.select_count, count) : getString(R.string.mine_title));
     }
 

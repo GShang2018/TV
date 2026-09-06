@@ -12,4 +12,5 @@
     android:paddingBottom="12dp"
     android:singleLine="true"
     android:textColor="?attr/colorOnSurface"
-    android:textSize="15sp" />
+    android:textSize="15sp"
+    android:background="?attr/selectableItemBackground" />

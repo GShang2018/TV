@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.Manifest;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -13,7 +14,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.CalendarContract;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +31,8 @@ import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.SubtitleView;
 import androidx.palette.graphics.Palette;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager.widget.PagerAdapter;
 
@@ -51,8 +53,10 @@ import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.LiveHistory;
+import com.fongmi.android.tv.bean.Reminder;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.databinding.ActivityLiveBinding;
+import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
@@ -83,11 +87,14 @@ import com.fongmi.android.tv.utils.IDMUtil;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PiP;
+import com.fongmi.android.tv.utils.ReminderManager;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.tabs.TabLayout;
+
+import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -118,6 +125,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private Players mPlayers;
     private Channel mChannel;
     private Group mGroup;
+    // 频道列表当前已加载的分组：分组未变时切台不重建列表，避免列表跳动
+    private Group mChannelTabGroup;
     private Runnable mR0;
     private Runnable mR1;
     private boolean mControlHiding;
@@ -274,6 +283,12 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.playCast.setOnClickListener(view -> onCast());
         mBinding.share.setOnClickListener(view -> onShareClick());
         mBinding.allEpg.setOnClickListener(view -> onAllEpg());
+        // 点击海报（频道台标）全屏查看大图
+        mBinding.playLogo.setOnClickListener(view -> showLogo());
+        // 换台列表形态切换按钮
+        mBinding.channelViewSwitch.setOnClickListener(view -> toggleChannelView());
+        // GPS 定位：滚动到当前正在播放的频道
+        mBinding.channelLocate.setOnClickListener(view -> locateChannel());
         mBinding.currentLine.setOnClickListener(view -> onMoreLine());
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
     }
@@ -359,6 +374,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.channelList.setHasFixedSize(true);
         mBinding.channelList.setItemAnimator(null);
         mBinding.channelList.setAdapter(mChannelTabAdapter = new ChannelLiveAdapter(this));
+        // 恢复换台列表上次选择的形态（台标在左/大台标在上），并同步按钮图标
+        int viewType = Setting.getLiveChannelViewType();
+        mChannelTabAdapter.setViewType(viewType);
+        mBinding.channelViewSwitch.setImageResource(viewType == ChannelLiveAdapter.VIEW_BIG ? R.drawable.ic_view_grid : R.drawable.ic_view_list);
     }
 
     private boolean onHorizontalTouch(View v, MotionEvent e) {
@@ -366,6 +385,22 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             v.getParent().requestDisallowInterceptTouchEvent(true);
         }
         return false;
+    }
+
+    // 换台列表形态切换：台标在左(横排) ↔ 台标在上(大台标)，切换后记住选择
+    private void toggleChannelView() {
+        int viewType = Setting.getLiveChannelViewType() == ChannelLiveAdapter.VIEW_BIG ? ChannelLiveAdapter.VIEW_LIST : ChannelLiveAdapter.VIEW_BIG;
+        Setting.putLiveChannelViewType(viewType);
+        mChannelTabAdapter.setViewType(viewType);
+        mBinding.channelViewSwitch.setImageResource(viewType == ChannelLiveAdapter.VIEW_BIG ? R.drawable.ic_view_grid : R.drawable.ic_view_list);
+    }
+
+    // GPS 定位：平滑滚动列表到当前正在播放的频道项
+    private void locateChannel() {
+        if (mGroup == null) return;
+        int position = mGroup.getPosition();
+        if (position < 0 || position >= mChannelTabAdapter.getItemCount()) return;
+        mBinding.channelList.smoothScrollToPosition(position);
     }
 
     private void setPlayerView() {
@@ -863,7 +898,28 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     // 点击全部节目：弹出日期 + 时间线弹窗，已结束且支持回放的节目点击可播放
     private void onAllEpg() {
         if (mChannel == null) return;
-        EpgAllDialog.create().channel(mChannel).viewModel(mViewModel).listener(this::onItemClick).show(this);
+        EpgAllDialog.create().channel(mChannel).viewModel(mViewModel).listener(new EpgAllDialog.OnClickListener() {
+            @Override
+            public void onItemClick(EpgData item) {
+                LiveActivity.this.onItemClick(item);
+            }
+
+            // 弹窗预约/取消转发给播放页统一处理
+            @Override
+            public void onReserve(EpgData item) {
+                LiveActivity.this.onReserve(item);
+            }
+        }).show(this);
+    }
+
+    // 点击海报（频道台标）：全屏查看大图，与点播播放页一致；无 logo 的频道静默不响应
+    private void showLogo() {
+        if (mChannel == null) return;
+        String logo = mChannel.getLogo();
+        if (logo.isEmpty()) return;
+        ArrayList<String> urls = new ArrayList<>();
+        urls.add(logo);
+        GalleryActivity.start(this, urls, 0, mChannel.getName());
     }
 
     // 换台 tab 点击分类：仅切换分类并加载频道列表，不自动播放
@@ -901,21 +957,48 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         showProgress();
     }
 
-    // 未来节目：预约调起系统日历新建事件提醒，与弹窗预约保持一致
+    // 未来节目：预约/取消预约切换，到点弹通知，点击通知直达该频道
     @Override
     public void onReserve(EpgData item) {
-        if (mChannel == null) return;
-        try {
-            Intent intent = new Intent(Intent.ACTION_INSERT).setData(CalendarContract.Events.CONTENT_URI);
-            intent.putExtra(CalendarContract.Events.TITLE, item.getTitle());
-            intent.putExtra(CalendarContract.Events.DESCRIPTION, mChannel.getName());
-            intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, item.getStartTime());
-            intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, item.getEndTime());
-            startActivity(intent);
-            Notify.show(R.string.live_epg_reserve_toast);
-        } catch (Exception e) {
-            Notify.show(R.string.live_epg_reserve_fail);
+        if (mChannel == null || mGroup == null) return;
+        String channel = mChannel.getName();
+        long start = item.getStartTime();
+        if (Reminder.exist(channel, start)) cancelReserve(channel, start);
+        else reserveWithPermission(item, channel, start);
+    }
+
+    // 取消预约：移除闹钟并删除记录
+    private void cancelReserve(String channel, long start) {
+        ReminderManager.cancel(this, Reminder.find(channel, start));
+        AppDatabase.get().getReminderDao().delete(channel, start);
+        Notify.show(R.string.live_reminder_cancel);
+        mEpgProgramAdapter.notifyDataSetChanged();
+    }
+
+    // 新增预约：Android 13+ 首次预约先申请通知权限，授权成功后才写入，否则到点通知会被系统丢弃
+    private void reserveWithPermission(EpgData item, String channel, long start) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !PermissionX.isGranted(this, Manifest.permission.POST_NOTIFICATIONS)) {
+            PermissionX.init(this).permissions(Manifest.permission.POST_NOTIFICATIONS).request((allGranted, grantedList, deniedList) -> {
+                if (allGranted) doReserve(item, channel, start);
+                else Notify.show(R.string.live_reminder_permission);
+            });
+            return;
         }
+        doReserve(item, channel, start);
+    }
+
+    // 写入预约记录并设置精确闹钟
+    private void doReserve(EpgData item, String channel, long start) {
+        Reminder reminder = new Reminder();
+        reminder.setChannelName(channel);
+        reminder.setGroupName(mGroup.getName());
+        reminder.setProgramTitle(item.getTitle());
+        reminder.setStartTime(start);
+        reminder.setCreateTime(System.currentTimeMillis());
+        AppDatabase.get().getReminderDao().insertOrUpdate(reminder);
+        ReminderManager.schedule(this, reminder);
+        Notify.show(R.string.live_reminder_add);
+        mEpgProgramAdapter.notifyDataSetChanged();
     }
 
     private void addKeep(Channel item) {
@@ -981,15 +1064,28 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         setChannelTab();
     }
 
-    // 换台 tab：左侧分类选中 + 右侧频道列表同步
+    // 换台 tab：左侧分类选中 + 右侧频道列表同步。
+    // 点击频道/切台后列表保持当前位置：目标项已在可视区则不滚动；同分组切台不重建列表
     private void setChannelTab() {
         if (mGroup == null) return;
         mGroupTabAdapter.setSelected(mGroup);
-        mBinding.groupList.scrollToPosition(Math.max(mGroups.indexOf(mGroup), 0));
-        mChannelTabAdapter.addAll(mGroup.getChannel());
+        scrollToVisible(mBinding.groupList, Math.max(mGroups.indexOf(mGroup), 0));
+        if (mChannelTabGroup != mGroup) {
+            mChannelTabGroup = mGroup;
+            mChannelTabAdapter.addAll(mGroup.getChannel());
+            mBinding.channelEmpty.setVisibility(mGroup.getChannel().isEmpty() ? View.VISIBLE : View.GONE);
+        }
         mChannelTabAdapter.setSelected(mGroup.getPosition());
-        mBinding.channelEmpty.setVisibility(mGroup.getChannel().isEmpty() ? View.VISIBLE : View.GONE);
-        mBinding.channelList.scrollToPosition(Math.max(mGroup.getPosition(), 0));
+        scrollToVisible(mBinding.channelList, Math.max(mGroup.getPosition(), 0));
+    }
+
+    // 目标项不在可视区（或尚未布局）时才滚动，其余情况保持列表不动
+    private void scrollToVisible(RecyclerView recycler, int position) {
+        if (recycler == null || recycler.getLayoutManager() == null) return;
+        LinearLayoutManager manager = (LinearLayoutManager) recycler.getLayoutManager();
+        int first = manager.findFirstVisibleItemPosition();
+        int last = manager.findLastVisibleItemPosition();
+        if (first == RecyclerView.NO_POSITION || position < first || position > last) recycler.scrollToPosition(position);
     }
 
     private void setEpg() {

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/shape_item_selected" android:state_selected="true" />
-    <item android:drawable="@drawable/shape_item_border" />
-</selector>
+<!-- 选中=主色实底，未选=描边底；整体外包 ripple，选中/未选中按压都有水波 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <selector>
+            <item android:drawable="@drawable/shape_item_selected" android:state_selected="true" />
+            <item android:drawable="@drawable/shape_item_border_static" />
+        </selector>
+    </item>
+</ripple>

@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -90,10 +91,11 @@ public class SubscribeDialog {
     }
 
     private void initView() {
-        // 点播新增：顶部提供“自定义线路 / 远程订阅”模式选择，默认自定义线路
+        setModeSelect();
+        // 点播新增：顶部提供“自定义线路 / 远程订阅”模式下拉，默认自定义线路
         if (type == 0 && !isEdit()) {
-            binding.group.setVisibility(View.VISIBLE);
-            binding.modeCustom.setChecked(true);
+            binding.typeLayout.setVisibility(View.VISIBLE);
+            binding.modeSelect.setText(fragment.getString(R.string.custom_line_add_mode), false);
             custom = true;
             applyCustomUi(true);
         } else if (isLineEdit()) {
@@ -111,6 +113,19 @@ public class SubscribeDialog {
             binding.url.setText(editing.getUrl());
             if (type == 1) binding.epg.setText(editing.getEpg());
         }
+    }
+
+    // 模式下拉与“添加自定义站点”弹窗同款：MaterialAutoCompleteTextView 下拉行渲染走 adapter.getView()，
+    // 直接复用宽松行布局 item_site_type_dropdown（行高与输入框对齐）
+    private void setModeSelect() {
+        String[] modes = new String[]{fragment.getString(R.string.custom_line_add_mode), fragment.getString(R.string.custom_line_remote_mode)};
+        binding.modeSelect.setAdapter(new ArrayAdapter<>(fragment.getContext(), R.layout.item_site_type_dropdown, modes));
+        binding.modeSelect.setOnItemClickListener((parent, view, position, id) -> {
+            boolean selectedCustom = position == 0;
+            if (custom == selectedCustom) return;
+            custom = selectedCustom;
+            applyCustomUi(custom);
+        });
     }
 
     private void applyCustomUi(boolean custom) {
@@ -140,11 +155,6 @@ public class SubscribeDialog {
         init = true;
         binding.choose.setEndIconOnClickListener(this::onChoose);
         binding.epgInput.setEndIconOnClickListener(this::onChoose);
-        binding.group.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-            custom = checkedId == binding.modeCustom.getId();
-            applyCustomUi(custom);
-        });
         binding.url.addTextChangedListener(new CustomTextListener() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
