@@ -80,7 +80,8 @@ public class SiteHomeAdapter extends RecyclerView.Adapter<SiteHomeAdapter.ViewHo
 
         holder.binding.text.setText(item.getName());
         holder.binding.radio.setChecked(selected);
-        holder.binding.text.setSelected(selected);
+        // 站点名过长时滚动显示（当前项/其余项均生效）
+        holder.binding.text.setSelected(true);
         holder.binding.text.setActivated(selected);
         holder.binding.root.setActivated(selected);
         holder.binding.root.setSelected(selected);

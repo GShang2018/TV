@@ -1045,6 +1045,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.display.title.setText(mChannel.getName());
         mBinding.widget.namePip.setText(mChannel.getName());
         mBinding.widget.line.setText(mChannel.getLineText());
+        // 线路文字过长时滚动显示
+        mBinding.widget.line.setSelected(true);
         mBinding.widget.number.setText(mChannel.getNumber());
         mBinding.widget.numberPip.setText(mChannel.getNumber());
         mBinding.playNumber.setText(mChannel.getNumber());

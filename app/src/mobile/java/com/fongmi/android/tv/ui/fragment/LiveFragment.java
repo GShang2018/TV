@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -152,6 +153,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         String site = getHome().getName();
         if (site.isEmpty()) site = LiveConfig.get().getConfig().getDesc();
         mBinding.site.setText(site.isEmpty() ? getString(R.string.live_source) : site);
+        // 名称过长时滚动显示
+        mBinding.site.setSelected(true);
         loadLogo();
         // 名称就绪后：胶囊由仅 logo 的圆形横向展开出名称
         expandSiteView();
@@ -168,7 +171,10 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
         final ViewGroup.LayoutParams params = siteView.getLayoutParams();
         params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
         siteView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        final int target = Math.max(siteView.getMeasuredWidth(), 1);
+        // 名称过长时限制胶囊展开宽度，让内部站点名称走 marquee 滚动，避免撑出屏幕
+        int maxWidth = ResUtil.getScreenWidth() - ResUtil.dp2px(160);
+        if (maxWidth < ResUtil.dp2px(80)) maxWidth = ResUtil.dp2px(80);
+        final int target = Math.max(Math.min(siteView.getMeasuredWidth(), maxWidth), 1);
         params.width = 0;
         siteView.requestLayout();
         ValueAnimator animator = ValueAnimator.ofInt(0, target);
@@ -180,6 +186,40 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
             siteView.requestLayout();
         });
         animator.start();
+        // 布局稳定后按右侧可见固定图标实际占宽校正胶囊宽度，避免名称把图标挤出屏幕；名称仍超宽时聚焦驱动 marquee
+        mBinding.siteView.postDelayed(() -> {
+            ViewGroup parent = (ViewGroup) mBinding.siteView.getParent();
+            if (parent != null && parent.getWidth() > 0) {
+                int right = 0;
+                boolean after = false;
+                for (int i = 0; i < parent.getChildCount(); i++) {
+                    View child = parent.getChildAt(i);
+                    if (child == mBinding.siteView) {
+                        after = true;
+                        continue;
+                    }
+                    if (!after || child.getVisibility() != View.VISIBLE) continue;
+                    ViewGroup.LayoutParams lp = child.getLayoutParams();
+                    if (lp instanceof LinearLayout.LayoutParams && ((LinearLayout.LayoutParams) lp).weight > 0) continue; // 权重填充控件不计入固定占用
+                    int margin = lp instanceof ViewGroup.MarginLayoutParams ? ((ViewGroup.MarginLayoutParams) lp).leftMargin + ((ViewGroup.MarginLayoutParams) lp).rightMargin : 0;
+                    right += child.getWidth() + margin;
+                }
+                int max = parent.getWidth() - parent.getPaddingLeft() - parent.getPaddingRight() - right;
+                if (max < ResUtil.dp2px(40)) max = ResUtil.dp2px(40);
+                if (siteView.getWidth() > max) {
+                    ViewGroup.LayoutParams p = siteView.getLayoutParams();
+                    p.width = max;
+                    siteView.requestLayout();
+                }
+            }
+            if (mBinding.site.getLayout() == null) return;
+            float textWidth = mBinding.site.getLayout().getLineWidth(0);
+            float viewWidth = mBinding.site.getWidth() - mBinding.site.getPaddingLeft() - mBinding.site.getPaddingRight();
+            if (textWidth > viewWidth) {
+                mBinding.site.setSelected(true);
+                mBinding.site.requestFocus();
+            }
+        }, animator.getDuration() + 120L);
     }
 
     private void loadLogo() {

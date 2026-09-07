@@ -15,6 +15,7 @@ import android.widget.FrameLayout;
 
 import com.fongmi.android.tv.web.HomeWebController;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -191,7 +192,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         final ViewGroup.LayoutParams params = siteView.getLayoutParams();
         params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
         siteView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        final int target = Math.max(siteView.getMeasuredWidth(), 1);
+        // 名称过长时限制胶囊展开宽度，让内部站点名称走 marquee 滚动，避免撑出屏幕
+        // 竖屏窄屏下需为右侧固定图标（搜索/链接/收藏/历史/视图）预留空间，防止名称胶囊把它们挤出屏幕
+        int maxWidth = ResUtil.getScreenWidth() - ResUtil.dp2px(240);
+        if (maxWidth < ResUtil.dp2px(80)) maxWidth = ResUtil.dp2px(80);
+        final int target = Math.max(Math.min(siteView.getMeasuredWidth(), maxWidth), 1);
         params.width = 0;
         siteView.requestLayout();
         ValueAnimator animator = ValueAnimator.ofInt(0, target);
@@ -203,6 +208,40 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
             siteView.requestLayout();
         });
         animator.start();
+        // 布局稳定后按右侧可见固定图标实际占宽校正胶囊宽度，避免名称把图标挤出屏幕；名称仍超宽时聚焦驱动 marquee
+        mBinding.siteView.postDelayed(() -> {
+            ViewGroup parent = (ViewGroup) mBinding.siteView.getParent();
+            if (parent != null && parent.getWidth() > 0) {
+                int right = 0;
+                boolean after = false;
+                for (int i = 0; i < parent.getChildCount(); i++) {
+                    View child = parent.getChildAt(i);
+                    if (child == mBinding.siteView) {
+                        after = true;
+                        continue;
+                    }
+                    if (!after || child.getVisibility() != View.VISIBLE) continue;
+                    ViewGroup.LayoutParams lp = child.getLayoutParams();
+                    if (lp instanceof LinearLayout.LayoutParams && ((LinearLayout.LayoutParams) lp).weight > 0) continue; // 权重填充控件不计入固定占用
+                    int margin = lp instanceof ViewGroup.MarginLayoutParams ? ((ViewGroup.MarginLayoutParams) lp).leftMargin + ((ViewGroup.MarginLayoutParams) lp).rightMargin : 0;
+                    right += child.getWidth() + margin;
+                }
+                int max = parent.getWidth() - parent.getPaddingLeft() - parent.getPaddingRight() - right;
+                if (max < ResUtil.dp2px(40)) max = ResUtil.dp2px(40);
+                if (siteView.getWidth() > max) {
+                    ViewGroup.LayoutParams p = siteView.getLayoutParams();
+                    p.width = max;
+                    siteView.requestLayout();
+                }
+            }
+            if (mBinding.site.getLayout() == null) return;
+            float textWidth = mBinding.site.getLayout().getLineWidth(0);
+            float viewWidth = mBinding.site.getWidth() - mBinding.site.getPaddingLeft() - mBinding.site.getPaddingRight();
+            if (textWidth > viewWidth) {
+                mBinding.site.setSelected(true);
+                mBinding.site.requestFocus();
+            }
+        }, animator.getDuration() + 120L);
     }
 
     private void setRecyclerView() {

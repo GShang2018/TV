@@ -772,6 +772,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         Downloader.get().image(item.getVodPic());
         setText(mBinding.remark, 0, item.getVodRemarks());
         mBinding.currentSite.setText(getSite().getName());
+        // 站点名过长时单行滚动显示
+        mBinding.currentSite.setSelected(true);
         setText(mBinding.content, 0, Html.fromHtml(removeImg(item.getVodContent())));
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlags = item.getVodFlags();
@@ -1020,6 +1022,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
         mBinding.control.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
+        // 全屏悬浮标题过长时滚动显示
         mBinding.control.title.setSelected(true);
         mBinding.display.title.setText(mBinding.control.title.getText());
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());

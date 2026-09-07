@@ -82,6 +82,8 @@ public class FlagAdapter extends RecyclerView.Adapter<FlagAdapter.ViewHolder> {
         Flag item = mItems.get(position);
         holder.binding.text.setText(item.getShow());
         holder.binding.text.setActivated(item.isActivated());
+        // 线路名过长时滚动显示
+        holder.binding.text.setSelected(true);
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(item));
     }
 

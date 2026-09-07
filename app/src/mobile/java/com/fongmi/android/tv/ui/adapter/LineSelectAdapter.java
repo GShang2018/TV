@@ -73,6 +73,8 @@ public class LineSelectAdapter extends RecyclerView.Adapter<LineSelectAdapter.Vi
         Depot item = mItems.get(position);
         boolean checked = TextUtils.equals(selected, item.getUrl());
         holder.binding.name.setText(item.getName());
+        // 线路/站点名过长时滚动显示
+        holder.binding.name.setSelected(true);
         holder.binding.url.setText(item.getUrl());
         holder.binding.root.setOnClickListener(v -> mListener.onLineClick(item));
         holder.binding.more.setOnClickListener(v -> showMoreMenu(holder, item));
