@@ -240,6 +240,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
             @Override
             public void onPageSelected(int position) {
                 selectGroup(position);
+                // 标签随翻页滚动后重新检测溢出状态（更多按钮显隐）
+                mBinding.type.post(LiveFragment.this::checkTypeOverflow);
             }
         });
         setGrid();
@@ -354,6 +356,8 @@ public class LiveFragment extends BaseFragment implements LiveCallback, GroupTab
             applyTabTextStyle();
             checkTypeOverflow();
         });
+        // TabLayout 标签构建稍晚于本 post，延迟再检一次，确保溢出时“更多”按钮一定会出现
+        mBinding.typeLayout.postDelayed(this::checkTypeOverflow, 200);
     }
 
     private void setPosition(int[] position) {
