@@ -228,6 +228,7 @@
 
     <!-- Hint -->
     <string name="copied">已复制</string>
+    <string name="copied_content">「%1$s」已复制</string>
     <string name="backed">备份成功</string>
     <string name="backup_to">已备份到：%1$s</string>
     <string name="backup_in_progress">正在备份…</string>

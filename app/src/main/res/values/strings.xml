@@ -235,6 +235,7 @@
 
     <!-- Hint -->
     <string name="copied">Copied</string>
+    <string name="copied_content">“%1$s” copied</string>
     <string name="backed">Backup successful</string>
     <string name="backup_to">Backup to: %1$s</string>
     <string name="backup_in_progress">Backing up…</string>

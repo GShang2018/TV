@@ -163,8 +163,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
     private void setSiteText() {
         Config config = VodConfig.get().getConfig();
-        String site = config.isDepot() ? config.getLineName() : getSite().getName();
-        if (TextUtils.isEmpty(site)) site = config.getDesc();
+        // 仓库（多线路）下同样优先显示当前站点名，站点未就绪（如线路加载中）时再回退线路名
+        String site = getSite().getName();
+        if (TextUtils.isEmpty(site)) site = config.isDepot() ? config.getLineName() : config.getDesc();
         mBinding.site.setText(site);
         mBinding.site.setSelected(true);
         // 名称就绪后：胶囊由仅 logo 的圆形横向展开出名称

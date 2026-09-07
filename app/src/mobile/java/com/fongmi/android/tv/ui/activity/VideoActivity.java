@@ -479,8 +479,20 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.reverse.setOnClickListener(view -> onReverse());
         mBinding.download.setOnClickListener(view -> onDownload());
         mBinding.currentSite.setOnClickListener(view -> onSource());
-        mBinding.name.setOnLongClickListener(view -> onChange());
-        mBinding.content.setOnLongClickListener(view -> onCopy());
+        mBinding.currentSite.setOnLongClickListener(view -> onCopy(mBinding.currentSite));
+        mBinding.name.setOnLongClickListener(view -> onCopy(mBinding.name));
+        mBinding.content.setOnLongClickListener(view -> onCopy(mBinding.content));
+        // 视频信息条目：长按复制对应文本（悬浮标题保留长按换源）
+        mBinding.remark.setOnLongClickListener(view -> onCopy(mBinding.remark));
+        mBinding.otherScore.setOnLongClickListener(view -> onCopy(mBinding.otherScore));
+        mBinding.otherYear.setOnLongClickListener(view -> onCopy(mBinding.otherYear));
+        mBinding.otherPubdate.setOnLongClickListener(view -> onCopy(mBinding.otherPubdate));
+        mBinding.otherArea.setOnLongClickListener(view -> onCopy(mBinding.otherArea));
+        mBinding.otherSeries.setOnLongClickListener(view -> onCopy(mBinding.otherSeries));
+        mBinding.otherType.setOnLongClickListener(view -> onCopy(mBinding.otherType));
+        mBinding.otherTv.setOnLongClickListener(view -> onCopy(mBinding.otherTv));
+        mBinding.otherAuthor.setOnLongClickListener(view -> onCopy(mBinding.otherAuthor));
+        mBinding.otherDuration.setOnLongClickListener(view -> onCopy(mBinding.otherDuration));
         mBinding.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
         mBinding.control.refresh.setOnClickListener(view -> onRefresh());
@@ -1182,8 +1194,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return true;
     }
 
-    private boolean onCopy() {
-        Util.copy(mBinding.content.getText().toString());
+    private boolean onCopy(TextView view) {
+        // setText 时 tag 保存了不带标签前缀的原始值，优先复制该值
+        Object tag = view.getTag();
+        String text = tag instanceof String && !TextUtils.isEmpty((String) tag) ? (String) tag : view.getText().toString();
+        Util.copy(text);
+        Snackbar.make(mBinding.getRoot(), getString(R.string.copied_content, text), Snackbar.LENGTH_SHORT).show();
         return true;
     }
 
