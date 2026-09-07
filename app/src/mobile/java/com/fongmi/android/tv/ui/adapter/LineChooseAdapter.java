@@ -10,7 +10,6 @@ import com.fongmi.android.tv.databinding.AdapterLineChooseBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class LineChooseAdapter extends RecyclerView.Adapter<LineChooseAdapter.ViewHolder> {
 
@@ -53,7 +52,6 @@ public class LineChooseAdapter extends RecyclerView.Adapter<LineChooseAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.binding.name.setText(mItems.get(position));
-        holder.binding.number.setText(String.format(Locale.getDefault(), "%02d", position + 1));
         holder.binding.getRoot().setSelected(position == selected);
         // 使用 bindingAdapterPosition，避免刷新后位置错位
         holder.binding.getRoot().setOnClickListener(v -> {

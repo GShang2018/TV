@@ -55,6 +55,7 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.activity.HistoryActivity;
 import com.fongmi.android.tv.ui.activity.KeepActivity;
+import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
@@ -490,6 +491,12 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
                 mBinding.webProgress.setVisibility(View.GONE);
                 hideWebHome();
                 homeContent(true);
+            }
+
+            @Override
+            public void openSetting() {
+                // 手机端主页内打开设置：切到底部导航“设置”页
+                if (requireActivity() instanceof MainActivity) ((MainActivity) requireActivity()).change(1);
             }
         });
         registerBackCallback();

@@ -20,14 +20,4 @@
         android:textSize="14sp"
         tools:text="线路 1" />
 
-    <TextView
-        android:id="@+id/number"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:singleLine="true"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="12sp"
-        tools:text="01" />
-
 </LinearLayout>

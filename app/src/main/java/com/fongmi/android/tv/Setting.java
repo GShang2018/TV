@@ -381,6 +381,22 @@ public class Setting {
         Prefers.put("drive_check", driveCheck);
     }
 
+    public static boolean isWebHomeExtension() {
+        return Prefers.getBoolean("web_home_extension", true);
+    }
+
+    public static void putWebHomeExtension(boolean extension) {
+        Prefers.put("web_home_extension", extension);
+    }
+
+    public static boolean isWebHomeFullscreen() {
+        return Prefers.getBoolean("web_home_fullscreen", false);
+    }
+
+    public static void putWebHomeFullscreen(boolean fullscreen) {
+        Prefers.put("web_home_fullscreen", fullscreen);
+    }
+
     public static boolean getUpdate() {
         return Prefers.getBoolean("update", true);
     }

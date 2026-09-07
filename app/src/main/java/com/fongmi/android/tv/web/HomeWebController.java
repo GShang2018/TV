@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
-import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -32,6 +31,8 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.web.ext.WebHomeExtension;
+import com.fongmi.android.tv.web.ext.WebHomeExtensionRegistry;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.utils.Json;
 import com.google.common.net.HttpHeaders;
@@ -42,8 +43,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class HomeWebController {
 
@@ -65,6 +69,8 @@ public class HomeWebController {
     private int loadTimeoutRecoveries;
     private boolean sdkReady;
     private boolean paused;
+    private int inlineEvaluationCount;
+    private final Set<String> injectedExtensions = new HashSet<>();
 
     public HomeWebController(Activity activity, WebView webView, Listener listener) {
         this.activity = activity;
@@ -111,6 +117,22 @@ public class HomeWebController {
         App.post(listener::onExit);
     }
 
+    public void openSetting() {
+        App.post(listener::openSetting);
+    }
+
+    public void setToolbar(boolean visible) {
+        App.post(() -> listener.setToolbar(visible));
+    }
+
+    public void setChrome(com.google.gson.JsonObject payload) {
+        App.post(() -> listener.setChrome(payload));
+    }
+
+    public void restoreChrome() {
+        App.post(listener::restoreChrome);
+    }
+
     public boolean load(Site site) {
         if (site == null || !site.hasHomePage()) return false;
         Server.get().start();
@@ -119,11 +141,36 @@ public class HomeWebController {
         boolean reload = !url.equals(homePage);
         if (reload) {
             sdkReady = false;
+            injectedExtensions.clear();
             homePage = url;
             loadUrl(homePage);
         }
+        prepareExtensions(site);
         show();
         return true;
+    }
+
+    private void prepareExtensions(Site site) {
+        final String siteKey = site.getKey();
+        WebHomeExtensionRegistry.get().prepare(site, () -> {
+            if (!TextUtils.equals(siteKey, HomeWebController.this.site == null ? "" : HomeWebController.this.site.getKey())) return;
+            if (!sdkReady || !isVisible()) return;
+            injectExtensions(WebHomeExtension.RUN_AT_END);
+            webView.postDelayed(() -> injectExtensions(WebHomeExtension.RUN_AT_IDLE), 600);
+        });
+    }
+
+    // 注入扩展脚本：START 无 document-start 通道时降级到 END 一并注入，避免扩展缺失
+    private void injectExtensions(String runAt) {
+        if (!sdkReady || site == null || !isVisible()) return;
+        List<WebHomeExtension> extensions = WebHomeExtensionRegistry.get().get(site.getKey());
+        for (WebHomeExtension extension : extensions) {
+            if (!extension.shouldInjectAt(runAt)) continue;
+            if (!injectedExtensions.add(extension.getId())) continue;
+            SpiderDebug.log("webhome-ext", "inject id=%s runAt=%s site=%s", extension.getId(), runAt, site.getKey());
+            WebHomeExtensionRegistry.get().recordInject(extension, site.getKey(), runAt);
+            webView.evaluateJavascript(extension.script(site.getKey()), null);
+        }
     }
 
     public void reload() {
@@ -189,6 +236,21 @@ public class HomeWebController {
         webView.post(() -> webView.evaluateJavascript(script, callback));
     }
 
+    // WebHome 视口信息：TV 端为全屏普通 Chrome，安全区均为 0
+    public String getViewportJson() {
+        com.google.gson.JsonObject object = new com.google.gson.JsonObject();
+        object.addProperty("width", webView.getWidth());
+        object.addProperty("height", webView.getHeight());
+        object.addProperty("density", density);
+        object.addProperty("safeTop", 0);
+        object.addProperty("safeRight", 0);
+        object.addProperty("safeBottom", 0);
+        object.addProperty("safeLeft", 0);
+        object.addProperty("keyboardBottom", 0);
+        object.addProperty("chromeMode", "normal");
+        return object.toString();
+    }
+
     public void show() {
         webView.setVisibility(View.VISIBLE);
         focusWebView("show");
@@ -204,30 +266,21 @@ public class HomeWebController {
 
     public boolean handleBack() {
         if (!isVisible()) return false;
-        // ① 先把 BACK 键作为 keydown 送进页面（nostr 等页面会把 GoBack/keyCode 4 归一为 Escape，
-        //    由页面内部层级栈自行回退详情/图片/盘搜面板等非 URL 状态），页面消耗则直接返回。
-        if (dispatchBackToPage()) return true;
-        // ② 页面未消耗时回退 WebView 历史（URL/hash 状态）
         if (!webView.canGoBack()) return false;
         String current = webView.getUrl();
-        if (samePage(current, homePage)) return false;
-        String previous = previousHistoryUrl();
-        if (!sameSite(current, previous)) return false;
-        webView.goBack();
-        return true;
-    }
-
-    private boolean dispatchBackToPage() {
-        try {
-            long now = SystemClock.uptimeMillis();
-            KeyEvent down = new KeyEvent(now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK, 0, 0);
-            KeyEvent up = new KeyEvent(now + 30, now + 30, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, 0, 0);
-            boolean handled = webView.dispatchKeyEvent(down);
-            if (!handled) handled = webView.dispatchKeyEvent(up);
-            return handled;
-        } catch (Throwable e) {
+        if (samePage(current, homePage)) {
+            SpiderDebug.log("webhome-webview", "back home boundary current=%s", current);
             return false;
         }
+        String previous = previousHistoryUrl();
+        if (!sameSite(current, previous)) {
+            SpiderDebug.log("webhome-webview", "back boundary current=%s previous=%s", current, previous);
+            return false;
+        }
+        // 与同源项目一致：直接回退 WebView 历史（URL/hash 状态），不向页面注入 BACK 按键，
+        // 避免页面 JS 捕获后吞掉按键导致“按返回没反应、网页不回退”
+        webView.goBack();
+        return true;
     }
 
     private String previousHistoryUrl() {
@@ -305,6 +358,35 @@ public class HomeWebController {
         pauseAt = System.currentTimeMillis();
         dispatchLifecycle("fmpause", "{time:" + pauseAt + "}");
         webView.onPause();
+    }
+
+    // 暂停期内联求值租约：原生播放多集推送需回调页面 resolver 时，临时恢复 WebView 执行 JS
+    public boolean beginInlineEvaluation() {
+        synchronized (this) {
+            if (!paused) return false;
+            inlineEvaluationCount++;
+            if (inlineEvaluationCount > 1) return true;
+        }
+        App.post(() -> {
+            if (!paused) return;
+            webView.onResume();
+            webView.resumeTimers();
+        });
+        return true;
+    }
+
+    public void endInlineEvaluation(boolean lease) {
+        if (!lease) return;
+        boolean pause;
+        synchronized (this) {
+            if (inlineEvaluationCount > 0) inlineEvaluationCount--;
+            pause = paused && inlineEvaluationCount == 0;
+        }
+        if (!pause) return;
+        App.post(() -> {
+            if (!paused) return;
+            webView.onPause();
+        });
     }
 
     public void destroy() {
@@ -403,6 +485,7 @@ public class HomeWebController {
                 SpiderDebug.log("webhome-webview", "page started url=%s", url);
                 lastPageUrl = url;
                 sdkReady = false;
+                injectedExtensions.clear();
                 listener.onWebLoading();
             }
 
@@ -467,6 +550,8 @@ public class HomeWebController {
         webView.evaluateJavascript(getSdk(), value -> {
             sdkReady = true;
             nudgeCompositor();
+            injectExtensions(WebHomeExtension.RUN_AT_END);
+            webView.postDelayed(() -> injectExtensions(WebHomeExtension.RUN_AT_IDLE), 600);
         });
     }
 
@@ -527,6 +612,18 @@ public class HomeWebController {
         void onWebError();
 
         default void onExit() {
+        }
+
+        default void openSetting() {
+        }
+
+        default void setToolbar(boolean visible) {
+        }
+
+        default void setChrome(com.google.gson.JsonObject payload) {
+        }
+
+        default void restoreChrome() {
         }
     }
 }

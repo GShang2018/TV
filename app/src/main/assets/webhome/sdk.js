@@ -36,11 +36,14 @@
   var player={
     playUrl:function(url,title,options){return invoke('player.playUrl',Object.assign({},options||{},{url:url,title:title}));},
     playVod:function(siteKey,vodId,title,pic,options){return invoke('player.playVod',Object.assign({},options||{},{siteKey:siteKey,vodId:vodId,title:title,pic:pic}));},
+    playVodInline:function(payload){return invoke('player.playVodInline',payload||{});},
     preloadArtwork:function(pic,wallPic){return invoke('player.preloadArtwork',{pic:pic,wallPic:wallPic});},
+    control:function(action){return invoke('player.control',{action:action});},
     status:function(){return invoke('player.status',{});}
   };
   var net={
-    request:function(url,options){return invoke('net.request',Object.assign({},options||{},{url:url}));}
+    request:function(url,options){return invoke('net.request',Object.assign({},options||{},{url:url}));},
+    resourceUrl:function(url,options){return invoke('net.resourceUrl',Object.assign({},options||{},{url:url}));}
   };
   var cache={
     get:function(key,rule){return invoke('cache.get',{key:key,rule:rule});},
@@ -53,10 +56,13 @@
   };
   var ui={
     setToolbar:function(visible){return invoke('ui.setToolbar',{visible:visible!==false});},
+    setChrome:function(options){return invoke('ui.setChrome',options||{});},
+    restoreChrome:function(){return invoke('ui.restoreChrome',{});},
     getViewport:function(){return invoke('ui.getViewport',{});}
   };
   var ext={
     info:function(){return invoke('ext.info',{});},
+    log:function(message,data){return invoke('ext.log',{message:message,data:data});},
     toast:function(message){return invoke('ext.toast',{message:message});}
   };
   window.fongmi={invoke:invoke,player:player,net:net,cache:cache,
@@ -81,9 +87,12 @@
   };
   window.fm={
     req:net.request,
+    res:function(url,options){try{return fongmiBridge.resourceUrl(String(url==null?'':url),JSON.stringify(options||{}));}catch(e){return String(url==null?'':url);}},
     play:player.playUrl,
     vod:player.playVod,
+    vodInline:player.playVodInline,
     preloadArtwork:player.preloadArtwork,
+    ctrl:player.control,
     stat:player.status,
     search:window.fongmi.app.search,
     openVod:window.fongmi.app.openVod,

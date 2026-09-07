@@ -123,24 +123,29 @@ public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListene
     }
 
     private void selectAll(boolean searchable) {
-        adapter.getItems().forEach(site -> site.setSearchable(searchable).save());
+        // 默认禁止检索(searchable=0)的站点跳过：全选/全不选只作用于可切换的站点
+        adapter.getItems().forEach(site -> {
+            if (site.getSearchable() != 0) site.setSearchable(searchable).save();
+        });
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
         updateSelect();
     }
 
-    // 同步顶部开关：当前列表全部参与搜索时开，否则关
+    // 同步顶部开关：可切换的站点全部参与搜索时开，否则关；禁止检索的站点不参与统计
     private void updateSelect() {
         List<Site> items = adapter.getItems();
-        boolean all = items.size() > 0;
+        boolean hasCandidate = false;
+        boolean all = true;
         for (Site site : items) {
+            if (site.getSearchable() == 0) continue;
+            hasCandidate = true;
             if (!site.isSearchable()) {
                 all = false;
-                break;
             }
         }
         updating = true;
-        binding.selectAll.setChecked(all);
-        binding.selectAll.setEnabled(items.size() > 0);
+        binding.selectAll.setChecked(all && hasCandidate);
+        binding.selectAll.setEnabled(hasCandidate);
         updating = false;
     }
 

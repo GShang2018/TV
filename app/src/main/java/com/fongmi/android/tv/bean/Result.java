@@ -239,6 +239,10 @@ public class Result implements Parcelable {
         return format;
     }
 
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
     public String getClick() {
         return TextUtils.isEmpty(click) ? "" : click;
     }

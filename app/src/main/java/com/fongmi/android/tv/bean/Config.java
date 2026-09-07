@@ -11,6 +11,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.db.AppDatabase;
+import com.fongmi.android.tv.db.dao.ConfigDao;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Prefers;
@@ -355,6 +356,22 @@ public class Config {
 
     public Config save() {
         if (isEmpty()) return this;
+        ConfigDao dao = AppDatabase.get().getConfigDao();
+        Config row = dao.find(getUrl(), getType());
+        if (row != null && getId() == 0) {
+            // 自定义线路等以“不入库”临时 Config(id=0) 激活的配置，按 (url,type) 绑定既有行，
+            // 未赋值的字段沿用库内值，避免首页站点(home)/线路/名称等状态在保存时被置空丢失
+            setId(row.getId());
+            if (getJson() == null) setJson(row.getJson());
+            if (getName() == null) setName(row.getName());
+            if (getLogo() == null) setLogo(row.getLogo());
+            if (getHome() == null) setHome(row.getHome());
+            if (getParse() == null) setParse(row.getParse());
+            if (getEpg() == null) setEpg(row.getEpg());
+            if (getLines() == null) setLines(row.getLines());
+            if (getLine() == null) setLine(row.getLine());
+            if (getSource() == null) setSource(row.getSource());
+        }
         AppDatabase.get().getConfigDao().insertOrUpdate(this);
         return this;
     }

@@ -108,6 +108,10 @@ public class Site implements Parcelable {
     private String homePage;
 
     @Ignore
+    @SerializedName("extensions")
+    private JsonElement extensions;
+
+    @Ignore
     private boolean activated;
 
     public static Site objectFrom(JsonElement element) {
@@ -263,6 +267,10 @@ public class Site implements Parcelable {
         return !TextUtils.isEmpty(homePage);
     }
 
+    public JsonElement getExtensions() {
+        return extensions;
+    }
+
     public Style getStyle() {
         return style;
     }
@@ -380,6 +388,7 @@ public class Site implements Parcelable {
         dest.writeParcelable(this.style, flags);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
         dest.writeString(this.homePage);
+        dest.writeString(this.extensions == null ? null : this.extensions.toString());
     }
 
     protected Site(Parcel in) {
@@ -402,6 +411,12 @@ public class Site implements Parcelable {
         this.style = in.readParcelable(Style.class.getClassLoader());
         this.activated = in.readByte() != 0;
         this.homePage = in.readString();
+        try {
+            String extensions = in.readString();
+            this.extensions = TextUtils.isEmpty(extensions) ? null : Json.parse(extensions);
+        } catch (Exception e) {
+            this.extensions = null;
+        }
     }
 
     public static final Creator<Site> CREATOR = new Creator<>() {

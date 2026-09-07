@@ -22,6 +22,7 @@ import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
+import com.fongmi.android.tv.web.WebHomeInlineVodStore;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
@@ -137,6 +138,13 @@ public class SiteViewModel extends ViewModel {
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
                 if (!result.getList().isEmpty()) Source.get().parse(result.getList().get(0).getVodFlags());
                 return result;
+            } else if (site.isEmpty() && "webhome_inline".equals(key)) {
+                Result inline = WebHomeInlineVodStore.detail(id);
+                if (!inline.getList().isEmpty()) {
+                    inline.getList().get(0).setVodFlags();
+                    Source.get().parse(inline.getList().get(0).getVodFlags());
+                }
+                return inline;
             } else if (site.isEmpty() && "push_agent".equals(key)) {
                 Vod vod = new Vod();
                 vod.setVodId(id);
@@ -234,6 +242,8 @@ public class SiteViewModel extends ViewModel {
                 result.setUrl(Source.get().fetch(result));
                 result.setHeader(site.getHeader());
                 return result;
+            } else if (site.isEmpty() && "webhome_inline".equals(key)) {
+                return WebHomeInlineVodStore.player(flag, id);
             } else if (site.isEmpty() && "push_agent".equals(key)) {
                 Result result = new Result();
                 result.setParse(0);

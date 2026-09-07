@@ -108,8 +108,7 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         holder.binding.remark.setVisibility(View.VISIBLE);
         ImgUtil.loadLogo(item.getName(), item.getLogo(), holder.binding.image);
         holder.binding.getRoot().setSelected(item.isSelected());
-        // 选中时频道名变主题色（color/item_selected_text 按 name 自身 selected 态驱动）
-        holder.binding.name.setSelected(item.isSelected());
+        // 选中高亮由根布局背景/描边承担，标题保持默认色（不随 selected 变主题色）
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
     }
 

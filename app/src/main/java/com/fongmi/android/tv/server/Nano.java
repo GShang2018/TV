@@ -11,6 +11,8 @@ import com.fongmi.android.tv.server.process.Media;
 import com.fongmi.android.tv.server.process.Parse;
 import com.fongmi.android.tv.server.process.Process;
 import com.fongmi.android.tv.server.process.Proxy;
+import com.fongmi.android.tv.server.process.WebMpdProcess;
+import com.fongmi.android.tv.server.process.WebResourceGateway;
 import com.github.catvod.utils.Asset;
 import com.google.common.net.HttpHeaders;
 
@@ -44,6 +46,8 @@ public class Nano extends NanoHTTPD {
         process.add(new Parse());
         process.add(new Proxy());
         process.add(new DriveCheck());
+        process.add(new WebMpdProcess());
+        process.add(new WebResourceGateway());
     }
 
     public static Response success() {
