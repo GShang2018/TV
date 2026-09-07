@@ -116,7 +116,6 @@ public class ChannelLiveAdapter extends RecyclerView.Adapter<ChannelLiveAdapter.
             bindProgram(holder.viewBinding.program, holder.viewBinding.time, item);
             holder.viewBinding.keep.setImageResource(Keep.exist(item.getName()) ? R.drawable.ic_control_keep_on : R.drawable.ic_control_keep_off);
             holder.viewBinding.getRoot().setSelected(item.isSelected());
-            holder.viewBinding.name.setSelected(item.isSelected());
             holder.viewBinding.getRoot().setOnClickListener(v -> onClick(holder));
             holder.viewBinding.keep.setOnClickListener(v -> onKeep(holder));
         } else {
@@ -125,8 +124,7 @@ public class ChannelLiveAdapter extends RecyclerView.Adapter<ChannelLiveAdapter.
             bindProgram(holder.binding.program, holder.binding.time, item);
             holder.binding.keep.setImageResource(Keep.exist(item.getName()) ? R.drawable.ic_control_keep_on : R.drawable.ic_control_keep_off);
             holder.binding.getRoot().setSelected(item.isSelected());
-            // 选中频道时名称文字切换为主题色
-            holder.binding.name.setSelected(item.isSelected());
+            // 选中高亮由整卡背景承担，频道名保持默认色（不随 selected 变主题色）
             // 使用 bindingAdapterPosition，避免刷新后位置错位
             holder.binding.getRoot().setOnClickListener(v -> onClick(holder));
             // 收藏按钮点击不触发频道点击
