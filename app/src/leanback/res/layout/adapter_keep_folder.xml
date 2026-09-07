@@ -42,7 +42,7 @@
             android:outlineSpotShadowColor="#CC000000"
             android:outlineAmbientShadowColor="#99000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_img_loading" />
+            tools:src="@drawable/ic_img_loading" />
 
         <ImageView
             android:id="@+id/cover2"
@@ -59,7 +59,7 @@
             android:outlineSpotShadowColor="#DD000000"
             android:outlineAmbientShadowColor="#AA000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_img_loading" />
+            tools:src="@drawable/ic_img_loading" />
 
         <ImageView
             android:id="@+id/cover1"
@@ -75,7 +75,7 @@
             android:outlineSpotShadowColor="#FF000000"
             android:outlineAmbientShadowColor="#BB000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_img_loading" />
+            tools:src="@drawable/ic_img_loading" />
 
     </FrameLayout>
 

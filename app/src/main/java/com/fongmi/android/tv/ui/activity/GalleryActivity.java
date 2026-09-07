@@ -259,8 +259,9 @@ public class GalleryActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             String url = mUrls.get(position);
+            // 缩略图加载：加载中状态图标按容器最小边长 30% 居中显示不铺满，成功后由 loadThumb 恢复 centerCrop 铺满
             holder.binding.thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Glide.with(GalleryActivity.this).asBitmap().load(ImgUtil.getUrl(url)).placeholder(R.drawable.ic_img_loading).into(holder.binding.thumb);
+            ImgUtil.loadThumb(url, holder.binding.thumb);
             holder.binding.border.setVisibility(position == selected ? View.VISIBLE : View.GONE);
             holder.itemView.setOnClickListener(v -> {
                 mBinding.pager.setCurrentItem(position, false);
