@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.databinding.DialogTypeBinding;
 import com.fongmi.android.tv.ui.adapter.GroupTabAdapter;
@@ -20,6 +21,7 @@ import java.util.List;
 public class GroupDialog implements GroupTabAdapter.OnClickListener {
 
     private final GroupTabAdapter.OnClickListener listener;
+    private final Fragment fragment;
     private DialogTypeBinding binding;
     private BottomSheetDialog dialog;
     private GroupTabAdapter adapter;
@@ -30,6 +32,7 @@ public class GroupDialog implements GroupTabAdapter.OnClickListener {
 
     public GroupDialog(List<Group> items, int position, Fragment fragment) {
         this.listener = (GroupTabAdapter.OnClickListener) fragment;
+        this.fragment = fragment;
         init(fragment, items, position);
     }
 
@@ -81,21 +84,39 @@ public class GroupDialog implements GroupTabAdapter.OnClickListener {
         BottomSheetBehavior behavior = BottomSheetBehavior.from(sheet);
         behavior.setFitToContents(true);
         behavior.setSkipCollapsed(true);
-        sheet.post(() -> behavior.setState(BottomSheetBehavior.STATE_EXPANDED));
+        // 先重新布局再展开：Behavior 的展开偏移是按内容高度缓存的，直接 setState 可能沿用旧高度，
+        // 弹窗底部会离屏底一段距离（拖拽后才恢复）。requestLayout 后再 setState 会等布局完成才 settle
+        sheet.post(() -> {
+            sheet.requestLayout();
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        });
     }
 
     // 全部分类太多导致内容超出屏幕时，wrap_content 的 ScrollView 没有滚动余量，最后一行会被窗口裁掉且无法露出；
-    // 内容高于屏幕 65% 时将滚动区压到该高度内，保证可以滚动到底部（与点播 TypeDialog 约定一致）。
+    // 弹窗上沿不越过直播页 tab：可用高度 = 屏高 - tab 顶部，再扣掉弹窗自身把手/内边距等固定高度才是滚动区高度。
     // 必须在 show() 之前完成测量与压缩，让 BottomSheet 一次性以最终尺寸弹出，避免弹出后再跳变
     private void capScrollHeight() {
-        int max = ResUtil.getScreenHeight() * 65 / 100;
         int widthSpec = View.MeasureSpec.makeMeasureSpec(ResUtil.getScreenWidth(), View.MeasureSpec.AT_MOST);
         int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
         binding.scroll.measure(widthSpec, heightSpec);
+        binding.getRoot().measure(widthSpec, heightSpec);
+        int fixed = binding.getRoot().getMeasuredHeight() - binding.scroll.getMeasuredHeight();
+        int max = Math.max(getAvailableHeight() - fixed, ResUtil.getScreenHeight() / 4);
         if (binding.scroll.getMeasuredHeight() <= max) return;
         ViewGroup.LayoutParams params = binding.scroll.getLayoutParams();
         params.height = max;
         binding.scroll.setLayoutParams(params);
+    }
+
+    // 以 tab 顶部为界的可用高度；取不到 tab（非直播页调用）时退回屏高 65%，并保证至少 1/3 屏高
+    private int getAvailableHeight() {
+        int screen = ResUtil.getScreenHeight();
+        if (fragment.getActivity() == null) return screen * 65 / 100;
+        View tab = fragment.getActivity().findViewById(R.id.tabLayout);
+        if (tab == null) return screen * 65 / 100;
+        int[] location = new int[2];
+        tab.getLocationOnScreen(location);
+        return Math.max(screen - location[1], screen / 3);
     }
 
     @Override

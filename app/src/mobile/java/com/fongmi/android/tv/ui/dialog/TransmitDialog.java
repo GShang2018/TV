@@ -209,6 +209,6 @@ public class TransmitDialog extends BaseDialog implements DeviceAdapter.OnClickL
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 }

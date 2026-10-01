@@ -19,7 +19,6 @@ import android.os.Build;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.Html;
 import android.text.Selection;
 import android.text.Spannable;
@@ -97,6 +96,7 @@ import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.utils.Downloader;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.playback.PlaybackOrientation;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.danmu.Parser;
 import com.fongmi.android.tv.utils.Timer;
@@ -110,6 +110,7 @@ import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
 import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.base.BasePlaybackActivity;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
@@ -168,11 +169,13 @@ import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, PlayerDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
+public class VideoActivity extends BasePlaybackActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, PlayerDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
+    // 进入小窗前的播放框高度，退出小窗时用于还原（退出瞬间窗口可能仍是小窗尺寸）
+    private int mFrameHeight;
     private ValueAnimator mAnimator;
     private Observer<Result> mObserveDetail;
     private Observer<Result> mObservePlayer;
@@ -202,7 +205,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private List<Dialog> mDialogs;
     private List<String> mBroken;
     private History mHistory;
-    private Players mPlayers;
     private boolean foreground;
     private boolean fullscreen;
     private boolean initTrack;
@@ -219,7 +221,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private long mSavedPosition;
     // 旋转重建前保存的全屏状态：平板竖屏点全屏会旋转重建为横屏分栏布局，需据此自动恢复全屏
     private boolean mSavedFullscreen;
-    private Runnable mR0;
     private Runnable mR1;
     private boolean mControlHiding;
     private Runnable mR2;
@@ -228,7 +229,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private SourceChooseDialog mSourceDialog;
     private Runnable mSourceFinishRunnable;
     private Clock mClock;
-    private PiP mPiP;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -321,7 +321,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return mHistory != null && mHistory.getPlayer() != -1 ? mHistory.getPlayer() : getSite().getPlayerType() != -1 ? getSite().getPlayerType() : Setting.getPlayer();
     }
 
-    private int getScale() {
+    @Override
+    protected int getScale() {
         return mHistory != null && mHistory.getScale() != -1 ? mHistory.getScale() : Setting.getScale();
     }
 
@@ -350,16 +351,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return getIntent().getBooleanExtra("download", false);
     }
 
-    private boolean isAutoRotate() {
-        return Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 1;
-    }
-
     private boolean isLand() {
         return mBinding.getRoot().getTag().equals("land");
     }
 
     private boolean isPort() {
         return mBinding.getRoot().getTag().equals("port");
+    }
+
+    // 竖屏单列形态按当前加载的布局 tag 判断（与直播页按实际方向判断不同）
+    @Override
+    protected boolean isPortMode() {
+        return isPort();
     }
 
     @Override
@@ -383,14 +386,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         sourcePending = false;
         setOrient();
         checkId();
-    }
-
-    private int getStatusBarHeight() {
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            return getResources().getDimensionPixelSize(resourceId);
-        }
-        return 0;
     }
 
     @Override
@@ -637,13 +632,23 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setVideoView(boolean isInPictureInPictureMode) {
         if (isInPictureInPictureMode) {
             if (mAnimator != null) mAnimator.cancel();
+            // 记录进入小窗前的播放框高度，供退出时还原（优先取布局参数中的目标高度，避免取到动画中间值）
+            mFrameHeight = mFrameParams.height > 0 ? mFrameParams.height : mBinding.video.getHeight();
             mBinding.video.setLayoutParams(getFullscreenParams());
         } else {
-            // 退出 PiP：恢复正确的 16:9 播放框高度，避免 mAnimator 中途取消导致的高度残留
-            if (isPort() && mBinding.video.getWidth() > 0) {
-                mFrameParams.height = mBinding.video.getWidth() * 9 / 16;
-            }
+            // 退出 PiP：此刻窗口尺寸可能仍是小窗尺寸，用 video.getWidth() 会算出偏小的高度，
+            // 故优先用进入小窗前记录的高度还原；极端情况（高度为 0）再按实际宽度兜底计算
+            if (isPort() && mFrameHeight > 0) mFrameParams.height = mFrameHeight;
             mBinding.video.setLayoutParams(mFrameParams);
+            if (isPort() && mFrameHeight <= 0) {
+                mBinding.video.post(() -> {
+                    int width = mBinding.video.getWidth();
+                    if (width > 0) {
+                        mFrameParams.height = width * 9 / 16;
+                        mBinding.video.setLayoutParams(mFrameParams);
+                    }
+                });
+            }
         }
     }
 
@@ -1201,7 +1206,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         // setText 时 tag 保存了不带标签前缀的原始值，优先复制该值
         Object tag = view.getTag();
         String text = tag instanceof String && !TextUtils.isEmpty((String) tag) ? (String) tag : view.getText().toString();
-        Util.copy(text);
+        // 静默复制，由下方 Snackbar 单独提示，避免 Toast 与 Snackbar 重复
+        Util.copy(text, false);
         Snackbar.make(mBinding.getRoot(), getString(R.string.copied_content, text), Snackbar.LENGTH_SHORT).show();
         return true;
     }
@@ -1337,7 +1343,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mControlDialog = ControlDialog.create().parent(mBinding).history(mHistory).player(mPlayers).parse(isUseParse()).show(this);
     }
 
-    private void onLock() {
+    @Override
+    protected void onLock() {
         setLock(!isLock());
         setRequestedOrientation(getLockOrient());
         mKeyDown.setLock(isLock());
@@ -1574,15 +1581,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private int getLockOrient() {
-        if (isLock()) {
-            return ResUtil.isLand(this) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
-        } else if (isRotate()) {
-            return ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT;
-        } else if (isPort() && isAutoRotate()) {
-            return ActivityInfo.SCREEN_ORIENTATION_FULL_USER;
-        } else {
-            return ResUtil.isLand(this) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT;
-        }
+        if (isLock()) return PlaybackOrientation.getScreenOrientation(this);
+        if (isRotate()) return PlaybackOrientation.getPortraitVideoSizeOrientation();
+        if (isPort() && isAutoRotate()) return PlaybackOrientation.getPortAutoRotateOrientation();
+        return PlaybackOrientation.getPlayerOrientation(this, false);
     }
 
     private void showProgress() {
@@ -1644,7 +1646,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setR1Callback();
     }
 
-    private void hideControl() {
+    @Override
+    protected void hideControl() {
         App.removeCallbacks(mR1);
         mControlHiding = false;
         mBinding.control.top.animate().cancel();
@@ -1681,11 +1684,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setTraffic() {
         Traffic.setSpeed(mBinding.widget.traffic);
         App.post(mR2, Constant.INTERVAL_TRAFFIC);
-    }
-
-    private void setOrient() {
-        if (isPort() && isAutoRotate()) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
-        if (isLand() && isAutoRotate()) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
     }
 
     private void setR1Callback() {
@@ -1971,7 +1969,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void checkRotate() {
         if (isFullscreen() && !isRotate() && mPlayers.isPortrait()) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
+            setRequestedOrientation(PlaybackOrientation.getPortraitVideoSizeOrientation());
             setRotate(true);
         }
     }
@@ -2190,7 +2188,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         this.foreground = foreground;
     }
 
-    private boolean isFullscreen() {
+    @Override
+    protected boolean isFullscreen() {
         return fullscreen;
     }
 
@@ -2289,10 +2288,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void notifyItemChanged(RecyclerView.Adapter<?> adapter) {
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-    }
-
-    private void stopService() {
-        PlaybackService.stop();
     }
 
     @Override
@@ -2430,51 +2425,30 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         }
     }
 
+    // 小窗进入 / 退出：非全屏时切换播放框布局（铺满 / 还原 16:9），并处理状态栏 padding 与弹幕
     @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        if (isRedirect()) return;
-        if (isLock()) App.post(this::onLock, 500);
-        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, mPlayers.getVideoWidth(), mPlayers.getVideoHeight(), getScale());
-    }
-
-    @Override
-    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+    protected void onPiPChanged(boolean isInPictureInPictureMode) {
         if (!isFullscreen()) setVideoView(isInPictureInPictureMode);
         if (isInPictureInPictureMode) {
             mBinding.getRoot().setPadding(0, 0, 0, 0);
-            PlaybackService.start(mPlayers);
             mBinding.danmaku.hide();
-            hideControl();
             hideSheet();
         } else {
             // 退出 PiP：全屏中保持沉浸式（padding 0），否则恢复状态栏 padding，避免全屏返回时顶部空出一条黑边
             mBinding.getRoot().setPadding(0, isFullscreen() ? 0 : getStatusBarHeight(), 0, 0);
             showDanmu();
-            App.post(mR0, 1000);
-            setForeground(true);
-            if (isStop()) finish();
         }
     }
 
+    // 自动旋转开启时由竖屏转横屏：直接进入全屏（不重建，保住播放器与视频流）
     @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // 画中画小窗会触发窗口尺寸/方向变化（16:9 小窗被识别为横屏），
-        // 不应据此进入全屏或 recreate，否则退出小窗后布局错乱（如顶部空出一条黑边）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
-        // 全屏状态下旋转：保持不重建，保住播放器与视频流，仅维持沉浸式
-        if (isFullscreen()) {
-            Util.hideSystemUI(this);
-            return;
-        }
-        // 非全屏：竖屏单列布局在自动旋转开启时转为横屏 → 直接进入全屏（不重建，保视频流）
-        if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            enterFullscreen();
-            return;
-        }
-        // 非全屏：布局 tag 与实际方向不匹配（横屏分栏转竖屏等）→ 重建以切换 port 单列 / land 分栏布局
+    protected void onAutoRotateToLand() {
+        enterFullscreen();
+    }
+
+    // 布局 tag 与实际方向不匹配（横屏分栏转竖屏等）→ 重建以切换 port 单列 / land 分栏布局
+    @Override
+    protected void onOrientationMismatch(@NonNull Configuration newConfig) {
         boolean match = (isPort() && newConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
                 || (isLand() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
         if (!match) recreate();

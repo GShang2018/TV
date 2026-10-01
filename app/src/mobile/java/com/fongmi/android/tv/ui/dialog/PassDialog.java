@@ -61,6 +61,8 @@ public class PassDialog extends BaseDialog {
     @Override
     public void onResume() {
         super.onResume();
+        // Activity 重建恢复的空壳弹窗已被 BaseDialog 关闭，此时窗口可能失效
+        if (getDialog() == null || getDialog().getWindow() == null) return;
         getDialog().getWindow().setLayout(ResUtil.dp2px(250), -1);
     }
 }

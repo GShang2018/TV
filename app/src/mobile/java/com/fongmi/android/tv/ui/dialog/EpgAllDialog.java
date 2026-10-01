@@ -43,6 +43,7 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
     private List<String> mDates;
     private Channel mChannel;
     private String mDate;
+    private int mMaxHeight;
 
     public static EpgAllDialog create() {
         return new EpgAllDialog();
@@ -68,8 +69,20 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
         String tag = getClass().getName();
         // 防抖：弹窗已存在（含关闭动画中）时不重复叠加，避免快速连点出现两层弹窗
         if (manager.findFragmentByTag(tag) != null) return this;
+        // 弹窗顶部不越过直播页 tab：可用高度 = 屏高 - tab 顶部
+        mMaxHeight = getAvailableHeight(activity);
         show(manager, tag);
         return this;
+    }
+
+    // 以 tab 顶部为界的可用高度；取不到 tab（非直播页调用）时退回屏高 70%，并保证至少 1/3 屏高
+    private int getAvailableHeight(FragmentActivity activity) {
+        int screen = ResUtil.getScreenHeight();
+        View tab = activity.findViewById(R.id.tabLayout);
+        if (tab == null) return screen * 7 / 10;
+        int[] location = new int[2];
+        tab.getLocationOnScreen(location);
+        return Math.max(screen - location[1], screen / 3);
     }
 
     @Override
@@ -83,13 +96,13 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
         binding.date.setHasFixedSize(true);
         binding.date.setItemAnimator(null);
         binding.date.setAdapter(mDateAdapter = new EpgDateAdapter(this));
-        binding.list.setHasFixedSize(true);
         binding.list.setItemAnimator(null);
         binding.list.setAdapter(mEpgAdapter = new EpgAllAdapter(this));
         // 传当前频道供节目卡片判断回看/预约状态
         mEpgAdapter.setChannel(mChannel);
-        // 节目列表尽量占满弹窗，保证完整节目单可见
-        binding.list.getLayoutParams().height = ResUtil.getScreenHeight() * 7 / 10;
+        // 节目列表按内容自适应，整体上沿不越过 tab。
+        // 上限必须在弹窗展开前算准：展开后再变矮，Behavior 仍按旧高度缓存的偏移定位，弹窗底部会离屏底一段距离
+        binding.list.setMaxHeight(getContentMaxHeight(binding.list, mMaxHeight));
         // 横向日期列表：窗口日期 + 频道已缓存日期（如 XML 多天数据），可自由滚动选择
         mDates = buildDates();
         mDateAdapter.addAll(mDates);
@@ -100,12 +113,18 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
         prefetch();
     }
 
+    // 节目单数据是异步到达的，展开后高度变化需强制重新定位，否则弹窗底部会离屏底一段距离
+    private void relayout() {
+        binding.list.post(this::relayoutSheet);
+    }
+
     private void onEpg(Epg epg) {
         // mDate 判空防御：observeForever 注册/弹窗销毁时序下可能先收到旧值
         if (epg == null || mDate == null || !mChannel.getTvgName().equals(epg.getKey())) return;
         if (!mDate.equals(epg.getDate())) return;
         mEpgAdapter.addAll(epg.getList());
         binding.empty.setVisibility(epg.getList().isEmpty() ? View.VISIBLE : View.GONE);
+        relayout();
     }
 
     // 自动预取窗口内全部日期的节目单，切换日期直接读缓存；XML 多天数据已由解析写入缓存，无需请求
@@ -156,6 +175,7 @@ public class EpgAllDialog extends BaseDialog implements EpgDateAdapter.OnClickLi
             // 预取尚未到达或失败时单发请求兜底
             if (!mChannel.getEpg().isEmpty()) mViewModel.getEpg(mChannel, date);
         }
+        relayout();
     }
 
     // 日期窗口：昨天 ~ 未来6天，并合并频道缓存中已有日期（如 XML 多天节目单），排序后供横向列表展示

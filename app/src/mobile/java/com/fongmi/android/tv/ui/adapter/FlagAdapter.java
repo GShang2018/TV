@@ -82,7 +82,8 @@ public class FlagAdapter extends RecyclerView.Adapter<FlagAdapter.ViewHolder> {
         Flag item = mItems.get(position);
         holder.binding.text.setText(item.getShow());
         holder.binding.text.setActivated(item.isActivated());
-        // 线路名过长时滚动显示
+        // 线路名过长时滚动显示；跑马灯依赖 selected 状态，故样式改用只认 activated 的
+        // selector_item_bg_flag / text_flag，避免每个线路都被当成选中态显示白底
         holder.binding.text.setSelected(true);
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(item));
     }

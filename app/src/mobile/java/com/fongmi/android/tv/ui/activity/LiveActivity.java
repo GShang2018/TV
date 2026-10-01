@@ -73,6 +73,7 @@ import com.fongmi.android.tv.ui.adapter.ChannelLiveAdapter;
 import com.fongmi.android.tv.ui.adapter.EpgProgramAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupLiveAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.base.BasePlaybackActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.EpgAllDialog;
@@ -105,7 +106,7 @@ import java.util.List;
 
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, LiveCallback, EpgProgramAdapter.OnClickListener, GroupLiveAdapter.OnClickListener, ChannelLiveAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
+public class LiveActivity extends BasePlaybackActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, PlayerDialog.Listener, LiveCallback, EpgProgramAdapter.OnClickListener, GroupLiveAdapter.OnClickListener, ChannelLiveAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
     private ActivityLiveBinding mBinding;
     private View mShadow;
@@ -122,12 +123,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private LiveViewModel mViewModel;
     private List<Group> mHides;
     private List<Group> mGroups;
-    private Players mPlayers;
     private Channel mChannel;
     private Group mGroup;
     // 频道列表当前已加载的分组：分组未变时切台不重建列表，避免列表跳动
     private Group mChannelTabGroup;
-    private Runnable mR0;
     private Runnable mR1;
     private boolean mControlHiding;
     private Runnable mR2;
@@ -140,7 +139,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private boolean lock;
     private int toggleCount;
     private int errorCount;
-    private PiP mPiP;
 
     public static void start(Context context) {
         start(context, "", "");
@@ -192,14 +190,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         return getHome().isEmpty() ? Constant.TIMEOUT_PLAY : getHome().getTimeout();
     }
 
-    private int getStatusBarHeight() {
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            return getResources().getDimensionPixelSize(resourceId);
-        }
-        return 0;
-    }
-
     @Override
     protected boolean customWall() {
         return false;
@@ -240,6 +230,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         setDisplayView();
         setViewModel();
         checkLive();
+        setOrient();
     }
 
     @Override
@@ -351,13 +342,28 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void setContentLayout(boolean land) {
         if (land) {
+            // 横屏分栏：content 位于分隔线右侧，必须显式给出剩余宽度，
+            // 否则 match_parent 会被 RelativeLayout 按父容器全宽测量，导致右侧内容溢出屏幕
+            mContentParams.width = Math.max(0, ResUtil.getScreenWidth(this) - mVideoParams.width - ResUtil.dp2px(4));
             mContentParams.removeRule(RelativeLayout.BELOW);
             mContentParams.addRule(RelativeLayout.END_OF, R.id.shadow);
         } else {
+            mContentParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
             mContentParams.removeRule(RelativeLayout.END_OF);
             mContentParams.addRule(RelativeLayout.BELOW, R.id.video);
         }
         mBinding.content.setLayoutParams(mContentParams);
+    }
+
+    // 直播页只有一套布局，竖屏单列形态按实际方向判断（与点播页按布局 tag 判断不同）
+    @Override
+    protected boolean isPortMode() {
+        return !ResUtil.isLand(this);
+    }
+
+    @Override
+    protected int getScale() {
+        return Setting.getLiveScale();
     }
 
     private void setRecyclerView() {
@@ -572,7 +578,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         fetch();
     }
 
-    private void onLock() {
+    @Override
+    protected void onLock() {
         setLock(!isLock());
         mKeyDown.setLock(isLock());
         checkLockImg();
@@ -582,7 +589,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private void onRotate() {
         setR1Callback();
         setRotate(!isRotate());
-        setRequestedOrientation(ResUtil.isLand(this) ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        // 转竖屏时锁定竖屏；转横屏时若系统开启自动旋转，则交还重力感应，避免方向被永久锁死
+        if (ResUtil.isLand(this)) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
+        else setRequestedOrientation(isAutoRotate() ? ActivityInfo.SCREEN_ORIENTATION_FULL_USER : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
     }
 
     private void checkPlay() {
@@ -724,7 +733,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         hideInfo();
     }
 
-    private void hideControl() {
+    @Override
+    protected void hideControl() {
         App.removeCallbacks(mR1);
         mControlHiding = false;
         mBinding.control.top.animate().cancel();
@@ -1518,10 +1528,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         this.errorCount = 0;
     }
 
-    private void stopService() {
-        PlaybackService.stop();
-    }
-
     @Override
     public void onCasted() {
     }
@@ -1638,36 +1644,27 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         this.onShare(title);
     }
 
+    // 小窗进入 / 退出：按画中画状态切换布局（进入铺满视频隐藏 tab，退出按全屏状态恢复）
     @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        if (isRedirect()) return;
-        if (isLock()) App.post(this::onLock, 500);
-        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, mPlayers.getVideoWidth(), mPlayers.getVideoHeight(), Setting.getLiveScale());
-    }
-
-    @Override
-    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-        if (isInPictureInPictureMode) {
-            PlaybackService.start(mPlayers);
-            hideControl();
-            hideInfo();
-        } else {
-            hideInfo();
-            App.post(mR0, 1000);
-            setForeground(true);
-            if (isStop()) finish();
-        }
-        // 小窗进入/退出均按画中画状态切换布局（进入铺满视频隐藏 tab，退出按全屏状态恢复）
+    protected void onPiPChanged(boolean isInPictureInPictureMode) {
+        hideInfo();
         setLayout();
     }
 
+    // 直播页单套布局 + 动态 LayoutParams，方向变化只需重排，无需重建
     @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // 画中画小窗的窗口尺寸/方向变化不处理（setLayout 内已有画中画守卫，双保险）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
+    protected void onFullscreenRotate() {
+        resizeVideo();
+    }
+
+    // 自动旋转开启时由竖屏转横屏：保持左右分栏（video 左 3/5 + 右侧 tab），不进全屏
+    @Override
+    protected void onAutoRotateToLand() {
+        resizeVideo();
+    }
+
+    @Override
+    protected void onOrientationMismatch(@NonNull Configuration newConfig) {
         resizeVideo();
     }
 
@@ -1682,6 +1679,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     @Override
     protected void onResume() {
         super.onResume();
+        // 回到前台时同步方向策略：系统自动旋转开关可能在外部被改动
+        setOrient();
         if (isForeground()) return;
         if (isRedirect()) onPlay();
         App.post(mR0, 1000);

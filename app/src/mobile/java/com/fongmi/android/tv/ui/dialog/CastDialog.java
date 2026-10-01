@@ -216,7 +216,7 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     public void onDestroyView() {
         super.onDestroyView();
         DLNADevice.get().disconnect();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         DLNACastManager.INSTANCE.unregisterListener(this);
         DLNACastManager.INSTANCE.unbindCastService(App.get());
     }

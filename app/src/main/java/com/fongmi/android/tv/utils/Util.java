@@ -73,10 +73,15 @@ public class Util {
     }
 
     public static void copy(String text) {
+        copy(text, true);
+    }
+
+    // notify=false 用于调用方自己展示提示（如 Snackbar）的场景，避免 Toast 与自定义提示重复弹出
+    public static void copy(String text, boolean notify) {
         try {
             ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
             manager.setPrimaryClip(ClipData.newPlainText("", text));
-            Notify.show(R.string.copied);
+            if (notify) Notify.show(R.string.copied);
         } catch (Exception e) {
             e.printStackTrace();
         }

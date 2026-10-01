@@ -39,6 +39,12 @@ public class CustomRecyclerView extends RecyclerView {
         a.recycle();
     }
 
+    // 运行时动态限高（px），onMeasure 会把高度压到该上限内；传 0 表示不限
+    public void setMaxHeight(int maxHeight) {
+        this.maxHeight = maxHeight;
+        requestLayout();
+    }
+
     private void focus(int position) {
         ViewHolder holder = findViewHolderForLayoutPosition(position);
         if (holder != null) holder.itemView.requestFocus();
