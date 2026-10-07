@@ -70,7 +70,8 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
     public void setSelected(int position) {
         for (Class item : mItems) item.setSelected(false);
-        mItems.get(position).setSelected(true);
+        // 弹窗/分页传入的是创建时的快照索引，宿主列表可能已被刷新清空，先做边界保护
+        if (position >= 0 && position < mItems.size()) mItems.get(position).setSelected(true);
         notifyItemRangeChanged(0, mItems.size());
     }
 

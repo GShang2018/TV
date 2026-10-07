@@ -28,11 +28,16 @@ import com.fongmi.android.tv.Setting;
 import com.github.catvod.utils.Json;
 import com.google.common.net.HttpHeaders;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import jahirfiquitiva.libs.textdrawable.TextDrawable;
 
 public class ImgUtil {
+
+    // 状态图标（加载中/空/错误）在每个 item 每次绑定时都会被设置，这里按 resId + 尺寸缓存包装后的 Drawable：
+    // 复用同一个 VectorDrawable 实例，避免每次绑定都重新光栅化矢量图（纯主线程开销）
+    private static final Map<String, StateIconDrawable> STATE_ICONS = new HashMap<>();
 
     private static ObjectKey getSignature(String url) {
         return new ObjectKey(url + "_" + Setting.getQuality());
@@ -60,7 +65,8 @@ public class ImgUtil {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) {
             setStateIcon(view, R.drawable.ic_img_loading);
-            Glide.with(App.get()).asBitmap().load(getUrl(url)).skipMemoryCache(true).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(getSignature(url)).listener(getListener(view, scaleType)).into(view);
+            // 不再关闭内存缓存：列表滚动、刷新、切布局时会反复绑定同一张封面，关掉缓存等于每次都要重新解码
+            Glide.with(App.get()).asBitmap().load(getUrl(url)).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(getSignature(url)).listener(getListener(view, scaleType)).into(view);
         } else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), rect));
         else setStateIcon(view, R.drawable.ic_img_error);
     }
@@ -70,7 +76,8 @@ public class ImgUtil {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) {
             setStateIcon(view, R.drawable.ic_img_loading);
-            Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform(Setting.getPosterCrop())).skipMemoryCache(true).dontAnimate().listener(getPosterListener(view)).into(view);
+            // 同 load()：海报在列表里同样会被反复绑定，保留内存缓存，避免每次重新解码 + 重新裁剪
+            Glide.with(App.get()).asBitmap().load(getUrl(url)).transform(new PosterTransform(Setting.getPosterCrop())).dontAnimate().listener(getPosterListener(view)).into(view);
         } else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
         else setStateIcon(view, R.drawable.ic_img_error);
     }
@@ -87,7 +94,7 @@ public class ImgUtil {
     public static void loadLive(String url, ImageView view) {
         view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         if (TextUtils.isEmpty(url)) setStateIcon(view, R.drawable.ic_img_empty);
-        else Glide.with(App.get()).asBitmap().load(url).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).listener(getLiveLogoListener(view)).into(view);
+        else Glide.with(App.get()).asBitmap().load(url).dontAnimate().signature(getSignature(url)).listener(getLiveLogoListener(view)).into(view);
     }
 
     // 台标大图加载：显式 override 目标尺寸，请求尺寸与 view 布局时序解耦（对齐点播封面按固定像素发起请求的逻辑），
@@ -95,7 +102,7 @@ public class ImgUtil {
     public static void loadLive(String url, ImageView view, int width, int height) {
         view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         if (TextUtils.isEmpty(url)) setStateIcon(view, R.drawable.ic_img_empty);
-        else Glide.with(App.get()).asBitmap().load(url).override(width, height).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).listener(getLiveLogoListener(view)).into(view);
+        else Glide.with(App.get()).asBitmap().load(url).override(width, height).dontAnimate().signature(getSignature(url)).listener(getLiveLogoListener(view)).into(view);
     }
 
     // 台标 logo 加载：加载中显示状态图标（容器最小边长 30%，不铺满），加载完成后 FIT_CENTER 等比缩放完整显示不裁剪
@@ -103,7 +110,7 @@ public class ImgUtil {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) {
             setStateIcon(view, R.drawable.ic_img_loading);
-            Glide.with(App.get()).asBitmap().load(getUrl(url)).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).listener(getLogoListener(view)).into(view);
+            Glide.with(App.get()).asBitmap().load(getUrl(url)).dontAnimate().signature(getSignature(url)).listener(getLogoListener(view)).into(view);
         } else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
         else setStateIcon(view, R.drawable.ic_img_error);
     }
@@ -137,7 +144,7 @@ public class ImgUtil {
         view.setScaleType(ImageView.ScaleType.CENTER);
         int w = view.getWidth(), h = view.getHeight();
         int side = w > 0 && h > 0 ? Math.max(1, (int) (Math.min(w, h) * 0.3f)) : ResUtil.dp2px(36);
-        view.setImageDrawable(new StateIconDrawable(ResUtil.getDrawable(resId), side));
+        view.setImageDrawable(getStateIcon(resId, side));
         if (w <= 0 || h <= 0) {
             // 布局完成后若图标仍未被真实图片替换，则按容器最小边长 30% 重新设置一次
             view.post(() -> {
@@ -146,6 +153,19 @@ public class ImgUtil {
                 if (nw <= 0 || nh <= 0) return; // 容器仍无尺寸则保持默认尺寸，避免空转
                 setStateIcon(view, resId);
             });
+        }
+    }
+
+    // 按 resId + 目标尺寸取状态图标：同一尺寸复用同一个实例（内含同一个 VectorDrawable），
+    // 这样矢量图只在首次使用时光栅化一次，后续绑定直接复用已渲染结果
+    private static StateIconDrawable getStateIcon(int resId, int side) {
+        String key = resId + "@" + side;
+        synchronized (STATE_ICONS) {
+            StateIconDrawable cached = STATE_ICONS.get(key);
+            if (cached != null) return cached;
+            StateIconDrawable drawable = new StateIconDrawable(ResUtil.getDrawable(resId), side);
+            STATE_ICONS.put(key, drawable);
+            return drawable;
         }
     }
 

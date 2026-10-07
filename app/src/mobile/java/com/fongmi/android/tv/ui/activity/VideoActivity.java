@@ -994,7 +994,8 @@ public class VideoActivity extends BasePlaybackActivity implements Clock.Callbac
         }
         SpiderDebug.log("rel_check:ids=" + item.getRelIds().size() + ",has=" + item.hasRel());
         if (!item.hasRel()) return;
-        mViewModel.relatedContent(getKey(), item.getRelIds());
+        // 相关推荐会按 id 逐个请求详情，延后到播放页主内容与封面渲染之后再发，避免和页面图片抢同源连接
+        App.post(() -> mViewModel.relatedContent(getKey(), item.getRelIds()), Constant.REL_DELAY);
     }
 
     private void setRelVods(List<Vod> items) {

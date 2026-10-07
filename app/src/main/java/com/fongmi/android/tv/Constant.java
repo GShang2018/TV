@@ -32,5 +32,8 @@ public class Constant {
     //搜尋線程數量
     public static final int THREAD_POOL = 10;
     //相關推薦最大數量
-    public static final int REL_LIMIT = 20;
+    //每條推薦都要單獨請求一次詳情，數量過大會占滿同源連接、把封面圖片和後續請求擠到隊列後面
+    public static final int REL_LIMIT = 8;
+    //相關推薦延後請求時間：等詳情主內容與封面先渲染完，避免開頁瞬間搶占同源連接
+    public static final int REL_DELAY = 1200;
 }

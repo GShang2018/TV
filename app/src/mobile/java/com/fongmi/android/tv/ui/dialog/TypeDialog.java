@@ -39,7 +39,7 @@ public class TypeDialog implements TypeAdapter.OnClickListener {
         this.dialog.setContentView(binding.getRoot());
         this.adapter = new TypeAdapter(this, true);
         this.adapter.addAll(items);
-        this.adapter.setSelected(position);
+        this.adapter.setSelected(Math.max(0, Math.min(position, this.adapter.getItemCount() - 1)));
     }
 
     public void show(FragmentManager manager, String tag) {

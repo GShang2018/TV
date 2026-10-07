@@ -177,7 +177,8 @@ public class SiteViewModel extends ViewModel {
                 Spider spider = site.recent().spider();
                 int limit = Math.min(ids.size(), Constant.REL_LIMIT);
                 AtomicInteger counter = new AtomicInteger();
-                ExecutorService pool = Executors.newFixedThreadPool(Math.min(4, limit));
+                // 并发数压到 2：详情请求与封面图片共用同一个 OkHttp 连接池，并发太高会同源互相排队
+                ExecutorService pool = Executors.newFixedThreadPool(Math.min(2, limit));
                 List<Callable<Result>> tasks = new ArrayList<>();
                 for (int i = 0; i < limit; i++) {
                     String id = ids.get(i);

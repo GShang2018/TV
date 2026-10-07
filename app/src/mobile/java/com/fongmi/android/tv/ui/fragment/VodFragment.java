@@ -689,8 +689,11 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
     @Override
     public void onItemClick(int position, Class item) {
-        mBinding.pager.setCurrentItem(position);
-        mAdapter.setSelected(position);
+        // 弹窗拿到的是打开时的快照索引，宿主分类列表可能已被刷新；按 type_id 反查真实索引，避免索引错配
+        int index = mAdapter.getItems().indexOf(item);
+        if (index < 0) return;
+        mBinding.pager.setCurrentItem(index);
+        mAdapter.setSelected(index);
     }
 
     @Override
