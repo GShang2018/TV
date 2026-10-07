@@ -216,6 +216,9 @@
     <string name="detail_setting">Setting</string>
     <string name="dialog_source_choose">Choose Source</string>
     <string name="dialog_source_count">Choose Source (%d)</string>
+    <string name="dialog_source_search_hint">Search name</string>
+    <string name="dialog_source_search">Search</string>
+    <string name="dialog_source_quick">Quick</string>
     <string name="detail_search">Searching <xliff:g name="name">%s</xliff:g></string>
     <string name="detail_na">N/A</string>
 

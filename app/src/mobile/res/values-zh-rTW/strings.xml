@@ -207,6 +207,9 @@
     <string name="detail_setting">設定</string>
     <string name="dialog_source_choose">選擇播放源</string>
     <string name="dialog_source_count">選擇播放源（%d）</string>
+    <string name="dialog_source_search_hint">搜尋名稱</string>
+    <string name="dialog_source_search">搜尋</string>
+    <string name="dialog_source_quick">快速</string>
     <string name="detail_search">快搜「<xliff:g name="name">%s</xliff:g>」</string>
     <string name="detail_na">暫無</string>
 

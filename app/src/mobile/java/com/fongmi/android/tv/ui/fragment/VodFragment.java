@@ -102,6 +102,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 	private Runnable mRunnable;
 	private List<String> mHots;
 	private Result mResult;
+	private String mLogoUrl;
+	private boolean mLogoLoaded;
 	private LineSelectDialog mLineDialog;
 	private HomeWebController mWeb;
 	private WebView mHomeWeb;
@@ -129,6 +131,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         EventBus.getDefault().register(this);
         setRecyclerView();
         setAppBarView();
+        // 视图创建时就加载 logo，不再只等 RefreshEvent(CONFIG)：否则进点播页后要等一次配置刷新事件才有图
+        setLogo();
         setViewModel();
         showProgress();
         initHot();
@@ -338,7 +342,10 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void checkRetry() {
-        boolean empty = mAdapter.getItemCount() == 0;
+        // 还有一个条件：内容区当前不能有页面在显示。PageAdapter.destroyItem 是空实现（上游为保留页面滚动位置），
+        // 分类数据被清空后 ViewPager 可能仍留着旧页面视图，此时只看 mAdapter 是否为空会误判成"没有内容"，
+        // 于是在列表/封面还在的情况下把居中的重试箭头盖上去
+        boolean empty = mAdapter.getItemCount() == 0 && mBinding.pager.getChildCount() == 0;
         boolean noSubscription = !VodConfig.hasUrl();
         mBinding.retry.setVisibility(empty && !noSubscription ? View.VISIBLE : View.GONE);
         // 无订阅时展示"暂无订阅 + 添加订阅"引导，替代重试图标
@@ -564,14 +571,33 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void setLogo() {
+        String logo = UrlUtil.convert(VodConfig.get().getConfig().getLogo());
+        // logo 加载自成一路，不依赖任何事件：没有配置 logo 就直接用内置图标
+        if (TextUtils.isEmpty(logo)) {
+            mLogoUrl = null;
+            mLogoLoaded = false;
+            mBinding.logo.setImageResource(R.drawable.ic_logo);
+            return;
+        }
+        // 同一个 URL 且已经成功显示过就不重复发起：重复 into() 会先把 ImageView 清空再重载，
+        // 表现出来就是"图先没了、过一会儿才回来"
+        if (logo.equals(mLogoUrl) && mLogoLoaded) return;
+        mLogoUrl = logo;
+        mLogoLoaded = false;
+        // 用应用级 RequestManager（与 ImgUtil 里的加载方式一致）：不随 Fragment/Activity 的 onStop 暂停，
+        // 这样在播放页、设置页等场景触发的配置刷新也能立刻加载完成，回到点播页就是现成的图；
+        // override 显式目标尺寸，让请求尺寸与 view 的测量/可见性解耦（同 ImgUtil.loadLive(url, view, w, h)）
         // 由布局 ShapeableImageView 圆形裁剪（Vod.Circle），无需 circleCrop，避免低分辨率源图放大后圆形边缘抗锯齿羽化发虚
-        Glide.with(this).asDrawable().load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).error(R.drawable.ic_logo).listener(getListener()).into(mBinding.logo);
+        int size = ResUtil.dp2px(30);
+        Glide.with(App.get()).asDrawable().load(logo).override(size, size).error(R.drawable.ic_logo).listener(getListener()).into(mBinding.logo);
     }
 
     private RequestListener<Drawable> getListener() {
         return new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                // 标记未成功，下次配置刷新时允许用同一个 URL 再试一次
+                mLogoLoaded = false;
                 mBinding.logo.getLayoutParams().width = ResUtil.dp2px(30);
                 mBinding.logo.getLayoutParams().height = ResUtil.dp2px(30);
                 // 默认图标保持圆形裁剪（Vod.Circle），CENTER_CROP 不缩放图标本身、仅裁剪超出圆形区域的部分，避免方形边缘锯齿
@@ -583,6 +609,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
 
             @Override
             public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                mLogoLoaded = true;
                 mBinding.logo.getLayoutParams().width = ResUtil.dp2px(30);
                 mBinding.logo.getLayoutParams().height = ResUtil.dp2px(30);
                 // 站点有 logo 图像时恢复圆形裁剪
@@ -725,6 +752,12 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     @Override
     public void onConfigurationChanged(@NonNull android.content.res.Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        // 方向变化只重排、不重载数据：封面尺寸由 Product.getSpec 按当前屏宽算，方向变了每个已建好的分类页都要重算
+        // （原先依赖 MainActivity 发的全局 RefreshEvent.video() 整页重载顺带完成，代价是分类 tab 与列表被清空，
+        // 返回首页时会看到 tab 空了、只剩 TabLayout 默认的 48dp 空白条）
+        for (Fragment fragment : getChildFragmentManager().getFragments()) {
+            if (fragment instanceof TypeFragment) ((TypeFragment) fragment).refreshStyle();
+        }
         mBinding.typeLayout.post(this::checkTypeOverflow);
     }
 
@@ -765,6 +798,10 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         @NonNull
         @Override
         public Fragment getItem(int position) {
+            // 走到这里说明有分类页面要展示（内容即将出现），顺手清掉空态/重试提示，
+            // 避免出现"内容已经渲染出来、画面中央还挂着一个刷新图标"的叠加
+            mBinding.retry.setVisibility(View.GONE);
+            mBinding.emptyState.setVisibility(View.GONE);
             Class type = mAdapter.get(position);
             return TypeFragment.newInstance(getSite().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(true), "1".equals(type.getTypeFlag()));
         }

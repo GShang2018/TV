@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- 外面套一层 FrameLayout：Fragment 的根视图在 onViewCreated 时尚未加入父容器，
+         getLayoutParams() 为 null，没法在 initView 里直接给列表设高度；子视图的 LP 在 inflate 时就已生成。
+         不设 app:maxHeight —— CustomRecyclerView.getNewSpec 的整数比较会让任何 spec 都被压到该值，
+         高度由弹窗按可用最大空间统一下发（EXACT），这里再加硬上限反而会把它压回去 -->
+    <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingLeft="8dp"
+        android:paddingTop="4dp"
+        android:paddingRight="8dp"
+        android:paddingBottom="16dp" />
+
+</FrameLayout>

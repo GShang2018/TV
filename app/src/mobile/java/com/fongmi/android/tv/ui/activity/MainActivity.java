@@ -232,7 +232,10 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        RefreshEvent.video();
+        // 方向变化（含从播放页横屏返回时触发的方向切换）不再发全局 RefreshEvent.video()：
+        // 那会让点播页走 homeContent() 的清空式重载，分类 tab 与列表被清空后要等请求回来才恢复，
+        // 期间 TabLayout 无 tab 仍占 48dp、pager 是 match_parent，表现为"tab 没了但高度还在"。
+        // 各页已自行做轻量重排：VodFragment/LiveFragment 都在 onConfigurationChanged 里重算网格与标签。
     }
 
     protected boolean handleBack() {

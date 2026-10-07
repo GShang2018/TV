@@ -6,39 +6,136 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/dialog_source_choose"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:layout_marginEnd="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/dialog_source_choose"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- 快速搜索开关：开 = quick=true（只取基本信息，快）；关 = quick=false（完整搜索，结果更全） -->
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/quickSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/dialog_source_quick"
+            android:textSize="12sp"
+            app:thumbTint="@color/white" />
+    </LinearLayout>
+
+    <!-- 关键词 + 搜索 + 站点筛选：三个挤在标题行放不下，单独占一行（快速开关在标题行右端） -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/search_item_round"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_site_search" />
+
+            <!-- 预填当前播放的名字，可直接编辑后重新检索 -->
+            <EditText
+                android:id="@+id/keyword"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/dialog_source_search_hint"
+                android:imeOptions="actionSearch"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:maxLength="255"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textColorHint="?android:attr/textColorHint"
+                android:textSize="14sp"
+                tools:ignore="Autofill" />
+
+        </LinearLayout>
+
+        <!-- 按当前关键词重新检索（预填的名字不准时可改完再搜） -->
+        <ImageView
+            android:id="@+id/searchBtn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/dialog_source_search"
+            android:padding="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_action_search"
+            app:tint="?attr/colorOnSurface" />
+
+        <!-- 站点筛选入口：与首页搜索页用的是同一个开关（SiteDialog.search），播放页也能直接改，不必回搜索页 -->
+        <ImageView
+            android:id="@+id/filter"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/filter"
+            android:padding="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_fab_filter"
+            app:tint="?attr/colorOnSurface" />
+    </LinearLayout>
+
+    <!-- 站源 tab：样式对齐选集弹窗（EpisodeGridDialog 的 dialog_episode_grid.xml） -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/transparent"
+        app:tabIndicatorAnimationMode="elastic"
+        app:tabIndicatorColor="?attr/colorControlActivated"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="2dp"
+        app:tabMode="scrollable"
+        app:tabSelectedTextColor="?attr/colorControlActivated"
+        app:tabTextColor="@color/grey_500" />
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp">
 
-        <com.fongmi.android.tv.ui.custom.CustomRecyclerView
-            android:id="@+id/recycler"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:paddingLeft="8dp"
-            android:paddingTop="4dp"
-            android:paddingRight="8dp"
-            android:paddingBottom="16dp"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:maxHeight="376dp"
-            app:spanCount="2"
-            tools:itemCount="10"
-            tools:listitem="@layout/adapter_quick" />
+            android:layout_height="wrap_content" />
 
         <ProgressBar
             android:id="@+id/progress"
@@ -60,7 +157,8 @@
             android:text="@string/detail_na"
             android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            tools:visibility="visible" />
     </FrameLayout>
 
 </LinearLayout>

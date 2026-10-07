@@ -19,9 +19,12 @@ import java.util.List;
 
 public class SourceChooseAdapter extends RecyclerView.Adapter<SourceChooseAdapter.ViewHolder> {
 
+    private static final int NO_SELECTED = -1;
+
     private final OnClickListener mListener;
     private final List<Vod> mItems;
-    private int mSelectedPosition = -1;
+    private Vod mSelected;
+    private int mSelectedPosition = NO_SELECTED;
 
     // 主题文字颜色缓存
     private int mColorOnSurface = -1;
@@ -41,12 +44,32 @@ public class SourceChooseAdapter extends RecyclerView.Adapter<SourceChooseAdapte
     public void addAll(List<Vod> items) {
         mItems.clear();
         mItems.addAll(items);
+        // 数据更新后按对象重新定位选中项（每页的下标只在页内有效）
+        mSelectedPosition = indexOf(mSelected);
         notifyDataSetChanged();
     }
 
-    public void setActivated(int position) {
-        mSelectedPosition = position;
+    /**
+     * 设置当前正在播放的源。按站点 key + vodId 比对而不是外部下标：
+     * 弹窗按站点分页后，各页的下标互不相干，且同一个 vodId 可能出现在多个站点上。
+     */
+    public void setSelected(Vod item) {
+        this.mSelected = item;
+        this.mSelectedPosition = indexOf(item);
         notifyDataSetChanged();
+    }
+
+    public int getSelectedPosition() {
+        return mSelectedPosition;
+    }
+
+    private int indexOf(Vod item) {
+        if (item == null) return NO_SELECTED;
+        for (int i = 0; i < mItems.size(); i++) {
+            Vod it = mItems.get(i);
+            if (TextUtils.equals(it.getSiteKey(), item.getSiteKey()) && TextUtils.equals(it.getVodId(), item.getVodId())) return i;
+        }
+        return NO_SELECTED;
     }
 
     @Override
@@ -96,10 +119,11 @@ public class SourceChooseAdapter extends RecyclerView.Adapter<SourceChooseAdapte
             holder.binding.remark.setTextColor(mColorOnSurfaceVariantDim);
         }
         holder.binding.getRoot().setOnClickListener(v -> {
-            int previousSelected = mSelectedPosition;
-            mSelectedPosition = holder.getAdapterPosition();
-            if (previousSelected != -1) notifyItemChanged(previousSelected);
-            if (mSelectedPosition != -1) notifyItemChanged(mSelectedPosition);
+            int clickPosition = holder.getBindingAdapterPosition();
+            if (clickPosition == RecyclerView.NO_POSITION) return;
+            mSelected = item;
+            mSelectedPosition = clickPosition;
+            notifyDataSetChanged();
             mListener.onItemClick(item);
         });
     }

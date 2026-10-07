@@ -204,6 +204,8 @@ public class VideoActivity extends BasePlaybackActivity implements Clock.Callbac
     private GestureDetector mGestureDetector;
     private List<Dialog> mDialogs;
     private List<String> mBroken;
+    private String mSearchKeyword;               // 本次跨站检索实际使用的关键词（弹窗里可改词重搜，过滤必须跟着它走）
+    private boolean mQuickSearch = true;         // 跨站检索是否走快速搜索（播放源弹窗里的"快速"开关，默认开=与原行为一致）
     private History mHistory;
     private boolean foreground;
     private boolean fullscreen;
@@ -1178,7 +1180,28 @@ public class VideoActivity extends BasePlaybackActivity implements Clock.Callbac
             mSourceDialog.refresh(mQuickAdapter.getItems(), getSelected());
             return;
         }
-        mSourceDialog = SourceChooseDialog.create().items(mQuickAdapter.getItems()).selected(getSelected()).listener(item -> onItemClick(item)).show(this);
+        String name = mBinding.name.getText().toString();
+        mSourceDialog = SourceChooseDialog.create().items(mQuickAdapter.getItems()).selected(getSelected()).keyword(name).listener(new SourceChooseDialog.OnClickListener() {
+            @Override
+            public void onItemClick(Vod item) {
+                VideoActivity.this.onItemClick(item);
+            }
+
+            @Override
+            public void onFilterChanged() {
+                // 站点筛选变了：按新的站点集合重新检索，播放源 tab 会跟着重建
+                sourcePending = true;
+                initSearch(name, false);
+            }
+
+            @Override
+            public void onSearch(String text, boolean quick) {
+                // 弹窗里改了关键词或切了快速搜索开关：用新口径重新检索（tab 也会按新站点集合重建）
+                mQuickSearch = quick;
+                sourcePending = true;
+                initSearch(text, false);
+            }
+        }).show(this);
     }
 
     private int getSelected() {
@@ -2103,6 +2126,7 @@ public class VideoActivity extends BasePlaybackActivity implements Clock.Callbac
 
     private void startSearch(String keyword) {
         mQuickAdapter.clear();
+        mSearchKeyword = keyword;
         List<Site> sites = new ArrayList<>();
         mExecutor = Executors.newFixedThreadPool(Constant.THREAD_POOL * 2);
         for (Site item : VodConfig.get().getSites()) if (isPass(item)) sites.add(item);
@@ -2120,7 +2144,7 @@ public class VideoActivity extends BasePlaybackActivity implements Clock.Callbac
 
     private void search(Site site, String keyword) {
         try {
-            mViewModel.searchContent(site, keyword, true);
+            mViewModel.searchContent(site, keyword, mQuickSearch);
         } catch (Throwable ignored) {
         }
     }
@@ -2142,9 +2166,14 @@ public class VideoActivity extends BasePlaybackActivity implements Clock.Callbac
     private boolean mismatch(Vod item) {
         if (getId().equals(item.getVodId())) return true;
         if (mBroken.contains(item.getVodId())) return true;
-        String keyword = mBinding.name.getText().toString();
-        if (isAutoMode()) return !item.getVodName().equals(keyword);
-        else return !item.getVodName().contains(keyword);
+        // 用"本次检索实际使用的关键词"判断片名是否匹配：弹窗里可以改词重搜，不能再固定拿当前片名去比。
+        // 检索时框架会把关键词做繁→简转换（SiteViewModel.searchContent 里的 Trans.t2s），
+        // 而片名本身也可能是繁体，所以关键词与片名都按原词/简体两种形态各认一次。
+        String keyword = mSearchKeyword == null ? mBinding.name.getText().toString() : mSearchKeyword;
+        String simple = Trans.t2s(keyword);
+        String name = item.getVodName();
+        if (isAutoMode()) return !name.equals(keyword) && !name.equals(simple);
+        else return !name.contains(keyword) && !name.contains(simple);
     }
 
     private void nextParse(int position) {
