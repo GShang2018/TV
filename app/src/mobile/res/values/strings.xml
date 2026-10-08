@@ -349,4 +349,28 @@
     <string name="custom_line_deleted">Line deleted</string>
     <string name="custom_line_delete_title">Delete Line</string>
     <string name="custom_line_delete_msg">Delete this custom line and its sites?</string>
+
+    <string name="app_download">Downloads</string>
+    <string name="setting_download">Downloads</string>
+    <string name="setting_download_desc">View and manage downloaded videos</string>
+    <string name="download_tab_downloading">Downloading</string>
+    <string name="download_tab_done">Downloaded</string>
+    <string name="download_status_queued">Queued</string>
+    <string name="download_status_paused">Paused</string>
+    <string name="download_status_finished">Completed</string>
+    <string name="download_status_failed">Failed</string>
+    <string name="download_pause">Pause</string>
+    <string name="download_resume">Resume</string>
+    <string name="download_retry">Retry</string>
+    <string name="download_play">Play</string>
+    <string name="download_delete">Delete</string>
+    <string name="download_delete_confirm">Delete \"%1$s\"?</string>
+    <string name="download_started">Download started</string>
+    <string name="download_url_empty">Unable to resolve download link</string>
+    <string name="download_1dm_missing">1DM is not installed, please install it or use the built-in downloader</string>
+    <string name="download_m3u8_unsupported">M3U8 streaming download is not supported yet</string>
+    <string name="download_title">Video Download</string>
+    <string name="download_notify_text">%1$d task(s) · %2$d%%</string>
+    <string name="download_pause_all">Pause all</string>
+    <string name="download_resume_all">Resume all</string>
 </resources>

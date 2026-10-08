@@ -35,6 +35,7 @@ import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.activity.SubscriptionActivity;
+import com.fongmi.android.tv.ui.activity.DownloadActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BackupDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
@@ -114,6 +115,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     protected void initEvent() {
         mBinding.subscribeVod.setOnClickListener(v -> SubscriptionActivity.start(getActivity(), 0, false));
         mBinding.subscribeLive.setOnClickListener(v -> SubscriptionActivity.start(getActivity(), 1, false));
+        mBinding.download.setOnClickListener(v -> DownloadActivity.start(getActivity()));
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);

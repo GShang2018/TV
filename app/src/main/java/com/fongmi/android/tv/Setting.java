@@ -769,4 +769,12 @@ public class Setting {
         Prefers.put("theme_color", color);
     }
 
+    public static boolean isBuiltinDownload() {
+        return Prefers.getBoolean("builtin_download", true);
+    }
+
+    public static void putBuiltinDownload(boolean builtin) {
+        Prefers.put("builtin_download", builtin);
+    }
+
 }

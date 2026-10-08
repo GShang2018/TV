@@ -338,4 +338,28 @@
     <string name="custom_line_deleted">线路已删除</string>
     <string name="custom_line_delete_title">删除线路</string>
     <string name="custom_line_delete_msg">确定删除该线路及其站点？</string>
+
+    <string name="app_download">下载</string>
+    <string name="setting_download">下载</string>
+    <string name="setting_download_desc">查看和管理已下载的视频</string>
+    <string name="download_tab_downloading">下载中</string>
+    <string name="download_tab_done">已下载</string>
+    <string name="download_status_queued">排队中</string>
+    <string name="download_status_paused">已暂停</string>
+    <string name="download_status_finished">已完成</string>
+    <string name="download_status_failed">失败</string>
+    <string name="download_pause">暂停</string>
+    <string name="download_resume">继续</string>
+    <string name="download_retry">重试</string>
+    <string name="download_play">播放</string>
+    <string name="download_delete">删除</string>
+    <string name="download_delete_confirm">确定删除「%1$s」？</string>
+    <string name="download_started">已开始下载</string>
+    <string name="download_url_empty">无法解析下载链接</string>
+    <string name="download_1dm_missing">未安装 1DM，请先安装或使用内置下载</string>
+    <string name="download_m3u8_unsupported">暂不支持 m3u8 流下载</string>
+    <string name="download_title">视频下载</string>
+    <string name="download_notify_text">%1$d 个任务 · %2$d%%</string>
+    <string name="download_pause_all">全部暂停</string>
+    <string name="download_resume_all">全部继续</string>
 </resources>

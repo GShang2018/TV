@@ -317,14 +317,43 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     private void setAdapter(Result result) {
         mAdapter.addAll(handle(result));
         mBinding.pager.getAdapter().notifyDataSetChanged();
+        // 分类 tab 的填充依赖「pager 换 adapter / notifyDataSetChanged → TabLayout 观察者」这条间接链，
+        // 链路偶尔错拍会导致 tab 停留在 0 个的终态（占位 48dp 但看不到内容）且无自愈。数据到达时兜底校验一次。
+        syncTabs();
         setFabVisible(0);
         hideProgress();
         checkRetry();
-        // 数据就绪后统一刷新标签文字样式（单行 + 超长省略号）并检测是否溢出显示“更多”
+        // 数据就绪后统一刷新标签文字样式（单行 + 超长省略号）并检测是否溢出显示"更多"
         mBinding.typeLayout.post(() -> {
             applyTabTextStyle();
             checkTypeOverflow();
         });
+    }
+
+    // 校验 TabLayout 与分类数据是否一致（数量 + 逐位文本），不一致则直接重建，不依赖观察者链，保证自愈
+    private void syncTabs() {
+        if (mBinding.webOverlay.getVisibility() == View.VISIBLE) return;
+        int count = mAdapter.getItemCount();
+        if (mBinding.type.getTabCount() != count) {
+            rebuildTabs();
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            if (!TextUtils.equals(mBinding.type.getTabAt(i).getText(), mAdapter.get(i).getTypeName())) {
+                rebuildTabs();
+                return;
+            }
+        }
+    }
+
+    private void rebuildTabs() {
+        mBinding.type.removeAllTabs();
+        int count = mAdapter.getItemCount();
+        for (int i = 0; i < count; i++) {
+            mBinding.type.addTab(mBinding.type.newTab().setText(mAdapter.get(i).getTypeName()), false);
+        }
+        int current = Math.min(mBinding.pager.getCurrentItem(), Math.max(count - 1, 0));
+        if (count > 0) mBinding.type.selectTab(mBinding.type.getTabAt(current));
     }
 
     private void setFabVisible(int position) {
@@ -771,6 +800,14 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     public void onPause() {
         super.onPause();
         if (mWeb != null) mWeb.onPause();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        // 切到其它页时事件仍会触发 homeContent() 清空式重载，回来时 tab 可能已空且之后无新数据，
+        // 这里兜底自愈一次（WebHome 悬浮层显示时跳过，其 tab 行本就是 GONE）
+        if (!hidden) syncTabs();
     }
 
     @Override

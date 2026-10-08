@@ -47,7 +47,7 @@ import java.util.Locale;
 @Database(entities = {Keep.class, KeepFolder.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, Download.class, Reminder.class, LiveHistory.class, CustomVod.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 37;
+    public static final int VERSION = 38;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
     public static final String BACKUP_SUFFIX = "tv.backup";
@@ -137,6 +137,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_34_35)
                 .addMigrations(MIGRATION_35_36)
                 .addMigrations(MIGRATION_36_37)
+                .addMigrations(MIGRATION_37_38)
                 .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
@@ -163,6 +164,21 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract LiveHistoryDao getLiveHistoryDao();
 
     public abstract CustomVodDao getCustomVodDao();
+
+    static final Migration MIGRATION_37_38 = new Migration(37, 38) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Download ADD COLUMN fileName TEXT DEFAULT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN savePath TEXT DEFAULT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN errorMsg TEXT DEFAULT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN source TEXT DEFAULT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN flag TEXT DEFAULT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN status INTEGER DEFAULT 0 NOT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN type INTEGER DEFAULT 0 NOT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN progress INTEGER DEFAULT 0 NOT NULL");
+            database.execSQL("ALTER TABLE Download ADD COLUMN total INTEGER DEFAULT -1 NOT NULL");
+        }
+    };
 
     static final Migration MIGRATION_36_37 = new Migration(36, 37) {
         @Override

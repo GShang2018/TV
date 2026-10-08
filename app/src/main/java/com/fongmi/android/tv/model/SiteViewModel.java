@@ -56,6 +56,7 @@ public class SiteViewModel extends ViewModel {
     public MutableLiveData<Danmu> danmaku;
     public MutableLiveData<Result> download;
     private final ExecutorService executor;
+    private final AtomicInteger homeGeneration;
 
     public SiteViewModel() {
         this.ep = new MutableLiveData<>();
@@ -68,6 +69,7 @@ public class SiteViewModel extends ViewModel {
         this.download = new MutableLiveData<>();
         // 复用固定线程池，避免每次请求都 shutdownNow + 新建线程池的开销
         this.executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
+        this.homeGeneration = new AtomicInteger();
     }
 
     public void setEpisode(Episode value) {
@@ -79,30 +81,52 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void homeContent() {
-        execute(result, () -> {
-            Site site = VodConfig.get().getHome();
-            if (site.getType() == 3) {
-                Spider spider = site.recent().spider();
-                String homeContent = spider.homeContent(true);
-                SpiderDebug.log(homeContent);
-                Result result = Result.fromJson(homeContent);
-                if (result.getList().size() > 0) return result;
+        // 频繁切换站点时多个 homeContent 请求在固定线程池里并发执行、结果乱序回传，
+        // 迟到的旧站点结果会覆盖新站点数据。用代际计数丢弃过期结果，只让最新一次请求落到 UI。
+        final int gen = homeGeneration.incrementAndGet();
+        executor.execute(() -> {
+            Result value = null;
+            try {
+                if (Thread.interrupted()) return;
+                value = executor.submit(() -> loadHome(gen)).get(Constant.TIMEOUT_VOD, TimeUnit.MILLISECONDS);
+            } catch (Throwable e) {
+                if (e instanceof InterruptedException || Thread.interrupted()) return;
+                Throwable cause = e.getCause() != null ? e.getCause() : e;
+                if (gen == homeGeneration.get()) {
+                    if (cause instanceof ExtractException) value = Result.error(cause.getMessage());
+                    else value = Result.empty();
+                }
+                SpiderDebug.log(cause);
+            }
+            if (value != null && gen == homeGeneration.get()) result.postValue(value);
+        });
+    }
+
+    private Result loadHome(int gen) throws Exception {
+        Site site = VodConfig.get().getHome();
+        Result data;
+        if (site.getType() == 3) {
+            Spider spider = site.recent().spider();
+            String homeContent = spider.homeContent(true);
+            SpiderDebug.log(homeContent);
+            data = Result.fromJson(homeContent);
+            if (data.getList().isEmpty()) {
                 String homeVideoContent = spider.homeVideoContent();
                 SpiderDebug.log(homeVideoContent);
-                result.setList(Result.fromJson(homeVideoContent).getList());
-                return result;
-            } else if (site.getType() == 4) {
-                ArrayMap<String, String> params = new ArrayMap<>();
-                params.put("filter", "true");
-                String homeContent = call(site, params, false);
-                SpiderDebug.log(homeContent);
-                return Result.fromJson(homeContent);
-            } else {
-                String homeContent = OkHttp.newCall(site.getApi(), site.getHeaders()).execute().body().string();
-                SpiderDebug.log(homeContent);
-                return fetchPic(site, Result.fromType(site.getType(), homeContent));
+                data.setList(Result.fromJson(homeVideoContent).getList());
             }
-        });
+        } else if (site.getType() == 4) {
+            ArrayMap<String, String> params = new ArrayMap<>();
+            params.put("filter", "true");
+            String homeContent = call(site, params, false);
+            SpiderDebug.log(homeContent);
+            data = Result.fromJson(homeContent);
+        } else {
+            String homeContent = OkHttp.newCall(site.getApi(), site.getHeaders()).execute().body().string();
+            SpiderDebug.log(homeContent);
+            data = fetchPic(site, Result.fromType(site.getType(), homeContent));
+        }
+        return gen == homeGeneration.get() ? data : null;
     }
 
     public void categoryContent(String key, String tid, String page, boolean filter, HashMap<String, String> extend) {

@@ -186,8 +186,17 @@
             android:screenOrientation="fullUser"
             android:theme="@style/AppTheme.Gallery" />
 
+        <activity
+            android:name=".ui.activity.DownloadActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:screenOrientation="fullUser" />
+
         <receiver
             android:name=".receiver.ShortcutReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".receiver.DownloadReceiver"
             android:exported="false" />
 
         <receiver
@@ -223,6 +232,11 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
+
+        <service
+            android:name=".service.DownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
     </application>
 </manifest>

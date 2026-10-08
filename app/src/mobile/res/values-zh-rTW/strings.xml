@@ -326,4 +326,28 @@
     <string name="custom_line_deleted">線路已刪除</string>
     <string name="custom_line_delete_title">刪除線路</string>
     <string name="custom_line_delete_msg">確定刪除該線路及其站點？</string>
+
+    <string name="app_download">下載</string>
+    <string name="setting_download">下載</string>
+    <string name="setting_download_desc">查看和管理已下載的影片</string>
+    <string name="download_tab_downloading">下載中</string>
+    <string name="download_tab_done">已下載</string>
+    <string name="download_status_queued">排隊中</string>
+    <string name="download_status_paused">已暫停</string>
+    <string name="download_status_finished">已完成</string>
+    <string name="download_status_failed">失敗</string>
+    <string name="download_pause">暫停</string>
+    <string name="download_resume">繼續</string>
+    <string name="download_retry">重試</string>
+    <string name="download_play">播放</string>
+    <string name="download_delete">刪除</string>
+    <string name="download_delete_confirm">確定刪除「%1$s」？</string>
+    <string name="download_started">已開始下載</string>
+    <string name="download_url_empty">無法解析下載連結</string>
+    <string name="download_1dm_missing">未安裝 1DM，請先安裝或使用內建下載</string>
+    <string name="download_m3u8_unsupported">暫不支援 m3u8 串流下載</string>
+    <string name="download_title">影片下載</string>
+    <string name="download_notify_text">%1$d 個任務 · %2$d%%</string>
+    <string name="download_pause_all">全部暫停</string>
+    <string name="download_resume_all">全部繼續</string>
 </resources>

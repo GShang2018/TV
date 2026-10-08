@@ -15,6 +15,9 @@ public abstract class DownloadDao extends BaseDao<Download> {
     @Query("SELECT * FROM Download WHERE id = :id ORDER BY createTime DESC")
     public abstract Download find(String id);
 
+    @Query("SELECT * FROM Download WHERE status = :status ORDER BY createTime DESC")
+    public abstract List<Download> findByStatus(int status);
+
     @Query("DELETE FROM Download WHERE id = :id")
     public abstract void delete(String id);
 
