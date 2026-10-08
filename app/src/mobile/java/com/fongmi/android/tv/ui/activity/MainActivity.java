@@ -53,6 +53,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     private ActivityMainBinding mBinding;
     private FragmentStateManager mManager;
     private boolean confirm;
+    private boolean syncNavigation;
 
     @Override
     protected ViewBinding getBinding() {
@@ -68,6 +69,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     @Override
     protected void initView(Bundle savedInstanceState) {
         Updater.get().release().start(this);
+        setupNavigation();
         initFragment(savedInstanceState);
         Server.get().start();
         initConfig();
@@ -75,8 +77,37 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void initEvent() {
-        mBinding.navigation.setOnItemSelectedListener(this);
-        mBinding.navigation.findViewById(R.id.live).setOnLongClickListener(this::addShortcut);
+        for (NavigationBarView nav : getNavs()) {
+            nav.setOnItemSelectedListener(this);
+            nav.findViewById(R.id.live).setOnLongClickListener(this::addShortcut);
+        }
+    }
+
+    private void setupNavigation() {
+        boolean wide = isWide();
+        NavigationBarView show = wide ? mBinding.navigationRail : mBinding.navigation;
+        NavigationBarView hide = wide ? mBinding.navigation : mBinding.navigationRail;
+        int selected = hide.getSelectedItemId();
+        // setSelectedItemId 会走 Menu 事件派发回调 onNavigationItemSelected，
+        // 而 getSelectedItemId() 此时读到的是尚未同步的旧值，相等判断会失效进而误触发 mManager.change
+        // 把当前 fragment hide 掉（change 到同页 = show 后 hide）。用 syncNavigation 抑制这次副作用。
+        syncNavigation = true;
+        if (selected != 0) show.setSelectedItemId(selected);
+        syncNavigation = false;
+        show.setVisibility(View.VISIBLE);
+        hide.setVisibility(View.GONE);
+    }
+
+    private boolean isWide() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    private NavigationBarView[] getNavs() {
+        return new NavigationBarView[]{mBinding.navigation, mBinding.navigationRail};
+    }
+
+    private NavigationBarView getNav() {
+        return isWide() ? mBinding.navigationRail : mBinding.navigation;
     }
 
     private void checkAction(Intent intent) {
@@ -179,11 +210,13 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     }
 
     private void setNavigation() {
-        mBinding.navigation.getMenu().findItem(R.id.vod).setVisible(true);
-        mBinding.navigation.getMenu().findItem(R.id.setting).setVisible(true);
-        // 直播页不再依赖订阅才显示，始终可见；无订阅时由直播首页展示"暂无订阅/添加订阅"
-        mBinding.navigation.getMenu().findItem(R.id.live).setVisible(true);
-        mBinding.navigation.getMenu().findItem(R.id.mine).setVisible(true);
+        for (NavigationBarView nav : getNavs()) {
+            nav.getMenu().findItem(R.id.vod).setVisible(true);
+            nav.getMenu().findItem(R.id.setting).setVisible(true);
+            // 直播页不再依赖订阅才显示，始终可见；无订阅时由直播首页展示"暂无订阅/添加订阅"
+            nav.getMenu().findItem(R.id.live).setVisible(true);
+            nav.getMenu().findItem(R.id.mine).setVisible(true);
+        }
     }
 
     private boolean openLive() {
@@ -221,7 +254,8 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        if (mBinding.navigation.getSelectedItemId() == item.getItemId()) return false;
+        if (syncNavigation) return true;
+        if (getNav().getSelectedItemId() == item.getItemId()) return false;
         if (item.getItemId() == R.id.vod) return mManager.change(0);
         if (item.getItemId() == R.id.setting) return mManager.change(1);
         if (item.getItemId() == R.id.live) return openLive();
@@ -236,6 +270,8 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         // 那会让点播页走 homeContent() 的清空式重载，分类 tab 与列表被清空后要等请求回来才恢复，
         // 期间 TabLayout 无 tab 仍占 48dp、pager 是 match_parent，表现为"tab 没了但高度还在"。
         // 各页已自行做轻量重排：VodFragment/LiveFragment 都在 onConfigurationChanged 里重算网格与标签。
+        // 但底部导航/左侧 rail 的切换（横屏 rail、竖屏底部导航）需要在此实时切换可见性并同步选中态。
+        setupNavigation();
     }
 
     protected boolean handleBack() {
@@ -244,7 +280,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void onBackPress() {
-        if (!mBinding.navigation.getMenu().findItem(R.id.vod).isVisible()) {
+        if (!getNav().getMenu().findItem(R.id.vod).isVisible()) {
             setNavigation();
         } else if (mManager.isVisible(4)) {
             change(0);
@@ -255,7 +291,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         } else if (mManager.isVisible(2)) {
             change(1);
         } else if (mManager.isVisible(1)) {
-            mBinding.navigation.setSelectedItemId(R.id.vod);
+            getNav().setSelectedItemId(R.id.vod);
         } else if (mManager.canBack(0)) {
             if (!confirm) setConfirm();
             else finish();
